@@ -3,6 +3,8 @@ import type { TextKey } from '@/i18n';
 import { Messenger } from '@/modules/friends/messenger';
 import { toggleMarketplace } from '@/modules/marketplace/gameBridge';
 import { Marketplace } from '@/modules/marketplace/state';
+import { moduleOn } from '@/modules/module';
+import { XShop } from '@/modules/xshop';
 
 /**
  * The five buttons on the right of the main frame (`newui_menu_Bt01..05`), in
@@ -24,8 +26,9 @@ export const MAIN_FRAME_BUTTONS: readonly MainFrameButton[] = [
   {
     file: 'partCharge1/newui_menu_Bt05.OZJ',
     titleKey: 'bottomBar.itemShop',
-    toggle: () => toggleMarketplace(),
-    pressed: () => Marketplace.open,
+    // With the X-shop module on (Mu Reforge) the button is its cash shop, as our client's `m_BtnCShop`.
+    toggle: () => (moduleOn('xshop') ? XShop.toggle() : toggleMarketplace()),
+    pressed: () => (moduleOn('xshop') ? XShop.open : Marketplace.open),
   },
   {
     file: 'partCharge1/newui_menu_Bt01.OZJ',

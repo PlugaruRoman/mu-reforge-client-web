@@ -154,6 +154,14 @@ export enum ENUM_WORLD {
   WD_79UNITEDMARKETPLACE = 79,
   WD_80KARUTAN1 = 80,
   WD_81KARUTAN2 = 81,
+  /** Mu Reforge only: Team vs Team (server map 87, World88), versions/reforge/maps/team_vs_team. */
+  WD_87TEAM_VS_TEAM = 87,
+  /** Mu Reforge only: the five Deep Dungeon floors (server maps 90-94, World91-95), versions/reforge/maps/deep_dungeon. */
+  WD_90DEEP_DUNGEON1 = 90,
+  WD_91DEEP_DUNGEON2 = 91,
+  WD_92DEEP_DUNGEON3 = 92,
+  WD_93DEEP_DUNGEON4 = 93,
+  WD_94DEEP_DUNGEON5 = 94,
   NUM_WD,
 }
 

@@ -6,7 +6,7 @@ import { observable, reaction, runInAction } from 'mobx';
 import { GameOptions } from '@/controllers/settings';
 import { itemBaseName } from '@versions/shared/items/itemsDatabase';
 import { itemLevelName } from '@/controllers/item_rules';
-import { ItemSerializer } from '@/controllers/item_rules';
+import { readItemData } from '@/controllers/item_rules';
 import { monsterDisplayName } from '@versions/shared/monsters/monstersDatabase';
 import {
   ActiveQuestListRequestPacket,
@@ -26,7 +26,9 @@ import {
   QuestCancelledPacket,
   QuestCompletionResponsePacket,
   QuestEventResponsePacket,
+  QuestProgressExtendedPacket,
   QuestProgressPacket,
+  QuestStateExtendedPacket,
   QuestStateListPacket,
   QuestStatePacket,
   QuestStepInfoPacket,
@@ -474,7 +476,7 @@ reaction(
 
 function itemName(data: DataView): string {
   try {
-    const item = ItemSerializer.DeserializeItem(new Uint8Array(data.buffer));
+    const item = readItemData(data);
     const name =
       itemBaseName(item.group, item.num) ||
       t('quest.itemFallback', { id: item.group * 512 + item.num });
@@ -601,7 +603,9 @@ function cacheProgress(key: number, conditions: RawCondition[], rewards: RawRewa
   });
 }
 
-function storeProgress(p: QuestProgressPacket | QuestStatePacket): number {
+type ProgressPacket = QuestProgressPacket | QuestStatePacket | QuestProgressExtendedPacket | QuestStateExtendedPacket;
+
+function storeProgress(p: ProgressPacket): number {
   const key = questKey(p.QuestNumber, p.QuestGroup);
   cacheProgress(key, p.getConditions(), p.getRewards());
   rewardShown.add(key);
@@ -799,8 +803,7 @@ export function installQuestLog(): void {
     playUiSound('window');
   });
 
-  EventBus.on('QuestProgress', packet => {
-    const p = new QuestProgressPacket(packet);
+  const progressShown = (p: ProgressPacket) => {
     const key = storeProgress(p);
     setProgressContents(key);
     progressFromNpc = true;
@@ -809,12 +812,14 @@ export function installQuestLog(): void {
       state.listOpen = false;
       state.progressOpen = true;
     });
-  });
-
-  EventBus.on('QuestState', packet => {
-    const p = new QuestStatePacket(packet);
-    storeProgress(p);
-  });
+  };
+  EventBus.on('QuestProgress', packet => progressShown(new QuestProgressPacket(packet)));
+  EventBus.on('QuestState', packet => void storeProgress(new QuestStatePacket(packet)));
+  // C2 F6 0C / F6 1B at 106.3, 272 bytes: 28-byte conditions from 12 and 24-byte rewards from 152, each
+  // with a 15-byte item slot read by the extended codec (S RemoteView/Quest/QuestProgressExtendedPlugIn.cs,
+  // QuestStateResponseExtendedPlugIn.cs, QuestStructExtensions.cs:126-240).
+  EventBus.on('QuestProgressExtended', packet => progressShown(new QuestProgressExtendedPacket(packet)));
+  EventBus.on('QuestStateExtended', packet => void storeProgress(new QuestStateExtendedPacket(packet)));
 
   EventBus.on('QuestCompletionResponse', packet => {
     const p = new QuestCompletionResponsePacket(packet);
@@ -872,7 +877,7 @@ export function installQuestLog(): void {
   // OpenMU resends the character information on a bulk stat add or a reset;
   // only a different hero starts from an empty log.
   let heroName: string | null = null;
-  EventBus.on('CharacterInformation', () => {
+  const characterChanged = () => {
     if (Hero.name !== heroName) {
       heroName = Hero.name;
       requestedStates.clear();
@@ -889,7 +894,10 @@ export function installQuestLog(): void {
       });
     }
     requestActiveQuests();
-  });
+  };
+  EventBus.on('CharacterInformation', characterChanged);
+  // The 106.3 form of the same packet (versions/reforge).
+  EventBus.on('CharacterInformationExtended', characterChanged);
 }
 
 function reset(): void {

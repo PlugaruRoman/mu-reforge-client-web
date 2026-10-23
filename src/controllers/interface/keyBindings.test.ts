@@ -9,7 +9,7 @@ const store = vi.hoisted(() => {
   return data;
 });
 
-const { KeyBindings, setKeyProfile } = await import('./keyBindings');
+const { KeyBindings, setKeyProfile, setVersionKeyDefaults, resetKeyBindings } = await import('./keyBindings');
 
 // NewUIHotKey.cpp:243-247: U toggles INTERFACE_WINDOW_MENU. The session panel is ours and takes
 // F6, a key no handler of the original reads (NewUIHotKey.cpp, ZzzInterface.cpp).
@@ -26,5 +26,26 @@ describe('the window menu key', () => {
     expect(KeyBindings.inventory).toBe('KeyI');
     setKeyProfile('');
     expect(store.size).toBe(1);
+  });
+});
+
+// GameVersion.keyDefaults: a version's own letters replace the client's defaults, a saved key still wins.
+describe('a version\'s own default keys', () => {
+  it('take over the defaults, unbind with an empty code, and yield to a saved key', () => {
+    setVersionKeyDefaults({ hideUi: 'F9', skillList: '' });
+    expect(KeyBindings.hideUi).toBe('F9');
+    expect(KeyBindings.skillList).toBe('');
+    expect(KeyBindings.inventory).toBe('KeyI');
+
+    store.set('mu_keys:Mine', JSON.stringify({ hideUi: 'KeyH' }));
+    setKeyProfile('Mine');
+    expect(KeyBindings.hideUi).toBe('KeyH');
+    expect(KeyBindings.skillList).toBe('');
+
+    setKeyProfile('');
+    resetKeyBindings();
+    expect(KeyBindings.hideUi).toBe('F9');
+    setVersionKeyDefaults({});
+    expect(KeyBindings.skillList).toBe('KeyK');
   });
 });

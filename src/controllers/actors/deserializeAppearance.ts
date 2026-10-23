@@ -94,6 +94,8 @@ export function withAppearanceClass(
 }
 
 export function classFromAppearance(app: DataView): CharacterClassNumber {
+  // The extended preview keeps the class number whole in byte 0 (S RemoteView/AppearanceSerializerExtended.cs:88-91).
+  if (app.byteLength === APPEARANCE_EXTENDED_LENGTH) return ClassFromAppearance(app.getUint8(0));
   return ClassFromAppearance(GetByteValue(app.getUint8(0), 5, 3));
 }
 
@@ -161,7 +163,10 @@ export function deserializeAppearance(app: DataView) {
  * hand, helm, armor, pants, gloves, boots) and 2-byte wings / pet.
  * Item: group = high nibble of byte 0, number = low nibble << 8 | byte 1,
  * glow level = high nibble of byte 2, excellent = bit 3, ancient = bit 2.
- * Empty slot: group 0xF.
+ * Empty slot: group 0xF. The pet's byte 0 also carries the Fenrir kind in
+ * bits 1-2 (1 black, 2 blue, 3 gold; S RemoteView/AppearanceSerializerExtended.cs:115-133),
+ * so its number is bit 0 of that byte and byte 1, as `ReadEquipmentExtended`
+ * masks it (ZzzCharacter.cpp:13049-13052).
  */
 export function deserializeAppearanceExtended(app: DataView) {
   const cls = ClassFromAppearance(app.getUint8(0));
@@ -178,7 +183,8 @@ export function deserializeAppearanceExtended(app: DataView) {
     return {
       num,
       group,
-      lvl: (b2 >> 4) & 0xf,
+      // The glow level (`GetGlowLevel`), as the 18-byte layout carries it.
+      lvl: itemLevelFromGlow((b2 >> 4) & 0xf),
       isExcellent: (b2 & 0x08) !== 0,
       isAncient: (b2 & 0x04) !== 0,
     };
@@ -201,8 +207,29 @@ export function deserializeAppearanceExtended(app: DataView) {
     gloves: shiny(17),
     boots: shiny(20),
     wings: unshiny(23),
-    pet: unshiny(25),
+    pet: petExtended(app),
   } as const;
+}
+
+/** The excellent flags a Fenrir kind stands for, as the 18-byte layout's pet carries them (`petFromAppearance`). */
+const FENRIR_FLAGS = [0, 0x01, 0x02, 0x04];
+
+function petExtended(app: DataView): Item | null {
+  if (app.byteLength < APPEARANCE_EXTENDED_LENGTH) return null;
+  const b0 = app.getUint8(25);
+  const group = b0 >> 4;
+  if (group === 0xf) return null;
+  const num = ((b0 & 0x01) << 8) | app.getUint8(26);
+  const fenrir = FENRIR_FLAGS[(b0 >> 1) & 0x03];
+  return fenrir ? { num, group, lvl: 0, excellentFlags: fenrir } : { num, group, lvl: 0 };
+}
+
+/**
+ * A character list entry's preview in the layout it came in: the 27 extended bytes of
+ * `CharacterListExtended` (client >= 106.3) or the classic 18.
+ */
+export function deserializePreview(app: DataView) {
+  return app.byteLength === APPEARANCE_EXTENDED_LENGTH ? deserializeAppearanceExtended(app) : deserializeAppearance(app);
 }
 
 /** Bytes the extended appearance occupies in AddCharacterToScopeExtended. */

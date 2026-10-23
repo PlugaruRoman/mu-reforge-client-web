@@ -1,0 +1,3 @@
+# The filled-in copies live on the web box only.
+.env
+proxy.env

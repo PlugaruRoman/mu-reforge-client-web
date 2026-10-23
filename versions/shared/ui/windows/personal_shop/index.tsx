@@ -11,6 +11,7 @@ import {
 } from '@/modules/inventory/itemStorage';
 import { MuSpriteFrame } from '@/controllers/interface/components/mu_sprite';
 import { MuButton } from '@/controllers/interface/components/mu_button';
+import { OffStoreButton } from '../reforge_hud/offModes';
 import { MuItemWindow } from '@/controllers/interface/components/mu_window';
 import { ItemGrid } from '../../components/item_grid';
 
@@ -230,6 +231,8 @@ export const MyShop = observer(() => {
           <span className="button-tooltip">{t(CLOSE_TOOLTIP)}</span>
         </MuButton>
       </div>
+
+      <OffStoreButton title={name} style={{ left: CLOSE_BUTTON_X + BUTTON_WIDTH + 6, top: BUTTON_Y + 6 }} />
     </MuItemWindow>
   );
 });

@@ -31,6 +31,26 @@ import options from './options/module';
 import pets from './pets/module';
 import muHelper from './mu_helper/module';
 import band from './band/module';
+import reforgeMarket from './reforge_market/module';
+import itemCollections from './item_collections/module';
+import guildBank from './guild_bank/module';
+import eventList from './event_list/module';
+import invasions from './invasions/module';
+import tvt from './tvt/module';
+import deepDungeon from './deep_dungeon/module';
+import huntLog from './hunt_log/module';
+import xshop from './xshop/module';
+import vip from './vip/module';
+import resets from './resets/module';
+import soulPoints from './soul_points/module';
+import jewelBank from './jewel_bank/module';
+import olympiad from './olympiad/module';
+import doppelganger from './doppelganger/module';
+import imperialGuardian from './imperial_guardian/module';
+import fortSiege from './fort_siege/module';
+import reforgeHud from './reforge_hud/module';
+import offlineModes from './offline_modes/module';
+import vaultPages from './vault_pages/module';
 import gm from './gm/module';
 import credits from './credits/module';
 
@@ -65,6 +85,26 @@ export const MODULES: readonly ModuleDef[] = [
   pets,
   muHelper,
   band,
+  reforgeMarket,
+  itemCollections,
+  guildBank,
+  eventList,
+  invasions,
+  tvt,
+  deepDungeon,
+  huntLog,
+  xshop,
+  vip,
+  resets,
+  soulPoints,
+  jewelBank,
+  olympiad,
+  doppelganger,
+  imperialGuardian,
+  fortSiege,
+  reforgeHud,
+  offlineModes,
+  vaultPages,
   gm,
   credits,
 ];

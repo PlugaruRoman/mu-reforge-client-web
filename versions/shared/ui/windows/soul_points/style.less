@@ -1,0 +1,76 @@
+// The Soul Point window (our client's reforge_soul_points.rcss): balance, category tabs, the four
+// attributes of the category and the selected one's detail, on the item window.
+.soul-body {
+  gap: 3px;
+
+  .soul-balance {
+    display: flex;
+    justify-content: space-between;
+    color: rgb(127, 178, 255);
+    white-space: nowrap;
+
+    b {
+      color: #ffd927;
+      font-weight: normal;
+    }
+
+    .soul-pending b {
+      color: rgb(150, 235, 150);
+    }
+  }
+
+  .soul-tabs .acct-btn {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 2px 1px;
+  }
+
+  .soul-node {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 4px;
+    cursor: pointer;
+    pointer-events: auto;
+    background: rgba(0, 0, 0, 0.45);
+    border: 1px solid rgba(120, 100, 60, 0.5);
+
+    &.selected {
+      border-color: #ffd927;
+    }
+
+    &.pending .soul-node-points {
+      color: rgb(150, 235, 150);
+    }
+
+    &.maxed .soul-node-points {
+      color: #ffd927;
+    }
+
+    .soul-node-name {
+      flex: 1;
+    }
+
+    .soul-node-milestone {
+      color: #ffb400;
+      min-width: 16px;
+    }
+
+    .soul-node-points {
+      color: #fff;
+    }
+  }
+
+  .soul-line {
+    white-space: normal;
+    line-height: 11px;
+  }
+
+  .soul-milestone {
+    color: #ffb400;
+  }
+
+  .soul-next {
+    color: #a8a8a8;
+  }
+}

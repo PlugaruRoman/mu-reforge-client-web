@@ -63,6 +63,7 @@ Some maps have no `spec.ts` (balgasrefuge, gmarea, karutan2, raklionboss) or no 
 | empireguardian, empireguardian4 | 69-71, 72 |
 | loginscene | 73, 74, 77, 78 |
 | lorenmarket, karutan1, karutan2 | 79, 80, 81 |
+| teamvsteam, deepdungeon (1, 2, 5), deepdungeonlower (3, 4) | Mu Reforge only: 87 (World88), 90-94 (World91-95), art in `public/game-assets-reforge` |
 
 ## Depends on / used by
 - uses: `@/controllers/maps` (contract, rooms), `@/controllers/terrain`, `@/controllers/render`,

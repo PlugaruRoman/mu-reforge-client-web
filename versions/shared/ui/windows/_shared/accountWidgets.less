@@ -1,0 +1,206 @@
+// The Mu Reforge account windows' rows and buttons, on the item window frame (accountWidgets.tsx).
+.acct-body {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  top: 38px;
+  bottom: 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 10px;
+  color: #e2e2e2;
+  text-shadow: 1px 1px 0 #000;
+  user-select: none;
+}
+
+.acct-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  white-space: nowrap;
+
+  .acct-label {
+    color: rgb(127, 178, 255);
+  }
+
+  .acct-value {
+    color: #fff;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    &.met {
+      color: rgb(150, 235, 150);
+    }
+
+    &.unmet {
+      color: rgb(255, 130, 110);
+    }
+  }
+}
+
+.acct-heading {
+  color: #ffd927;
+  font-weight: bold;
+  text-align: center;
+  margin-top: 2px;
+}
+
+.acct-hint {
+  color: #a8a8a8;
+  text-align: center;
+}
+
+.acct-message {
+  min-height: 12px;
+  text-align: center;
+  color: rgb(255, 130, 110);
+
+  &.good {
+    color: rgb(150, 235, 150);
+  }
+}
+
+.acct-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 5px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(120, 100, 60, 0.6);
+}
+
+.acct-buttons {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+}
+
+.acct-btn {
+  flex: 0 1 auto;
+  min-width: 40px;
+  padding: 2px 6px;
+  text-align: center;
+  cursor: pointer;
+  pointer-events: auto;
+  white-space: nowrap;
+  color: #e2e2e2;
+  background: linear-gradient(#3a2f1c, #1c160c);
+  border: 1px solid #7a6334;
+
+  &:hover {
+    color: #fff;
+    border-color: #c9a55a;
+  }
+
+  &.active {
+    color: #ffd927;
+    border-color: #c9a55a;
+  }
+
+  &.disabled {
+    opacity: 0.5;
+    filter: grayscale(0.6);
+  }
+}
+
+.acct-field {
+  width: 44px;
+  height: 13px;
+  padding: 0 3px;
+  font-size: 10px;
+  color: #fff;
+  text-align: right;
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid #5a4a2a;
+  outline: none;
+  pointer-events: auto;
+
+  &:disabled {
+    opacity: 0.5;
+  }
+}
+
+.acct-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+  pointer-events: auto;
+
+  .acct-box {
+    width: 9px;
+    height: 9px;
+    border: 1px solid #a08850;
+    background: rgba(0, 0, 0, 0.6);
+  }
+
+  &.checked .acct-box {
+    background: #ffd927;
+  }
+}
+
+.acct-bar {
+  height: 3px;
+  background: rgba(255, 255, 255, 0.12);
+
+  > div {
+    height: 100%;
+    background: #ffd927;
+  }
+}
+
+.acct-confirm {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+  pointer-events: auto;
+  z-index: 2;
+
+  .acct-confirm-box {
+    width: 150px;
+    padding: 8px 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    text-align: center;
+    background: rgba(10, 8, 4, 0.95);
+    border: 1px solid #a08850;
+  }
+
+  .acct-confirm-line.bold {
+    font-weight: bold;
+    color: #ffd927;
+  }
+
+  .acct-confirm-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin-top: 4px;
+  }
+}
+
+.acct-strip {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -18px;
+  height: 16px;
+  display: flex;
+  gap: 2px;
+  font-size: 10px;
+  text-shadow: 1px 1px 0 #000;
+  pointer-events: auto;
+
+  .acct-btn {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 1px 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}

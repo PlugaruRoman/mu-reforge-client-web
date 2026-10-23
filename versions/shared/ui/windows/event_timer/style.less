@@ -1,0 +1,66 @@
+@import (reference) '@/controllers/interface/components/mu_text/style.less';
+// The Event Timer (H): tabs, a scrolled list of two-line rows and a footer, inside the item window frame.
+.event-timer {
+  position: absolute;
+  left: 16px;
+  top: 34px;
+  width: 158px;
+  height: 386px;
+  font-size: 11px;
+  user-select: none;
+  text-shadow: 1px 1px 0 #000;
+
+  .event-timer-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+  }
+
+  .event-timer-head,
+  .event-timer-line {
+    display: flex;
+    justify-content: space-between;
+    white-space: nowrap;
+  }
+
+  .event-timer-head {
+    margin: 4px 4px 2px;
+  }
+
+  .event-timer-rows {
+    height: 288px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    pointer-events: auto;
+  }
+
+  .event-timer-row {
+    padding: 2px 4px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+
+    &.hovered {
+      background: rgba(255, 255, 255, 0.08);
+    }
+  }
+
+  .event-timer-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .event-timer-when {
+    display: block;
+    font-size: 10px;
+  }
+
+  .event-timer-footer {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    min-height: 28px;
+    text-align: center;
+    white-space: normal;
+    line-height: 13px;
+  }
+}

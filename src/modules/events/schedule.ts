@@ -165,6 +165,23 @@ export function takeOpeningState(game: number, minutes: number): boolean {
   return ours;
 }
 
+/**
+ * A server that pushes its own event list (Mu Reforge's C1 97, `modules/event_list`) gives the row
+ * its answer without a poll: `open`, else the seconds until the next start (null = unknown, the
+ * row is left alone). The next poll backs off as after any answer.
+ */
+export function takeServerSchedule(key: EventScheduleKey, open: boolean, seconds: number | null): void {
+  if (!EVENT_SCHEDULE_KEYS.includes(key) || (!open && seconds === null)) return;
+  const now = serverNow();
+  entries[key] = open
+    ? { opensAtServerMs: now, open: true, far: false }
+    : { opensAtServerMs: now + (seconds ?? 0) * 1000, open: false, far: false };
+  const poll = polls[key];
+  poll.silentPolls = 0;
+  poll.nextPollAtMs = nextPollAt(entries[key], now);
+  publish(now);
+}
+
 /** A ticket or a row click sent the request: the answer is the player's. */
 export function noteOpeningStateRequest(game: number): void {
   const key = keyOfGame(game);

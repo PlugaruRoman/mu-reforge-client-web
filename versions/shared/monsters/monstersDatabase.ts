@@ -21,6 +21,8 @@ export function monsterDisplayName(type: number, fallback?: string): string {
   return (
     localisedNpcName(type) ??
     MonstersDatabase.get(type)?.Name ??
+    // A folder with no original table row (a version's own monster) still names it.
+    monsters.def(type)?.Name ??
     fallback ??
     t('item.monsterFallback', { type })
   );

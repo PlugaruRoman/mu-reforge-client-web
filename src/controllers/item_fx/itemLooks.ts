@@ -2,6 +2,7 @@ import type { Scene, Vector3 } from '../render/babylon/exports';
 import type { MeshPass, MeshPassSet } from '../render/meshPasses';
 import type { HeldTexture } from '../fx/effectParticles';
 import { legacyItemEffectsOn } from './itemEffectMode';
+import { itemDef, type ItemBoneGlow } from '@/controllers/items';
 
 export type { MeshPass } from '../render/meshPasses';
 
@@ -120,7 +121,7 @@ export const oneIn =
     Math.random() * n < 1 ? scale : 0;
 
 const bodies = new Map<number, MeshPassSet>();
-const helds = new Map<number, HeldSet>();
+const helds = new Map<number, HeldSet | null>();
 const wings = new Map<number, HeldSet>();
 const key = (group: number, num: number) => group * 512 + num;
 const NONE: readonly never[] = [];
@@ -144,20 +145,61 @@ export function itemBodyPasses(group: number, num: number): MeshPassSet | null {
   return bodies.get(key(group, num)) ?? null;
 }
 
+/**
+ * A carried item's set: content's look, else the bone glow its item file names (`BoneGlow`, a version's
+ * own items), built once.
+ */
+function held(group: number, num: number): HeldSet | null {
+  const k = key(group, num);
+  let set = helds.get(k);
+  if (set === undefined) {
+    const glow = itemDef(group, num)?.BoneGlow;
+    set = glow ? { sprites: boneGlowSprites(glow), emitters: NONE } : null;
+    helds.set(k, set);
+  }
+  return set;
+}
+
+/** The pulse of a bone glow (Mu Reforge's `ApplyBoneGlow`): brightness and size roll with `WorldTime`. */
+const glowLuminosity = (ms: number) => Math.abs(Math.sin(ms * 0.0025)) * 0.35;
+
+/**
+ * A light on each bone in the glow's colour lifted by the pulse, and turning stars at the grip and tip
+ * (Mu Reforge client Render/Items/Reforge/ReforgeItemEffects.cpp). Its sparkle particle is not drawn.
+ */
+export function boneGlowSprites(glow: ItemBoneGlow): HeldSprite[] {
+  const [r, g, b] = glow.color;
+  const light: LookLight = (ms, _body, out) => {
+    const l = glowLuminosity(ms);
+    out.set(Math.min(1, r + l), Math.min(1, g + l), Math.min(1, b + l));
+  };
+  const scale = (ms: number) => (Math.abs(Math.sin(ms * 0.003)) * 0.15 + 0.5) * glow.size;
+  const sprites: HeldSprite[] = glow.bones.map(bone => ({ texture: 'flare01', bone, scale, light }));
+  if (glow.stars) {
+    const spin = (ms: number) => (ms * 0.1) % 360;
+    const [grip, tip] = glow.stars;
+    sprites.push(
+      { texture: 'shiny02', bone: tip, scale: ms => 1.1 + glowLuminosity(ms), light: [1, 0.9, 0.6], rotation: spin },
+      { texture: 'shiny02', bone: grip, scale: ms => 0.7 + glowLuminosity(ms), light: [1, 0.9, 0.6], rotation: ms => -spin(ms) }
+    );
+  }
+  return sprites;
+}
+
 /** The sprites and emitters a character carrying the item draws on it, or null. */
 export function itemHeldSet(group: number, num: number): HeldSet | null {
-  return helds.get(key(group, num)) ?? null;
+  return held(group, num);
 }
 
 /** The sprites a character carrying the item draws on it, or null when it draws none. */
 export function itemHeldSprites(group: number, num: number): readonly HeldSprite[] | null {
-  const sprites = helds.get(key(group, num))?.sprites;
+  const sprites = held(group, num)?.sprites;
   return sprites?.length ? sprites : null;
 }
 
 /** The emitters a character carrying the item runs, or null. */
 export function itemHeldEmitters(group: number, num: number): readonly HeldEmitter[] | null {
-  const emitters = helds.get(key(group, num))?.emitters;
+  const emitters = held(group, num)?.emitters;
   return emitters?.length ? emitters : null;
 }
 

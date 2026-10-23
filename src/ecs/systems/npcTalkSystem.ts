@@ -1,5 +1,5 @@
 import { PointerEventTypes } from '../../controllers/render/babylon/exports';
-import { Merchant } from '../../modules/npc_shop';
+import { Merchant, takeNpcClick } from '../../modules/npc_shop';
 import { Bag } from '../../modules/inventory';
 import { events } from '../../modules/events';
 import { quests } from '../../modules/quests';
@@ -218,7 +218,8 @@ export const NpcTalkSystem: ISystemFactory = world => {
         name: target.objectNameInWorld ?? 'NPC',
         npcType: target.npcType!,
       };
-      // An event NPC (the Crywolf statue) never opens a server window.
+      // A module's own NPC window (npc_shop/npcClicks.ts), an event NPC (the Crywolf statue).
+      if (takeNpcClick(npc)) return;
       if (events.useNpc(npc)) return;
       if (quests.useNpc(npc)) return;
       Merchant.talkToNpc(npc);

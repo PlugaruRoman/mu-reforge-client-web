@@ -42,6 +42,7 @@ import { closeKanturu, kanturuDialog } from './kanturu';
 import { matchCountdownLine } from './matchNotices';
 
 export type { EventLayer, EventEntryState } from './layer';
+export { takeServerSchedule } from './schedule';
 
 /**
  * The events layer: Blood Castle, Devil Square, Chaos Castle and the lines

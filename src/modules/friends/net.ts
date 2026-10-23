@@ -1,4 +1,4 @@
-import { AddLetterLetterStateEnum, AddLetterPacket, ChatRoomConnectionInfoPacket, FriendAddedPacket, FriendDeletedPacket, FriendInvitationResultPacket, FriendOnlineStateUpdatePacket, FriendRequestPacket, LetterSendResponseLetterSendRequestResultEnum, LetterSendResponsePacket, MessengerInitializationPacket, OpenLetterPacket, RemoveLetterPacket } from '@versions/shared/packets/ServerToClientPackets';
+import { AddLetterLetterStateEnum, AddLetterPacket, ChatRoomConnectionInfoPacket, FriendAddedPacket, FriendDeletedPacket, FriendInvitationResultPacket, FriendOnlineStateUpdatePacket, FriendRequestPacket, LetterSendResponseLetterSendRequestResultEnum, LetterSendResponsePacket, MessengerInitializationPacket, OpenLetterExtendedPacket, OpenLetterPacket, RemoveLetterPacket } from '@versions/shared/packets/ServerToClientPackets';
 import { ChatRooms } from '../chat/chatRooms';
 import { EventBus } from '@/core/eventBus';
 import { FRIEND_OFFLINE } from './friendList';
@@ -7,6 +7,7 @@ import { Social } from '../social/social';
 import { t, type TextKey } from '@/i18n';
 import { UI_BUS, playSfx } from '@/controllers/sound/sfx';
 import { cleanName } from '../chat/chat';
+import { readWireString } from '@/core/binaryUtils';
 import { runInAction } from 'mobx';
 
 // ---- friends & letters (`ReceiveFriend*` / `ReceiveLetter*`) ----------------
@@ -14,6 +15,9 @@ import { runInAction } from 'mobx';
 /** The friend `Server` byte: 0xFF is offline, anything else a game server. */
 const friendServer = (serverId: number) =>
   serverId === FRIEND_OFFLINE ? -1 : serverId;
+
+/** Our server's AddLetter length (S ServerToClientPackets.xml); the classic one is 79. */
+const ADD_LETTER_REFORGE_LENGTH = 107;
 
 const LETTER_SEND_RESULTS: Record<
   LetterSendResponseLetterSendRequestResultEnum,
@@ -108,13 +112,18 @@ export function installNet(): void {
   /** AddLetter (C3 0xC6): one row of the letter box. */
   EventBus.on('AddLetter', packet => {
     const p = new AddLetterPacket(packet);
-    const isNew = p.State === AddLetterLetterStateEnum.New;
+    // Our server's AddLetter is 107 bytes: a 60-byte subject at 46 and the state at 106
+    // (S ServerToClientPackets.xml AddLetter, RemoteView/Messenger/AddToLetterListPlugIn.cs;
+    // client WSclient.h FS_LETTER_ALERT Subject[MAX_LETTER_TITLE_LENGTH = 60]).
+    const wide = packet.byteLength >= ADD_LETTER_REFORGE_LENGTH;
+    const state: AddLetterLetterStateEnum = wide ? packet.getUint8(106) : p.State;
+    const isNew = state === AddLetterLetterStateEnum.New;
     Messenger.addLetter({
       index: p.LetterIndex,
       sender: cleanName(p.SenderName),
-      subject: cleanName(p.Subject),
+      subject: cleanName(wide ? readWireString(packet, 46, 106) : p.Subject),
       timestamp: p.Timestamp.replace(/\0+$/, '').trim(),
-      read: p.State === AddLetterLetterStateEnum.Read,
+      read: state === AddLetterLetterStateEnum.Read,
       isNew,
     });
     // `New` means it landed while the hero was online, so it is announced
@@ -130,6 +139,13 @@ export function installNet(): void {
   /** OpenLetter (C4 0xC7): the body of the letter that was asked for. */
   EventBus.on('OpenLetter', packet => {
     const p = new OpenLetterPacket(packet);
+    Messenger.setLetterBody(p.LetterIndex, p.Message.replace(/\0+$/, ''));
+  });
+
+  // C4 C7 at 106.3: a 42-byte appearance block at 6 pushes the message to 50
+  // (S RemoteView/Messenger/ShowLetterExtendedPlugIn.cs; client WSclient.cpp ReceiveLetterText).
+  EventBus.on('OpenLetterExtended', packet => {
+    const p = new OpenLetterExtendedPacket(packet);
     Messenger.setLetterBody(p.LetterIndex, p.Message.replace(/\0+$/, ''));
   });
 

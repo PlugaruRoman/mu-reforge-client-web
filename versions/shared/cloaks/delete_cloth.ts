@@ -1,5 +1,6 @@
 import type { CloakWearer } from '@/controllers/actors/cloaks';
-import { CAPE_OF_EMPEROR, CAPE_OF_FIGHTER, CAPE_OF_LORD, CAPE_OF_OVERRULE, HELPER_GROUP, WING_GROUP, WING_OF_RUIN } from '@/controllers/actors/wings';
+import { CAPE_OF_EMPEROR, CAPE_OF_FIGHTER, CAPE_OF_LORD, CAPE_OF_OVERRULE, HELPER_GROUP, WING_GROUP, WING_OF_RUIN, capeClothOf } from '@/controllers/actors/wings';
+import { BaseClass, getBaseClass } from '@/core/types';
 import type { Item } from '@/ecs/world';
 
 /** The wings whose change deletes the whole set: the Wing of Ruin, the capes and the Mantle (WSclient.cpp:2474-2491). */
@@ -18,6 +19,9 @@ export function tearsSet(w: CloakWearer): boolean {
   const before = w.wingBefore;
   const now = w.wing;
   if (before?.group === now?.group && before?.num === now?.num) return false;
+  // Mu Reforge's `RebuildClothOnHeroCapeChange`: a Dark Lord or Rage Fighter putting a cloth cape on or off.
+  const base = getBaseClass(w.charClass);
+  if ((base === BaseClass.DarkLord || base === BaseClass.RageFighter) && !capeClothOf(before) !== !capeClothOf(now)) return true;
   if (w.hero) return clothWing(before) || clothWing(now);
   return now === null ? clothWing(before) : clothWing(now);
 }

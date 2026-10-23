@@ -169,7 +169,11 @@ describe('assetsIndex', () => {
 
     const sorted = (list: number[]) => list.sort((a, b) => a - b);
 
-    expect(sorted(worlds.season6)).toEqual(sorted([...read]));
+    // Mu Reforge's own worlds (Team vs Team, the Deep Dungeon floors) ship in its own tree only.
+    const reforgeOnly = worlds.reforge.filter(world => !worlds.season6.includes(world));
+    expect(sorted(reforgeOnly)).toEqual([88, 91, 92, 93, 94, 95]);
+    expect(sorted(worlds.reforge)).toEqual(sorted([...read]));
+    expect(sorted(worlds.season6)).toEqual(sorted([...read].filter(world => !reforgeOnly.includes(world))));
     expect(worlds.season6.filter(world => !shipped.has(world))).toEqual([]);
     expect(sorted(worlds.v097d)).toEqual(sorted([...read].filter(world => world <= 12)));
   });

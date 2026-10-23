@@ -11,9 +11,8 @@ import { MemoryJournal, type Journal } from "./track/journal";
 import { DEFAULT_TRACK_DB, SqliteJournal } from "./track/store";
 import { startDemo } from "./track/demo";
 import { BandHub, type BandPeer } from "./band/hub";
-import { isBandFrame } from "../src/controllers/net/protocols/bandProtocol";
+import { routeClientFrame } from "./clientFrames";
 import { PingHub, type PingPeer } from "./ping/hub";
-import { isPingFrame } from "../src/controllers/net/protocols/pingProtocol";
 import { SERVER_MANIFEST_PATH, serverManifestResponse } from "./serverManifest";
 
 const PORT = process.env.PORT || "3000";
@@ -78,9 +77,10 @@ const TRACK_WHISPERS = (process.env.TRACK_WHISPERS ?? "on") !== "off";
 
 /**
  * The band relay (documentation/band/ARCHITECTURE.md): instrument frames
- * (`C1 .. FA`) never reach the game server; they are validated and relayed
+ * (`C1 .. FA`) never reach the game server while it is on; they are validated and relayed
  * here to the sockets whose character can see the performer, which is what
- * the tracker knows. `BAND=off` swallows them. Needs `TRACK` on.
+ * the tracker knows. `BAND=off` passes them to the game server (Mu Reforge's
+ * Item Collections is C1 FA, clientFrames.ts). Needs `TRACK` on.
  */
 const BAND_ENABLED = (process.env.BAND ?? "on") !== "off";
 const BAND_MAX_PERFORMERS = Number(process.env.BAND_MAX_PERFORMERS ?? 16);
@@ -496,16 +496,18 @@ Bun.serve<WebSocketData>({
 
       const relay = ws as ServerWebSocket<RelayData>;
 
-      // A band frame is the proxy's to handle and never the game server's:
-      // swallowed whether the relay is on or off, before the log and the
-      // write, and never shown to the sniffers.
+      // A band frame is the proxy's while `BAND` is on (relayed, or swallowed
+      // without the tracker); with `BAND=off` C1 FA goes to the game server
+      // (Mu Reforge's Item Collections, clientFrames.ts). A ping frame is always
+      // the proxy's. Both before the log and the write, never shown to the sniffers.
       if (typeof message !== "string") {
         const bytes = asBufferSource(message) as Uint8Array;
-        if (isBandFrame(bytes)) {
+        const route = routeClientFrame(bytes, BAND_ENABLED);
+        if (route === "band") {
           if (band && relay.data.band) band.receive(relay.data.band, bytes);
           return;
         }
-        if (isPingFrame(bytes)) {
+        if (route === "ping") {
           if (ping && relay.data.ping) ping.receive(relay.data.ping, bytes);
           return;
         }

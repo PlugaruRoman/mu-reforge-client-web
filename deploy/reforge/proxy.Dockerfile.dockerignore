@@ -1,0 +1,14 @@
+# Read by BuildKit for deploy/reforge/proxy.Dockerfile only (context = repository root).
+# Allow-list: the proxy needs its own folder, the engine-free src/ helpers it imports, the
+# version folders its tracker imports, and the package manifest.
+**
+!package.json
+!bun.lock
+!tsconfig.json
+!index.d.ts
+!src/**
+!versions/**
+!proxy/**
+!tools/sqliteMigrate.ts
+**/*.test.ts
+**/node_modules

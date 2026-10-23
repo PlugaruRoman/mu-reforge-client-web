@@ -3,6 +3,7 @@
  * OpenMU default (`-version:season6`, `Persistence/Initialization/VersionSeasonSix`).
  * Everything the base game did before the version seam existed lives here.
  */
+import { REFORGE_ONLY_MODULES } from '../shared/reforgeOnlyModules';
 import { asciiBytes, type GameVersion } from '@/version/contract';
 import { season6Data } from './data';
 // The shared monsters (and their bodies) this version spawns, registered with the monsters controller.
@@ -67,6 +68,6 @@ export const gameVersion: GameVersion = {
     rageFighter: true,
     itemHotkeys: { slots: 4, bindable: true },
   },
-  modulesOff: [],
+  modulesOff: [...REFORGE_ONLY_MODULES],
   miniGames: ['bloodCastle', 'devilSquare', 'chaosCastle'],
 };

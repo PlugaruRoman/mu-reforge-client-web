@@ -72,9 +72,12 @@ Controllers, ECS systems and `app/boot.tsx` add theirs at runtime, after the mod
 - [friends](friends/readme.md): friend list, letters (`Messenger`), chat room invites.
 - [gm](gm/readme.md): game master panel, command catalogue, admin feed, offline debug menu.
 - [guild](guild/readme.md): guild packets; state in `Social`.
+- [guild_bank](guild_bank/readme.md): Mu Reforge's shared guild bank, guild settings and castle warp (DC).
 - [guild_war](guild_war/readme.md): guild war, Battle Soccer, alliances; state in `Social`.
 - [hero](hero/readme.md): the hero's stats, vitals, level, experience, respawn, stat points.
 - [inventory](inventory/readme.md): the bag, the shared item grid model and item runs.
+- [item_collections](item_collections/readme.md): Mu Reforge's Item Collections (C1/C2 FA): catalog, register.
+- [jewel_bank](jewel_bank/readme.md): Mu Reforge's account jewel bank (D3): counts, withdraw, deposit from the bag.
 - [marketplace](marketplace/readme.md): player marketplace window state and its service link.
 - [mu_helper](mu_helper/readme.md): MU Helper config codec, settings and the auto-hunt loop.
 - [npc_shop](npc_shop/readme.md): NPC talk and merchant packets, the merchant window (`Merchant`).
@@ -83,15 +86,21 @@ Controllers, ECS systems and `app/boot.tsx` add theirs at runtime, after the mod
 - [personal_shop](personal_shop/readme.md): player stall packets; state in `Economy`.
 - [pets](pets/readme.md): pets and mounts: models, drawing, Dark Raven / Dark Horse.
 - [quests](quests/readme.md): legacy quests, quest log, NPC dialogue, kill counters.
+- [reforge_market](reforge_market/readme.md): Mu Reforge's market board (E8): search every open store, walk to the seller.
+- [resets](resets/readme.md): Mu Reforge's resets, paid stat / master resets, Auto Add and the bulk stat add (D9, F3 06).
 - [scope](scope/readme.md): objects entering and leaving view, moves, appearance changes.
 - [servers](servers/readme.md): server profiles, server list, saved accounts, probes, service URLs.
 - [session](session/readme.md): connect, login, logout, resume after a drop, session stats.
 - [skills](skills/readme.md): buff timers, re-use delays, castability, master level and tree.
 - [social](social/readme.md): the `Social` store (chat, party, guild) and the guild mark codec.
+- [soul_points](soul_points/readme.md): Mu Reforge's Soul Point system (DE): 16 bonuses, milestones, paid reset.
 - [trade](trade/readme.md): trade packets; state in `Economy`.
 - [vault](vault/readme.md): vault packets; state in `Economy`.
+- [vault_pages](vault_pages/readme.md): Mu Reforge's paged vault (DD 00), the arrows on the vault window.
+- [vip](vip/readme.md): Mu Reforge's VIP shop (D7): four 30-day tiers bought with W Coin.
 - [warp](warp/readme.md): map changes, teleports, the loading hold after a warp.
 - [world](world/readme.md): weather, fanfare and map-wide object effects.
+- [xshop](xshop/readme.md): the X-shop (Reforge cash shop, D2) and rental item expiry (D2 11 / 12).
 - [_api](_api/readme.md): the module API (not a module): the versioned contract, the in-process
   host, the message binding for sandboxed modules and the sandbox frame.
 - `_shared/i18n/`: text more than one module uses. A helper other modules' handlers reuse lives

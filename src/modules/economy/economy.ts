@@ -115,7 +115,16 @@ function sphereSeed(item: Item): number | null {
 
 type TradePartner = { name: string; level: number; guildId: number };
 
-export type ShopStock = { slot: number; item: Item; price: number };
+export type ShopStock = {
+  slot: number;
+  item: Item;
+  price: number;
+  /**
+   * A barter price (Mu Reforge, `PlayerShopItemExtended`): `amount` pieces of the item
+   * `itemType` (group << 12 | number) instead of zen (client PersonalShopCurrency.cpp DecodeExtendedPrice).
+   */
+  barter?: { itemType: number; amount: number };
+};
 
 type ShopBrowse = {
   playerId: number;
@@ -185,6 +194,11 @@ export const Economy = new (class _Economy {
   mixNotice: TextKey | null = null;
   /** `g_nChaosTaxRate`: the castle's chaos machine tax, from `ReceiveTaxInfo` type 1 (WSclient.cpp:11303-11306). */
   chaosTaxRate = 0;
+  /**
+   * Mu Reforge's own rate and price for the tray (C1 EC, modules/reforge_hud): they win over the
+   * `Mix.bmd` ones while they belong to the matched recipe (`FindServerSuccessRate`, MixMgr.h:321).
+   */
+  serverMixRate: { mixId: number; rate: number; zen: number } | null = null;
 
   // ---- trade (CNewUITrade) -------------------------------------------------
 
@@ -248,6 +262,7 @@ export const Economy = new (class _Economy {
       mixSocket: observable,
       mixNotice: observable,
       chaosTaxRate: observable,
+      serverMixRate: observable.ref,
       mixSockets: computed,
       tradeOpen: observable,
       myTradeItems: observable,
@@ -572,7 +587,10 @@ export const Economy = new (class _Economy {
 
   /** `CheckMixInventory`: the recipe the tray makes, against this window's `Mix.bmd` list. */
   get mixCheck(): MixCheck {
-    return checkMix(mixRecipes()?.[this.mixInventoryType] ?? [], this.mixItems);
+    const check = checkMix(mixRecipes()?.[this.mixInventoryType] ?? [], this.mixItems);
+    const server = this.serverMixRate;
+    if (!server || !check.recipe || check.recipe.mixId !== server.mixId) return check;
+    return { ...check, successRate: server.rate, requiredZen: server.zen };
   }
 
   /**

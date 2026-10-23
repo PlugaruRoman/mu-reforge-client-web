@@ -2,20 +2,22 @@ import { describe, expect, it } from 'vitest';
 import { VERSION_REGISTRY, DEFAULT_VERSION_ID } from './registry';
 import { gameVersion as season6 } from './season6';
 import { gameVersion as v097d } from './v097d';
+import { gameVersion as reforge } from './reforge';
 
 /**
  * Two guards: the registry stays consistent with the version bodies, and
  * Season 6 keeps every wire-visible value it had before 0.97d was added.
  */
 describe('version registry', () => {
-  it('carries season6 as the default plus 0.97d', () => {
+  it('carries season6 as the default plus 0.97d and Mu Reforge', () => {
     expect(DEFAULT_VERSION_ID).toBe('season6');
-    expect(VERSION_REGISTRY.map(v => v.id)).toEqual(['season6', 'v097d']);
+    expect(VERSION_REGISTRY.map(v => v.id)).toEqual(['season6', 'v097d', 'reforge']);
   });
 
   it('keeps entry metadata in step with each version body', () => {
     for (const entry of VERSION_REGISTRY) {
-      const body = entry.id === 'season6' ? season6 : v097d;
+      const body = { season6, v097d, reforge }[entry.id];
+      if (!body) throw new Error(`no version body for ${entry.id}`);
       expect(entry.label).toBe(body.label);
       expect(entry.listTag).toBe(body.listTag);
       expect(entry.id).toBe(body.id);

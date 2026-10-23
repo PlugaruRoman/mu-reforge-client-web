@@ -1,0 +1,35 @@
+/** ru text of `versions/shared/ui/windows/add_stats`. */
+
+import type en from './en';
+
+export default {
+  'addStats.title': 'Добавить',
+  'addStats.tabAdd': 'Добавить',
+  'addStats.tabAuto': 'Авто',
+  'addStats.str': 'Сила',
+  'addStats.agi': 'Ловкость',
+  'addStats.vit': 'Живучесть',
+  'addStats.ene': 'Энергия',
+  'addStats.cmd': 'Командование',
+  'addStats.available': 'Свободные очки',
+  'addStats.distribute': 'Распределение очков',
+  'addStats.full': 'Всё',
+  'addStats.clear': 'Очистить',
+  'addStats.add': 'Добавить',
+  'addStats.noPoints': 'Нет очков для распределения.',
+  'addStats.tooMany': 'Слишком много: {total} из {available} очков',
+  'addStats.typeAmount': 'Введите число или отметьте "Всё".',
+  'addStats.spending': 'Тратится {total} из {available} очков',
+  'addStats.enable': 'Включить авто-раскидку',
+  'addStats.every': 'Каждые',
+  'addStats.levels': 'уровней',
+  'addStats.preview': '({points} оч.)',
+  'addStats.split': 'Доли распределения',
+  'addStats.total': 'Всего {total}%',
+  'addStats.totalOver': 'Всего {total}% - нельзя больше 100%',
+  'addStats.asking': 'Запрашиваем настройки у сервера...',
+  'addStats.unsaved': 'Есть несохранённые изменения',
+  'addStats.savedNext': 'Сохранено - следующее на уровне {level}',
+  'addStats.savedOff': 'Сохранено - сейчас отключено',
+  'addStats.save': 'Сохранить',
+} satisfies Partial<Record<keyof typeof en, string>>;

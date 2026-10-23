@@ -1,0 +1,54 @@
+// Our client's legacy storage.rcss `#reforge_vault_pager`: two 14 x 22 arrow boxes and the page
+// number between them, gold text on a dark well.
+.vault-pager {
+  position: absolute;
+  width: 54px;
+  height: 22px;
+  pointer-events: auto;
+
+  .vault-page-btn {
+    position: absolute;
+    top: 0;
+    width: 14px;
+    height: 22px;
+    line-height: 22px;
+    text-align: center;
+    font-size: 11px;
+    font-weight: bold;
+    color: #ffdc96;
+    background: rgba(0, 0, 0, 0.47);
+    border: 1px solid rgba(120, 100, 70, 0.8);
+    box-sizing: border-box;
+    cursor: pointer;
+
+    &:hover {
+      background: rgba(217, 158, 51, 0.27);
+    }
+
+    &.disabled {
+      opacity: 0.35;
+      pointer-events: none;
+    }
+
+    &.prev {
+      left: 0;
+    }
+
+    &.next {
+      left: 40px;
+    }
+  }
+
+  .vault-page-text {
+    position: absolute;
+    left: 14px;
+    top: 0;
+    width: 26px;
+    height: 22px;
+    line-height: 22px;
+    text-align: center;
+    font-size: 11px;
+    color: #ffdc96;
+    text-shadow: 1px 1px 0 #000;
+  }
+}

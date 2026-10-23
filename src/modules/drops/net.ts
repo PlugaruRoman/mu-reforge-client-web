@@ -3,7 +3,7 @@ import { EventBus } from '@/core/eventBus';
 import { type Item } from '@/ecs/world';
 import { ItemDropRemovedPacket, ItemDropResponsePacket, ItemPickUpRequestFailedItemPickUpFailReasonEnum, ItemPickUpRequestFailedPacket, ItemsDroppedPacket, MoneyDroppedExtendedPacket } from '@versions/shared/packets/ServerToClientPackets';
 import { ItemGroup, angleRotation, itemRestHeight, itemRestPose, itemRestRotation } from '@/controllers/actors/itemAngle';
-import { ItemSerializer } from '@/controllers/item_rules';
+import { readItemList } from '@/controllers/item_rules';
 import { ItemsDatabase, itemBaseName } from '@versions/shared/items/itemsDatabase';
 import { Bag } from '@/modules/inventory';
 import { Hero } from '@/modules/hero';
@@ -74,14 +74,26 @@ function applyItemsDropped(p: ItemsDroppedPacket) {
 
   if (!world) return;
 
-  p.getItems(p.ItemCount).forEach(item => {
+  // C2 20: count at 4, then per drop its id (bit 7 = fresh), x, y and the item, from 5
+  // (S RemoteView/World/ShowDroppedItemsPlugIn.cs:40-70); the item read in the version's codec.
+  const b = p.buffer;
+  readItemList(b, 5, p.ItemCount, 4).forEach(({ at, item: read }) => {
+    const item = {
+      Id: b.getUint16(at, false),
+      IsFreshDrop: (b.getUint8(at) & 0x80) !== 0,
+      PositionX: b.getUint8(at + 2),
+      PositionY: b.getUint8(at + 3),
+    };
     const maskedId = item.Id & 0x7fff;
-    const data = item.ItemData;
+    // The 12-byte form: a zen pile (sent here only below 106.3) keeps its amount in bytes 1, 2 and 4.
+    const data = read.raw;
+    // Every codec read fills `raw`; without the bytes there is nothing to place.
+    if (!data) return;
 
-    const id = data.getUint8(0);
-    const group = data.getUint8(5) >> 4;
+    const id = data[0];
+    const group = data[5] >> 4;
 
-    const isMoney = data.byteLength >= 6 && id === 15 && group === 14;
+    const isMoney = id === 15 && group === 14;
 
     const itemConfig = ItemsDatabase.getItem(group, id);
     // An item this client has no file for: skip it, not the rest of the packet.
@@ -90,15 +102,10 @@ function applyItemsDropped(p: ItemsDroppedPacket) {
     let amount = 0;
 
     if (isMoney) {
-      amount =
-        (data.getUint8(1) << 16) | (data.getUint8(2) << 8) | data.getUint8(4);
+      amount = (data[1] << 16) | (data[2] << 8) | data[4];
     }
 
-    const parsed = isMoney
-      ? undefined
-      : ItemSerializer.DeserializeItem(
-          new Uint8Array(data.buffer, data.byteOffset, data.byteLength)
-        );
+    const parsed = isMoney ? undefined : read;
 
     // CreateItem / CreateMoneyDrop (ZzzObject.cpp:5997-6002 / :6198): a fresh
     // drop lands with a thud, zen jingles, jewels ring - for the drops the

@@ -1,0 +1,42 @@
+/** English text of the `deep_dungeon` window. See src/i18n/readme.md. */
+
+const en = {
+  'deepDungeon.title': 'Deep Dungeon',
+  'deepDungeon.floor': 'Floor {n}',
+  'deepDungeon.difficulty.easy': 'Easy',
+  'deepDungeon.difficulty.normal': 'Normal',
+  'deepDungeon.difficulty.hard': 'Hard',
+  'deepDungeon.difficulty.veryHard': 'Very Hard',
+  'deepDungeon.difficulty.extreme': 'Extreme',
+  'deepDungeon.levelRequired': 'You must be level {level} to enter the Deep Dungeon.',
+  'deepDungeon.closesIn': 'Closes in {time}',
+  'deepDungeon.closedNow': 'The dungeon has closed',
+  'deepDungeon.requiresLevel': 'Requires level {level}',
+  'deepDungeon.requiresLevelYou': 'Requires level {level} (you: {you})',
+  'deepDungeon.monstersLabel': 'Monsters',
+  'deepDungeon.monsterLevels': 'Lv {min}-{max}',
+  'deepDungeon.suggestedLabel': 'Suggested',
+  'deepDungeon.resetRange': '{min}-{max} resets',
+  'deepDungeon.resetsFrom': '{min}+ resets',
+  'deepDungeon.enterFloor': 'Enter floor {n}',
+  'deepDungeon.loot.0a': 'Bless, Soul, Chaos, Life',
+  'deepDungeon.loot.0b': 'Talisman of Luck, Zen',
+  'deepDungeon.loot.1a': 'Creation, Guardian, Zen',
+  'deepDungeon.loot.1b': 'Box of Luck, Excellent',
+  'deepDungeon.loot.2a': 'Harmony, Skill, Luck',
+  'deepDungeon.loot.2b': 'Gemstone, BC Ticket',
+  'deepDungeon.loot.3a': 'Excellent, Ancient, Pets',
+  'deepDungeon.loot.3b': 'Chaos Assembly, Sockets',
+  'deepDungeon.loot.4a': 'Exc. Socket, Ancient, Pets',
+  'deepDungeon.loot.4b': 'Chaos Assembly, Sockets',
+  'deepDungeon.hudFloor': 'Deep Dungeon - Floor {n}',
+  'deepDungeon.hudClosing': 'Closing - you will be moved out!',
+};
+
+export default en;
+
+declare module '@/i18n' {
+  interface TextOwners {
+    'versions/shared/ui/windows/deep_dungeon': typeof en;
+  }
+}

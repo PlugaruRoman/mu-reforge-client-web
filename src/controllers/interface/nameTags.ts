@@ -72,6 +72,18 @@ export function outlawBodyLight(pk: number | undefined): readonly [number, numbe
 }
 const OUTLAW_LIGHT = [1, 0.1, 0.1] as const;
 
+/** A module's name colour over the PK tint (Mu Reforge's PvP flag, modules/reforge_hud); null keeps the PK one. */
+type NameTint = (netId: number) => string | null;
+let nameTint: NameTint | null = null;
+
+export function setNameTint(tint: NameTint | null): void {
+  nameTint = tint;
+}
+
+export function nameTintOf(netId: number | undefined): string | null {
+  return netId === undefined || !nameTint ? null : nameTint(netId);
+}
+
 export function pkTextColour(pk: number): string {
   return PK_TEXT_COLOURS[pk] ?? PK_MURDERER2_COLOUR;
 }

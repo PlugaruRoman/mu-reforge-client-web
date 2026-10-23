@@ -40,6 +40,9 @@ import { loginsceneLayer } from './loginscene';
 import { lorenmarketLayer } from './lorenmarket';
 import { karutan1Layer } from './karutan1';
 import { karutan2Layer } from './karutan2';
+import { teamvsteamLayer } from './teamvsteam';
+import { deepdungeonLayer } from './deepdungeon';
+import { deepdungeonlowerLayer } from './deepdungeonlower';
 
 /**
  * Every map the client can load. The only place maps are enumerated: no
@@ -88,4 +91,8 @@ export const MAP_LAYERS: readonly MapLayer[] = [
   lorenmarketLayer,
   karutan1Layer,
   karutan2Layer,
+  // Mu Reforge only: worlds a Season 6 server never sends (versions/reforge/readme.md).
+  teamvsteamLayer,
+  deepdungeonLayer,
+  deepdungeonlowerLayer,
 ];

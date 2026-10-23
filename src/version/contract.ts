@@ -44,7 +44,7 @@ export interface VersionProtocol {
    * from. `season6` = the un-suffixed definitions; older sets use the
    * `…075` / `…095` variants OpenMU keeps beside them.
    */
-  readonly packetSet: 'season6' | '0.97d' | '0.95' | '0.75';
+  readonly packetSet: 'season6' | '0.97d' | '0.95' | '0.75' | 'reforge';
   /**
    * Name-suffix rank the dispatcher should prefer when several generated
    * packets share a code (`AddCharactersToScope` / `…075` / `…095` /
@@ -53,6 +53,12 @@ export interface VersionProtocol {
    */
   variantRank(packetName: string): number;
   readonly encryption: VersionEncryption;
+  /**
+   * How the server writes an item: `standard` = OpenMU `ItemSerializer`, fixed 12 bytes;
+   * `extended` = `ItemSerializerExtended` (client >= 106.3), 5-15 bytes, which also moves items
+   * with `ItemMoveRequestExtended`. Omitted = `standard`.
+   */
+  readonly itemCodec?: 'standard' | 'extended';
 }
 
 export interface VersionData {
@@ -218,6 +224,12 @@ export interface GameVersion {
    * polls only these (`modules/events/schedule.ts`).
    */
   readonly miniGames: readonly MiniGame[];
+  /**
+   * This version's own default hot keys over the client's (`KeyBindings` action -> `KeyboardEvent.code`,
+   * '' = unbound): a server whose players come from another client keeps that client's letters. A key the
+   * player saved still wins. Omit it and the client's defaults stand.
+   */
+  readonly keyDefaults?: Readonly<Record<string, string>>;
 }
 
 /** A mini-game OpenMU opens on a timetable (`MiniGameOpeningState`). */

@@ -6,6 +6,7 @@ import type { Events } from '@/core/eventBus/events';
 import { uiClick } from '@/controllers/sound';
 import {
   CharacterFocusedPacket,
+  CharacterListExtendedPacket,
   CharacterListPacket,
 } from '@versions/shared/packets/ServerToClientPackets';
 import { CharacterSelectionPlate } from '../CharacterSelectionPlate';
@@ -59,9 +60,10 @@ export const CharacterList = observer((props: CharacterListProps) => {
   }, []);
 
   useEffect(() => {
-    const onList = (bytes: Events['CharacterList']) => {
+    // F3 00 at 106.3 has 44-byte entries with the 27-byte extended preview (S RemoteView/Character/
+    // ShowCharacterListExtendedPlugIn.cs:72-96); the same fields, read by `deserializePreview`.
+    const onList = (p: CharacterListPacket | CharacterListExtendedPacket) => {
       const { source, onList } = latest.current;
-      const p = new CharacterListPacket(bytes);
       const characters = p.getCharacters();
       onList?.();
       runInAction(() => {
@@ -74,10 +76,15 @@ export const CharacterList = observer((props: CharacterListProps) => {
       latest.current.source.focusedChar = new CharacterFocusedPacket(bytes).CharacterName;
     };
 
-    EventBus.on('CharacterList', onList);
+    const onClassic = (bytes: Events['CharacterList']) => onList(new CharacterListPacket(bytes));
+    const onExtended = (bytes: Events['CharacterListExtended']) => onList(new CharacterListExtendedPacket(bytes));
+
+    EventBus.on('CharacterList', onClassic);
+    EventBus.on('CharacterListExtended', onExtended);
     EventBus.on('CharacterFocused', onFocused);
     return () => {
-      EventBus.off('CharacterList', onList);
+      EventBus.off('CharacterList', onClassic);
+      EventBus.off('CharacterListExtended', onExtended);
       EventBus.off('CharacterFocused', onFocused);
     };
   }, []);

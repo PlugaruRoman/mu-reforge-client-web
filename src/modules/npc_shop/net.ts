@@ -2,7 +2,7 @@ import { CloseNpcRequestPacket } from '@versions/shared/packets/ClientToServerPa
 import { Economy } from '../economy/economy';
 import { EventBus } from '@/core/eventBus';
 import { CastleSiegeTaxRateNotificationPacket, CastleSiegeTaxTypeEnum, ItemBoughtPacket, NpcItemSellResultPacket, NpcWindowResponseNpcWindowEnum, NpcWindowResponsePacket, StoreItemListItemWindowEnum, StoreItemListPacket } from '@versions/shared/packets/ServerToClientPackets';
-import { ItemSerializer } from '@/controllers/item_rules';
+import { readItemData, readItemList } from '@/controllers/item_rules';
 import { Merchant } from './state';
 import { MuWindows } from '@/controllers/interface';
 import { Hero } from '@/modules/hero';
@@ -12,6 +12,8 @@ import { events } from '../events';
 import { JewelMix } from '../chaos_mix/jewelMix';
 import { playUiSound } from '@/controllers/sound/sfx';
 import { quests } from '../quests';
+import { moduleOn } from '../module';
+import { ImperialGuardian } from '../imperial_guardian';
 import { runInAction } from 'mobx';
 import { t } from '@/i18n';
 
@@ -20,11 +22,14 @@ export function installNet(): void {
   // --- NPC shop (ReceiveTalk / ReceiveShopItemList, WSclient.cpp) ---------------
 
   // ReceiveTaxInfo (WSclient.cpp:11299-11316): the castle's chaos machine and store taxes.
-  EventBus.on('CastleSiegeTaxRateNotification', packet => {
+  const taxRate = (packet: DataView) => {
     const p = new CastleSiegeTaxRateNotificationPacket(packet);
     if (p.TaxType === CastleSiegeTaxTypeEnum.ChaosMachine) runInAction(() => (Economy.chaosTaxRate = p.TaxRate));
     else if (p.TaxType === CastleSiegeTaxTypeEnum.Store) Merchant.setStoreTaxRate(p.TaxRate);
-  });
+  };
+  EventBus.on('CastleSiegeTaxRateNotification', taxRate);
+  // Our server's name for the same B2 1A, same 6 bytes (S xml CastleSiegeTaxRateInfo, RemoteView/CastleSiege/CastleSiegeTaxViewPlugIn.cs).
+  EventBus.on('CastleSiegeTaxRateInfo', taxRate);
 
   EventBus.on('NpcWindowResponse', packet => {
     const p = new NpcWindowResponsePacket(packet);
@@ -60,6 +65,11 @@ export function installNet(): void {
       case NpcWindowResponseNpcWindowEnum.DoorkeeperTitusDuelWatch:
         Merchant.dropNpcTalk();
         events.openDuelWatch();
+        break;
+      case NpcWindowResponseNpcWindowEnum.JerintGaionEvententry:
+        // Mu Reforge's Imperial Guardian (modules/imperial_guardian); unanswered on a server without it.
+        Merchant.dropNpcTalk();
+        if (moduleOn('imperial_guardian')) ImperialGuardian.openEntry();
         break;
       case NpcWindowResponseNpcWindowEnum.LugardDoppelgangerEntry:
         Merchant.dropNpcTalk();
@@ -104,10 +114,8 @@ export function installNet(): void {
   EventBus.on('StoreItemList', packet => {
     const p = new StoreItemListPacket(packet);
 
-    const entries = p.getItems().map(entry => ({
-      slot: entry.ItemSlot,
-      item: ItemSerializer.DeserializeItem(new Uint8Array(entry.ItemData.buffer)),
-    }));
+    // C2 31: type at 4, count at 5, then slot + item from 6 (S RemoteView/NPC/ShowMerchantStoreItemListPlugIn.cs:40-71).
+    const entries = readItemList(packet, 6, p.ItemCount, 1).map(({ at, item }) => ({ slot: packet.getUint8(at), item }));
 
     if (p.Type === StoreItemListItemWindowEnum.ChaosMachine) {
       Economy.setMixItems(entries);
@@ -127,7 +135,7 @@ export function installNet(): void {
   EventBus.on('ItemBought', packet => {
     const p = new ItemBoughtPacket(packet);
 
-    const item = ItemSerializer.DeserializeItem(new Uint8Array(p.ItemData.buffer));
+    const item = readItemData(p.ItemData);
 
     // ReceiveBuyExtended (WSclient.cpp:6653): SOUND_GET_ITEM01 whatever was bought.
     playUiSound('getItem');

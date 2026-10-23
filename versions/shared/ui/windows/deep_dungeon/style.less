@@ -1,0 +1,88 @@
+@import (reference) '@/controllers/interface/components/mu_text/style.less';
+// The Deep Dungeon: the floor selection inside the item window frame, and the countdown on the floors.
+.dd-title {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 12px;
+}
+
+.dd-body {
+  position: absolute;
+  left: 18px;
+  top: 40px;
+  width: 154px;
+  font-size: 11px;
+  user-select: none;
+  text-shadow: 1px 1px 0 #000;
+
+  .dd-line {
+    display: block;
+    white-space: normal;
+    text-align: center;
+  }
+
+  .dd-floors {
+    margin: 8px 0;
+    pointer-events: auto;
+  }
+
+  .dd-floor,
+  .dd-pair {
+    display: flex;
+    justify-content: space-between;
+    white-space: nowrap;
+  }
+
+  .dd-floor {
+    padding: 3px 6px;
+    margin-bottom: 2px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.35);
+    cursor: pointer;
+
+    &:hover {
+      border-color: rgba(255, 220, 120, 0.4);
+    }
+
+    &.selected {
+      border-color: rgba(255, 210, 60, 0.9);
+      background: rgba(255, 210, 60, 0.12);
+    }
+  }
+
+  .dd-details {
+    padding: 4px;
+    background: rgba(0, 0, 0, 0.35);
+
+    .dd-pair {
+      margin: 2px 0;
+    }
+  }
+}
+
+.dd-enter {
+  position: absolute;
+  left: 41px;
+  top: 350px;
+}
+
+.dd-hud {
+  position: absolute;
+  transform-origin: top center;
+  pointer-events: none;
+  padding: 3px 12px;
+  background: rgba(0, 0, 0, 0.55);
+  text-align: center;
+  text-shadow: 1px 1px 0 #000;
+
+  .dd-hud-line,
+  .dd-hud-time {
+    display: block;
+  }
+
+  .dd-hud-time {
+    font-size: 14px;
+    line-height: 18px;
+  }
+}

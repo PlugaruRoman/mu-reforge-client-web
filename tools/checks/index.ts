@@ -110,9 +110,9 @@ function baseline(name: string, current: string[]): string[] {
 }
 
 // 8. Doc links lead somewhere: a relative link in a doc names a file or folder that exists. Links in code
-//    spans and fences are examples; serverlist.md is data (its links are worlds).
+//    spans and fences are examples; serverlist.md and a deployment's `<name>-serverlist.md` are data (their links are worlds).
 {
-  const docs = trackedFiles(['*.md']).filter(f => !f.startsWith('references/') && f !== 'serverlist.md');
+  const docs = trackedFiles(['*.md']).filter(f => !f.startsWith('references/') && !/(^|\/)([\w-]+-)?serverlist\.md$/.test(f));
   const broken: string[] = [];
   for (const f of docs) {
     let fence = false;

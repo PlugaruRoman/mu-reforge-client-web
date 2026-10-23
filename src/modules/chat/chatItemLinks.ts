@@ -6,17 +6,26 @@
  *
  * The chat box shows the name in brackets instead of the bytes; `labelsToWire`
  * swaps the names back for their links when the line is sent.
+ *
+ * Mu Reforge's server writes its own links too: `\x01` + the sender's item bytes in hex + `\x02`
+ * (S GameServer/MessageHandler/ChatItemLinkExpander.cs, from the sender's inventory, in the
+ * sender's item codec, the extended 5-15 bytes at 106.3; client GameLogic/Reforge/ReforgeChatLinks.h).
+ * They are read the same way, with the active version's codec.
  */
 
 import type { Item } from '../../ecs/world';
-import { ItemSerializer } from '@/controllers/item_rules';
+import { ItemSerializer, readItem } from '@/controllers/item_rules';
 import { itemDef, itemStats } from '@/controllers/item_rules';
 import { itemDisplayName } from '../../controllers/interface/itemTooltip';
 
 /** `{` + 16 characters + `}`. */
 export const ITEM_LINK_LENGTH = 18;
 
-const TOKEN = /\{([A-Za-z0-9_-]{16})\}/g;
+/** Ours (`{` base64url `}`) or the server's (`\x01` hex of a 5-15 byte item `\x02`). */
+// eslint-disable-next-line no-control-regex -- the server's link is framed by the control bytes 0x01/0x02 (ChatItemLinkExpander.cs).
+const TOKEN = /\{([A-Za-z0-9_-]{16})\}|\x01((?:[0-9A-Fa-f]{2}){5,15})\x02/g;
+
+const hasLink = (text: string) => text.includes('{') || text.includes('\x01');
 
 function toBase64Url(bytes: Uint8Array): string {
   let binary = '';
@@ -65,8 +74,35 @@ export function itemFromLink(payload: string): Item | null {
     item = null;
   }
 
-  if (decoded.size >= DECODED_MAX) decoded.delete(decoded.keys().next().value!);
-  decoded.set(payload, item);
+  return remember(payload, item);
+}
+
+/** The item a server link's hex stands for: every byte one item of the active codec, or null. */
+export function itemFromServerLink(hex: string): Item | null {
+  const key = `x${hex}`;
+  const known = decoded.get(key);
+  if (known !== undefined) return known;
+
+  let item: Item | null = null;
+  try {
+    const pairs = hex.match(/../g);
+    if (pairs) {
+      const bytes = Uint8Array.from(pairs, h => parseInt(h, 16));
+      const read = readItem(bytes);
+      if (read.length === bytes.length && itemDef(read.item.group, read.item.num)) item = read.item;
+    }
+  } catch {
+    item = null;
+  }
+
+  return remember(key, item);
+}
+
+/** Caches a read link, dropping the oldest once the cache is full. */
+function remember(key: string, item: Item | null): Item | null {
+  const oldest = decoded.keys().next();
+  if (decoded.size >= DECODED_MAX && !oldest.done) decoded.delete(oldest.value);
+  decoded.set(key, item);
   return item;
 }
 
@@ -75,9 +111,9 @@ type ItemLinkHit = { start: number; end: number; item: Item };
 /** Every readable link in the line, in order. */
 export function scanItemLinks(text: string): ItemLinkHit[] {
   const hits: ItemLinkHit[] = [];
-  if (!text.includes('{')) return hits;
+  if (!hasLink(text)) return hits;
   for (const m of text.matchAll(TOKEN)) {
-    const item = itemFromLink(m[1]);
+    const item = m[1] !== undefined ? itemFromLink(m[1]) : itemFromServerLink(m[2]);
     if (item) hits.push({ start: m.index!, end: m.index! + m[0].length, item });
   }
   return hits;
@@ -85,7 +121,7 @@ export function scanItemLinks(text: string): ItemLinkHit[] {
 
 /** The line without its links, for the word matches that fire emotes: the bytes spell anything. */
 export function stripItemLinks(text: string): string {
-  if (!text.includes('{')) return text;
+  if (!hasLink(text)) return text;
   return text.replace(TOKEN, ' ').replace(/\s+/g, ' ').trim();
 }
 

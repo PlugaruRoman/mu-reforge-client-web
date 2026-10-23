@@ -311,6 +311,7 @@ export function installNpcDialogue(): void {
     hideNpcDialogue();
   });
   EventBus.on('QuestProgress', hideNpcDialogue);
+  EventBus.on('QuestProgressExtended', hideNpcDialogue); // 106.3 (versions/reforge)
 
   // `HideAll` at the start of a talk; the talk already sent the close request.
   EventBus.on('npcTalkStarted', hideNpcDialogue);
@@ -321,11 +322,14 @@ export function installNpcDialogue(): void {
   // OpenMU resends the character information on a bulk stat add or a reset;
   // only a different hero closes the dialogue.
   let heroName: string | null = null;
-  EventBus.on('CharacterInformation', () => {
+  const characterChanged = () => {
     if (Hero.name === heroName) return;
     heroName = Hero.name;
     hideNpcDialogue();
-  });
+  };
+  EventBus.on('CharacterInformation', characterChanged);
+  // The 106.3 form of the same packet (versions/reforge).
+  EventBus.on('CharacterInformationExtended', characterChanged);
 }
 
 function reset(): void {

@@ -1,0 +1,18 @@
+# Read by BuildKit for deploy/reforge/web.Dockerfile only (context = repository root).
+.git
+.worktrees
+**/node_modules
+dist
+dist-register
+references
+install/node_modules
+# Local build endpoints (ws://localhost and the like) must never reach a production bundle.
+.env
+.env.*
+# gzip sidecars a dev box generated; the build writes its own into dist/.
+public/**/*.gz
+Data/**/*.gz
+Data-v097d/**/*.gz
+# Local-only helper files.
+start-local.ps1
+public/reforge-serverlist.md

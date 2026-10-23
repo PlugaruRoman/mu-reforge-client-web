@@ -1,0 +1,68 @@
+# Mu Reforge web client on the WEB box (84.247.161.247), next to the website and another
+# tenant. Lives in /opt/mureforge-webclient/ with .env, proxy.env and serverlist.md beside it.
+#
+# Both containers publish on 127.0.0.1 ONLY: the host nginx (nginx/host/*.conf) is the public
+# door and holds the TLS certificate, the per-address limits and the Origin check. Ports 3000 and
+# 3001 are deliberately not used - the website's pm2 apps live there.
+#
+# Images are built in CI and pulled here, never built on this box:
+#   docker compose pull && docker compose up -d
+#
+# The project name keeps every container, network and volume clear of the names other stacks use
+# (`database`, `openmu-startup`, `nginx-*` on the game boxes; whatever the other tenant runs here).
+name: mureforge-webclient
+
+services:
+
+  web:
+    image: ${WEB_IMAGE:?set WEB_IMAGE in .env}
+    container_name: mureforge-webclient-web
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${WEB_PORT:-8731}:80"
+    volumes:
+      # The published world list, editable on the box without a new image (serverlist.md).
+      - ./serverlist.md:/usr/share/nginx/html/serverlist.md:ro
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx
+      - /var/run
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 256m
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "3"
+
+  proxy:
+    image: ${PROXY_IMAGE:?set PROXY_IMAGE in .env}
+    container_name: mureforge-webclient-proxy
+    restart: unless-stopped
+    env_file: ./proxy.env
+    ports:
+      - "127.0.0.1:${PROXY_PORT:-8730}:3000"
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    # Two sockets per player (websocket in, TCP out). Docker's default soft limit of 1024 is
+    # about 500 players; the game server compose learned this the hard way (see its ulimits).
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    mem_limit: 1g
+    # Bun exits on SIGTERM and the kernel closes every TCP socket: the game server sees an
+    # ordinary disconnect and saves each player through its logout path. 30 s is plenty.
+    stop_grace_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "5"

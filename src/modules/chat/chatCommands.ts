@@ -40,7 +40,9 @@ export type ChatCommand = {
   /** Argument hint shown after the name, e.g. `<x> <y>`. */
   usage?: string;
   /** One line of help. */
-  helpKey: TextKey;
+  helpKey?: TextKey;
+  /** The help as the server wrote it (a command the server listed, `AvailableChatCommand`). */
+  help?: string;
   /** Runs on this client, on the player under the cursor. */
   local?: CommandKind;
   /** Needs a game master character (OpenMU `CharacterStatus.GameMaster`). */
@@ -129,6 +131,13 @@ const CHAT_COMMANDS: readonly ChatCommand[] = [
   { name: '/startds', helpKey: 'cmd.startds', gm: true },
 ];
 
+/** The commands the server listed (Mu Reforge's F5 01, modules/reforge_hud), after the client's own. */
+let serverCommands: readonly ChatCommand[] = [];
+
+export function setServerChatCommands(commands: readonly ChatCommand[]): void {
+  serverCommands = commands;
+}
+
 /** The most rows the completion list shows at once. */
 export const CHAT_COMPLETION_ROWS = 8;
 
@@ -141,7 +150,8 @@ export function matchChatCommands(text: string, gm: boolean): ChatCommand[] {
   if (!text.startsWith('/')) return [];
   const space = text.indexOf(' ');
   const word = (space < 0 ? text : text.slice(0, space)).toLowerCase();
-  return CHAT_COMMANDS.filter(c => {
+  const own = new Set(CHAT_COMMANDS.map(c => c.name));
+  return [...CHAT_COMMANDS, ...serverCommands.filter(c => !own.has(c.name))].filter(c => {
     if (c.gm && !gm) return false;
     return space < 0 ? c.name.startsWith(word) : c.name === word;
   });

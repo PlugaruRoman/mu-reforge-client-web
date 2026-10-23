@@ -60,6 +60,12 @@ the capes, the Dark Lord's hair and skirt, the Magic Gladiator's robe, the team 
 - Rage Fighter (:9777-9824): slot 0 the cape, drawn with the Cape of Fighter (`Item\NCcape.tga`) or the
   Cape of Overrule (`Item\monke_manto.TGA`, plus its straps in slots 1 and 2, `Item\monk_manto01.TGA`,
   blown out to each side by `PCT_ELASTIC_RAGE_L` / `_R`).
+- Later capes (MuMain, worn only where a version's item table has them): the Small Cape of Lord (wing 130)
+  builds the Dark Lord's cape at 100 x 100, the Little Warrior's Cloak (wing 135) the Rage Fighter's at
+  150 x 130; both are drawn like the cape they shrink. A wing whose item file carries `Wing.cloth` (Mu
+  Reforge's Hero Cape, `HeroCapeCloth.cpp`) builds the Mantle of Monarch's cape (Dark Lord) or the Cape of
+  Overrule's (Rage Fighter) in its own texture, and putting it on or off rebuilds the set
+  (`RebuildClothOnHeroCapeChange`); the actors controller hides the model's hanging mesh meanwhile.
 - The Death King (:9826-9832): slot 0 `Player\Robe03.tga` on the neck, keyed, with spheres on the back and the
   head. The Nightmare (:9833-9836): a `PCT_CYLINDER` of `Monster\nightmare_cloth.tga` round its bone 2.
   Both sit in the class-less branch, so a Dark Lord in either body still wears his own set.

@@ -21,6 +21,7 @@ import {
   TERRAIN_SIZE,
   useMapDrag,
   useMapRotation,
+  useMobSpotMarkers,
   usePartyMarkers,
   useWorldMinimap,
   type MapPan,
@@ -109,7 +110,7 @@ export const MinimapCorner = observer(() => {
   // `mapIndex` is a plain field: the frame loop below carries a warp over.
   const [map, setMap] = useState<number | undefined>(undefined);
   const minimap = useWorldMinimap(shown ? map : undefined);
-  const partyMarkers = usePartyMarkers(shown, map);
+  const partyMarkers = [...usePartyMarkers(shown, map), ...useMobSpotMarkers(shown)];
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
   const [pan, setPan] = useState<MapPan>(NO_PAN);
   const pictureRef = useRef<HTMLDivElement>(null);

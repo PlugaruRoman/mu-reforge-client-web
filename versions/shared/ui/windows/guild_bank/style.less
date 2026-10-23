@@ -1,0 +1,252 @@
+// The guild bank (the vault's twin), its message boxes and the guild settings window.
+.guild-bank,
+.guild-settings {
+  font-size: 11px;
+
+  .window-title {
+    position: absolute;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-weight: bold;
+    color: #d8d8d8;
+    text-shadow: 1px 1px 0 #000;
+  }
+
+  .head-close {
+    position: absolute;
+    cursor: pointer;
+  }
+}
+
+.guild-bank {
+  .gb-hint {
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    text-align: center;
+    font-size: 10px;
+    color: #ffd927;
+    text-shadow: 1px 1px 0 #000;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  .gb-grid {
+    position: absolute;
+  }
+
+  .gb-locked {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 45%;
+    text-align: center;
+    font-weight: bold;
+    color: #f04040;
+    text-shadow: 1px 1px 0 #000;
+    pointer-events: none;
+  }
+
+  .gb-money {
+    position: absolute;
+    text-align: right;
+    font-weight: bold;
+    text-shadow: 1px 1px 0 #000;
+    white-space: nowrap;
+  }
+
+  .gb-pager {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #e2e2e2;
+    text-shadow: 1px 1px 0 #000;
+  }
+
+  .gb-page-btn {
+    width: 14px;
+    text-align: center;
+    font-weight: bold;
+    color: #ffd927;
+    cursor: pointer;
+    pointer-events: auto;
+
+    &.disabled {
+      color: #6a6a6a;
+      cursor: default;
+    }
+  }
+
+  .window-button {
+    position: absolute;
+
+    &.disabled {
+      opacity: 0.5;
+    }
+
+    .button-tooltip {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      margin-top: 2px;
+      padding: 1px 4px;
+      background-color: #000000cc;
+      border: 1px solid #6a6a6a;
+      color: #fff;
+      font-size: 10px;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
+    &:hover .button-tooltip {
+      display: block;
+    }
+  }
+}
+
+.guild-settings {
+  .gs-section,
+  .gs-legend,
+  .gs-status {
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    text-align: center;
+    text-shadow: 1px 1px 0 #000;
+  }
+
+  .gs-section {
+    font-weight: bold;
+    color: #ffd927;
+  }
+
+  .gs-legend {
+    color: #e2e2e2;
+  }
+
+  .gs-status {
+    font-size: 10px;
+
+    &.note {
+      color: #a0a0a0;
+    }
+    &.unsaved {
+      color: #ffb400;
+    }
+    &.saved {
+      color: #7fdc6a;
+    }
+  }
+
+  .gs-row {
+    position: absolute;
+    left: 18px;
+    right: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    color: #e2e2e2;
+    text-shadow: 1px 1px 0 #000;
+
+    &.gs-head {
+      color: #ffd927;
+      font-weight: bold;
+    }
+  }
+
+  .gs-rank {
+    flex: 1;
+  }
+
+  .gs-col {
+    width: 36px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .gs-check {
+    width: 12px;
+    height: 12px;
+    line-height: 12px;
+    text-align: center;
+    font-size: 10px;
+    color: #7fdc6a;
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(120, 100, 70, 0.9);
+    cursor: pointer;
+    pointer-events: auto;
+
+    &.read-only {
+      cursor: default;
+      opacity: 0.7;
+    }
+  }
+}
+
+.gb-prompt-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  user-select: none;
+}
+
+.gb-prompt {
+  position: relative;
+  flex: none;
+
+  .gb-prompt-text {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: #ffffff;
+    font-size: 11px;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.85);
+  }
+
+  .gb-prompt-line {
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    &.error {
+      color: #ff6060;
+    }
+  }
+
+  .gb-prompt-input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    pointer-events: auto;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 12px;
+    line-height: 1;
+    letter-spacing: 0.2em;
+  }
+
+  .gb-prompt-max {
+    position: absolute;
+    font-size: 10px;
+    color: #ffd927;
+    cursor: pointer;
+    text-shadow: 1px 1px 0 #000;
+  }
+}

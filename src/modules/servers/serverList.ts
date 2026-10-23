@@ -1,5 +1,6 @@
 import { makeAutoObservable, runInAction } from 'mobx';
 import { LocalStorage } from '../../core/localStorage';
+import { versionByTag } from '@/version';
 import { WS_HOST, WS_PORT } from './defaults';
 import {
   isUsableHost,
@@ -89,6 +90,9 @@ const WS_RE = /^wss?:\/\/[A-Za-z0-9._-]+(?::\d{1,5})?\/?$/i;
  */
 const VERSION_RE = /^(?=.*\d)[A-Za-z0-9.]{2,12}$/;
 
+/** A version token: the shape above, or the tag of a version this client carries (`REFORGE` has no digit). */
+const isVersionToken = (field: string) => VERSION_RE.test(field) || versionByTag(field) !== null;
+
 /** The optional world id before the version: digits only, so never a version token or a name. */
 const WORLD_ID_RE = /^\d{1,6}$/;
 
@@ -170,7 +174,7 @@ export function parseServerLine(line: string): ServerProfile | null {
   const withId = raw.map(trimField);
   const worldId = WORLD_ID_RE.test(withId[0] ?? '') ? withId[0] : '';
   const withVersion = worldId ? withId.slice(1) : withId;
-  const version = VERSION_RE.test(withVersion[0] ?? '') ? withVersion[0] : '';
+  const version = isVersionToken(withVersion[0] ?? '') ? withVersion[0] : '';
   const fields = version ? withVersion.slice(1) : withVersion;
 
   if (fields.length < 2) return null;

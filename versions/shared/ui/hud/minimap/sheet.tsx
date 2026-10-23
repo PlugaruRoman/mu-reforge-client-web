@@ -29,6 +29,7 @@ import {
   useHeroTile,
   useMapDrag,
   useMapRotation,
+  useMobSpotMarkers,
   usePartyMarkers,
   useWorldMinimap,
   type MapPan,
@@ -196,7 +197,7 @@ const SheetView = ({
   close: () => void;
 }) => {
   const hero = useHeroTile(true);
-  const partyMarkers = usePartyMarkers(true, map);
+  const partyMarkers = [...usePartyMarkers(true, map), ...useMobSpotMarkers(true)];
   const [hovered, setHovered] = useState<MinimapMarker | null>(null);
   const [pan, setPan] = useState<MapPan>(NO_PAN);
   const scale = useUiStageScale();

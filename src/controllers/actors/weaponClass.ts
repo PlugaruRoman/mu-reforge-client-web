@@ -88,10 +88,12 @@ export function isSwordformGloves(item: Item | null): boolean {
   return (
     !!item &&
     item.group === GROUP_SWORD &&
-    item.num >= SACRED_GLOVE &&
-    item.num < SACRED_GLOVE + SWORDFORM_GLOVE_MODELS.length
+    ((item.num >= SACRED_GLOVE && item.num < SACRED_GLOVE + SWORDFORM_GLOVE_MODELS.length) || !!wornModels(item))
   );
 }
+
+/** A glove weapon an item file names its worn pair for (`WornModels`, a version's own items). */
+const wornModels = (item: Item) => ItemsDatabase.getItem(item.group, item.num)?.WornModels;
 
 /**
  * `ModifyTypeSwordformGloves` (MonkSystem.cpp:254): the model actually worn,
@@ -103,21 +105,25 @@ export function swordformGlovesModel(
   slot: 0 | 1
 ): string | null {
   if (!item || !isSwordformGloves(item)) return null;
-  return `${SWORDFORM_GLOVE_MODELS[item.num - SACRED_GLOVE][slot]}.glb`;
+  const own = SWORDFORM_GLOVE_MODELS[item.num - SACRED_GLOVE];
+  return own ? `${own[slot]}.glb` : (wornModels(item)?.[slot] ?? null);
 }
 
 /** `IsBowModel` (CharacterManager.cpp:68): 0-6, Celestial 17, Viper…Stinger 20-23, Air Lyn 24. */
 export function isBow(item: Item | null): boolean {
   if (!item || item.group !== GROUP_BOW) return false;
   const n = item.num;
-  return n <= 6 || n === 17 || (n >= 20 && n <= 24);
+  return n <= 6 || n === 17 || (n >= 20 && n <= 24) || launcher(item) === 'bow';
 }
+
+/** What an item file says a launcher is (`Launcher`, a version's own items past the original's numbers). */
+const launcher = (item: Item) => (item.num > 24 ? ItemsDatabase.getItem(item.group, item.num)?.Launcher : undefined);
 
 /** `IsCrossbowModel` (CharacterManager.cpp:76): 8-14, Saint 16, Divine CB…Great Reign 18-19. */
 export function isCrossbow(item: Item | null): boolean {
   if (!item || item.group !== GROUP_BOW) return false;
   const n = item.num;
-  return (n >= 8 && n <= 14) || n === 16 || n === 18 || n === 19;
+  return (n >= 8 && n <= 14) || n === 16 || n === 18 || n === 19 || launcher(item) === 'crossbow';
 }
 
 /**

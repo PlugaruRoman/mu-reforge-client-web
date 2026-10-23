@@ -12,7 +12,8 @@ original client's item passes, the item glow tiers and the weapon swing trails.
 - `itemLooks.ts`: `defineItemLook`, `registerItemLooks` (content's `versions/shared/item_looks/`,
   at boot), `itemBodyPasses(group, num)` (the `MeshPassSet` a model takes, shown while
   `legacyItemEffectsOn()`), `itemHeldSprites(group, num)` (the sprites a carried weapon draws), `itemHeldEmitters`,
-  `itemHeldSet` (its sprites and emitters), `itemWingSet` / `itemWingSprites` (on its phoenix wing),
+  `itemHeldSet` (its sprites and emitters; an item with no look but a `BoneGlow` in its item file gets
+  `boneGlowSprites(glow)`, built once), `itemWingSet` / `itemWingSprites` (on its phoenix wing),
   `fixedLight`, `CHROME01`, `heldLuminosity(ms)` (the frame's `Luminosity` roll), `luminous`, `frameRolls`,
   `randomTurn`, `oneIn`, types `ItemLook`, `MeshPass`, `HeldEmitter`, `HeldSet`, `HeldWearer`,
   `HeldSprite`, `LookLight`.

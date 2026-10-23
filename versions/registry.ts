@@ -18,16 +18,19 @@ import type { GameVersion, GameVersionId } from '@/version/contract';
 import type { VersionUi } from '@/version/uiContract';
 
 /**
- * The three packet lists a version exports. Typed against the season6 set
- * for now; step (b) widens these to a union of the shipped versions' lists
- * so the EventBus keeps literal packet-name keys for all of them.
+ * The packet lists a version exports: the union of the Season 6 set (which
+ * 0.97d shares) and the Mu Reforge set generated from our server's XML, so
+ * the EventBus keeps literal packet-name keys for both.
  */
-export type VersionPackets = {
-  ServerToClientPackets: typeof import('./season6/packets')['ServerToClientPackets'];
-  ClientToServerPackets: typeof import('./season6/packets')['ClientToServerPackets'];
-  ConnectServerPackets: typeof import('./season6/packets')['ConnectServerPackets'];
-  ChangeMapServerInfoPacket: typeof import('./season6/packets')['ChangeMapServerInfoPacket'];
+type PacketsOf<M> = {
+  ServerToClientPackets: M extends { ServerToClientPackets: infer L } ? L : never;
+  ClientToServerPackets: M extends { ClientToServerPackets: infer L } ? L : never;
+  ConnectServerPackets: M extends { ConnectServerPackets: infer L } ? L : never;
+  ChangeMapServerInfoPacket: M extends { ChangeMapServerInfoPacket: infer L } ? L : never;
 };
+export type VersionPackets =
+  | PacketsOf<typeof import('./season6/packets')>
+  | PacketsOf<typeof import('./reforge/packets')>;
 
 /** What `versions/<id>/index.ts` exports. */
 type VersionModule = {
@@ -63,5 +66,13 @@ export const VERSION_REGISTRY: readonly VersionEntry[] = [
     listTag: 'V097D',
     load: () => import('./v097d'),
     loadUi: () => import('./v097d/ui'),
+  },
+  {
+    id: 'reforge',
+    label: 'Mu Reforge',
+    listTag: 'REFORGE',
+    load: () => import('./reforge'),
+    // Season 6's screens and windows: only the wire differs.
+    loadUi: () => import('./season6/ui'),
   },
 ];

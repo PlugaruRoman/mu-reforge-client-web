@@ -155,9 +155,9 @@ const HEALTH_STATUS_SCALE = 250;
  * than adjusting it - including for a type no health table knows, which then
  * gets the server's 250 steps as its maximum.
  *
- * Only `ObjectHitExtended` carries it, and OpenMU sends that variant to the
- * open-source client line (>= 106.3); on the S6E3 line this is never called
- * and the bar runs on the table alone.
+ * `ObjectHitExtended` carries it, which OpenMU sends to the open-source client
+ * line (>= 106.3), and so does Mu Reforge's `ShowHealthStatus` (ED 01); on the
+ * S6E3 line this is never called and the bar runs on the table alone.
  */
 function applyHealthStatus(attributes: MUAttributeSystem, status: number): void {
   const max = attributes.getValue('maxHealth');
@@ -518,6 +518,18 @@ export function installNet(): void {
   EventBus.on('ObjectHitExtended', packet =>
     applyObjectHit(new ObjectHitExtendedPacket(packet))
   );
+
+  // C1 ED 01 (Mu Reforge, hand-written): a watched monster's health, no hit behind it. Bytes as
+  // `versions/reforge/packets/healthStatus.ts` lays them out: id u16 big endian at 4, status at 6
+  // (S RemoteView/World/ShowHealthStatusPlugIn.cs; client Network/Reforge/HudPackets.cpp HandleHealthStatus).
+  EventBus.on('ShowHealthStatus', packet => {
+    if (packet.byteLength < 7) return;
+    const status = packet.getUint8(6);
+    if (status === HEALTH_STATUS_UNKNOWN) return;
+    const obj = Ecs.world?.getByNetId(packet.getUint16(4, false) & 0x7fff);
+    if (!obj || obj.localPlayer || obj.npcType === undefined || !obj.attributeSystem?.hasAttribute('currentHealth')) return;
+    applyHealthStatus(obj.attributeSystem, status);
+  });
 
   /**
    * C3 4A - `RageAttack`: a rage fighter's Dark Side blow on one target, shown

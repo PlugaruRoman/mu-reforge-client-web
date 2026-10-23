@@ -96,11 +96,14 @@ export function installKillCounters(): void {
   // OpenMU resends the character information on a bulk stat add or a reset;
   // only a different hero starts from empty slots (`clearQuest` in InitGame).
   let heroName: string | null = null;
-  EventBus.on('CharacterInformation', () => {
+  const characterChanged = () => {
     if (Hero.name === heroName) return;
     heroName = Hero.name;
     setKillInfo(null);
-  });
+  };
+  EventBus.on('CharacterInformation', characterChanged);
+  // The 106.3 form of the same packet (versions/reforge).
+  EventBus.on('CharacterInformationExtended', characterChanged);
 }
 
 // ---- 3. the layer ----------------------------------------------------------

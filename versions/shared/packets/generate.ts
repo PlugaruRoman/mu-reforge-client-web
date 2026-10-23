@@ -1024,6 +1024,7 @@ const files = [
 ];
 
 import { writeFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { byteToString } from '@/controllers/assets/download';
 
 // Imports a generated file may need; each file keeps only the ones its code uses (noUnusedLocals).
@@ -1032,10 +1033,22 @@ const HEADER_IMPORTS: [string, string[]][] = [
   ['../../../src/core/binaryUtils', ['SetByteValue', 'GetByteValue', 'GetBoolean', 'SetBoolean', 'readWireString']],
 ];
 
+/** Moves `<Packet>`s written after `</Packets>` (Mu Reforge's XML has some after `</Enums>`) into the list, where the selectors find them. */
+function hoistStrayPackets(xml: string): string {
+  const end = xml.lastIndexOf('</Packets>');
+  if (end < 0) return xml;
+  const stray = /<Packet>[\s\S]*?<\/Packet>/g;
+  const tail = xml.slice(end);
+  return xml.slice(0, end) + (tail.match(stray) ?? []).join('') + tail.replace(stray, '');
+}
+
+// `bun run generate -- versions/<id>/packets` reads that folder's packetsDefinitions/ and writes beside it.
+const outDir = process.argv[2] ? resolve(process.argv[2]) : __dirname;
+
 for (const name of files) {
   packetsVarName = name.split('.')[0];
-  const csFile = Bun.file(__dirname + "/packetsDefinitions/" + name);
-  const tsFile = __dirname + '/' + packetsVarName + '.ts';
+  const csFile = Bun.file(outDir + "/packetsDefinitions/" + name);
+  const tsFile = outDir + '/' + packetsVarName + '.ts';
   const csPacketsString = await csFile.text(); // contents as a string
 
   // The whole file is built in memory, then its header gets the imports the body uses.
@@ -1045,7 +1058,7 @@ for (const name of files) {
   packet = null as any;
   packets.length = 0;
 
-  rewriter.transform(new Response(csPacketsString));
+  rewriter.transform(new Response(hoistStrayPackets(csPacketsString)));
 
   const body = parts.join('');
   const header = HEADER_IMPORTS

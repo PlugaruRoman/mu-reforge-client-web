@@ -79,10 +79,14 @@ function loadItemNames(): Promise<void> {
   return pending;
 }
 
-/** The localised name for an item code, or undefined to use the item file's `ItemName`. */
+/**
+ * The localised name for an item code, or undefined to use the item file's `ItemName`. `own` is
+ * the item file's `Names` (a version's own item), read after the pack's fixes and before the pack.
+ */
 export function localisedItemName(
   group: number,
-  index: number
+  index: number,
+  own?: Readonly<Record<string, string>>
 ): string | undefined {
   // The one option that turns a whole table off: a trader who wants to match
   // a price list reads the item files instead, with the rest of the interface
@@ -92,6 +96,7 @@ export function localisedItemName(
   // A name the pack itself gets wrong, replaced before the table is read.
   return (
     i18n.itemNameFixes?.[`${group}/${index}`] ??
+    own?.[i18n.language] ??
     names.get().get(group * GROUP_STRIDE + index)
   );
 }

@@ -1,0 +1,169 @@
+// The party members' buffs beside the party list, the Guest Access window and the OFF buttons.
+.rh-party-buffs {
+  position: absolute;
+  transform-origin: right top;
+  pointer-events: none;
+
+  .rh-party-buff-row {
+    position: absolute;
+    right: 0;
+    display: flex;
+    flex-direction: row-reverse;
+    gap: 1px;
+  }
+
+  .rh-party-buff {
+    position: relative;
+    overflow: hidden;
+  }
+}
+
+.rh-title {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 12px;
+}
+
+.rh-tabs {
+  position: absolute;
+  left: 16px;
+  top: 36px;
+  width: 158px;
+  display: flex;
+  gap: 2px;
+  pointer-events: auto;
+
+  .rh-tab {
+    flex: 1;
+    padding: 3px 0;
+    font-size: 11px;
+    text-align: center;
+    color: #aaa;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+
+    &.active {
+      color: #ffd927;
+      border-color: rgba(255, 210, 60, 0.8);
+    }
+  }
+}
+
+.rh-body {
+  position: absolute;
+  left: 16px;
+  top: 60px;
+  width: 158px;
+  max-height: 310px;
+  overflow-y: auto;
+  font-size: 11px;
+  color: #e2e2e2;
+  text-shadow: 1px 1px 0 #000;
+  pointer-events: auto;
+
+  .rh-line {
+    display: block;
+    margin: 3px 0;
+    text-align: center;
+    white-space: normal;
+  }
+
+  .rh-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 4px;
+    margin: 2px 0;
+    white-space: nowrap;
+  }
+
+  .rh-perms {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px 4px;
+  }
+
+  .rh-perm {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    white-space: nowrap;
+    cursor: pointer;
+
+    input {
+      margin: 0;
+      width: 11px;
+      height: 11px;
+    }
+  }
+
+  .rh-stepper {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .rh-step,
+  .rh-link {
+    cursor: pointer;
+    color: #ffd927;
+  }
+
+  .rh-link.danger {
+    color: rgb(255, 90, 70);
+  }
+
+  .rh-input {
+    box-sizing: border-box;
+    width: 100%;
+    font-size: 11px;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 2px 4px;
+  }
+
+  .rh-session,
+  .rh-confirm {
+    margin: 3px 0;
+    padding: 3px 5px;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .rh-button {
+    flex: 1;
+    margin: 3px 0;
+    padding: 4px 2px;
+    text-align: center;
+    border: 1px solid rgba(255, 210, 120, 0.35);
+    background: linear-gradient(#3a3226, #1d1912);
+    cursor: pointer;
+
+    &:hover {
+      color: #fff;
+      border-color: rgba(255, 210, 60, 0.9);
+    }
+  }
+}
+
+.rh-off-button {
+  position: absolute;
+  padding: 3px 6px;
+  font-size: 11px;
+  font-weight: bold;
+  color: #ffd927;
+  text-shadow: 1px 1px 0 #000;
+  border: 1px solid rgba(255, 210, 120, 0.5);
+  background: linear-gradient(#3a3226, #1d1912);
+  cursor: pointer;
+  pointer-events: auto;
+  white-space: nowrap;
+
+  &:hover {
+    color: #fff;
+    border-color: rgba(255, 210, 60, 0.95);
+  }
+}

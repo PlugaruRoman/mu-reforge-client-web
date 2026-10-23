@@ -1,0 +1,86 @@
+// The VIP shop's status line and tier cards (our client's reforge_vip_shop.rcss), on the item window.
+.vip-body {
+  gap: 2px;
+
+  .vip-status {
+    display: flex;
+    justify-content: space-between;
+    gap: 4px;
+    color: rgb(127, 178, 255);
+    white-space: nowrap;
+
+    b {
+      color: #ffd927;
+      font-weight: normal;
+    }
+  }
+
+  .vip-card {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: 3px 4px;
+    background: rgba(0, 0, 0, 0.45);
+    border: 1px solid rgba(120, 100, 60, 0.6);
+
+    &.active {
+      border-color: rgba(150, 235, 150, 0.7);
+    }
+
+    &.bundle {
+      border-color: #c9a55a;
+    }
+
+    &.locked {
+      opacity: 0.7;
+    }
+  }
+
+  .vip-card-head {
+    display: flex;
+    justify-content: space-between;
+
+    .vip-card-name {
+      color: #ffd927;
+      font-weight: bold;
+    }
+
+    .vip-card-badge {
+      color: rgb(150, 235, 150);
+    }
+  }
+
+  .vip-card-line {
+    color: #cfcfcf;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    &::before {
+      content: '- ';
+      color: #a08850;
+    }
+  }
+
+  .vip-card-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .vip-card-cost {
+    min-width: 0;
+  }
+
+  .vip-card-price {
+    color: #fff;
+  }
+
+  .vip-card-reason {
+    color: rgb(255, 130, 110);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}

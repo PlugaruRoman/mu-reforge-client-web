@@ -1,0 +1,148 @@
+// The Battle Statue window and the Death Records, inside the item window frame (190 x 429).
+.ol-title {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 12px;
+}
+
+.ol-body {
+  position: absolute;
+  left: 16px;
+  top: 38px;
+  width: 158px;
+  max-height: 290px;
+  overflow: hidden;
+  font-size: 11px;
+  user-select: none;
+  text-shadow: 1px 1px 0 #000;
+
+  .ol-line {
+    display: block;
+    margin: 2px 0;
+    white-space: normal;
+    text-align: center;
+  }
+
+  .ol-panel {
+    margin: 4px 0;
+    padding: 3px 5px;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+
+    .ol-panel-title {
+      display: block;
+      text-align: center;
+      margin-bottom: 2px;
+    }
+  }
+
+  .ol-row {
+    display: flex;
+    justify-content: space-between;
+    white-space: nowrap;
+    margin: 1px 0;
+  }
+
+  .ol-table {
+    margin: 4px 0;
+    pointer-events: auto;
+    color: #e2e2e2;
+  }
+
+  .ol-table-row {
+    display: grid;
+    grid-template-columns: 1fr 26px 30px 26px 14px;
+    gap: 2px;
+    padding: 1px 3px;
+    white-space: nowrap;
+    overflow: hidden;
+
+    span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    &.head {
+      color: #ffb400;
+    }
+
+    &.certified {
+      color: #ffd927;
+    }
+
+    &.shop {
+      grid-template-columns: 1fr 40px;
+    }
+
+    &.dr {
+      grid-template-columns: 1fr 36px 30px;
+    }
+
+    &.buy {
+      cursor: pointer;
+      background: rgba(0, 0, 0, 0.3);
+      margin-bottom: 1px;
+
+      &:hover {
+        background: rgba(255, 210, 60, 0.15);
+      }
+
+      &.disabled {
+        color: #888;
+        cursor: default;
+      }
+
+      &.selected {
+        background: rgba(255, 210, 60, 0.2);
+      }
+    }
+  }
+
+  .dr-table {
+    max-height: 170px;
+    overflow-y: auto;
+  }
+}
+
+.ol-buttons {
+  position: absolute;
+  left: 16px;
+  width: 158px;
+  bottom: 52px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  pointer-events: auto;
+
+  .ol-button {
+    flex: 1 1 calc(50% - 2px);
+    box-sizing: border-box;
+    padding: 4px 2px;
+    font-size: 11px;
+    text-align: center;
+    color: #e2e2e2;
+    text-shadow: 1px 1px 0 #000;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border: 1px solid rgba(255, 210, 120, 0.35);
+    background: linear-gradient(#3a3226, #1d1912);
+    cursor: pointer;
+
+    &:hover {
+      color: #fff;
+      border-color: rgba(255, 210, 60, 0.9);
+    }
+
+    &.wide {
+      flex-basis: 100%;
+    }
+
+    &.disabled {
+      color: #777;
+      border-color: rgba(255, 255, 255, 0.1);
+      cursor: default;
+    }
+  }
+}

@@ -1,6 +1,7 @@
 import { APPEARANCE_EXTENDED_LENGTH, deserializeAppearance, deserializeAppearanceExtended, itemLevelFromGlow } from '@/controllers/actors/deserializeAppearance';
-import { AddCharacterToScopeExtendedPacket, AddCharactersToScopePacket, CharacterInformationExtendedPacket, CharacterInformationPacket, AddNpcsToScopePacket, AddSummonedMonstersToScopePacket, AddTransformedCharactersToScopePacket, AppearanceChangedExtendedPacket, AppearanceChangedPacket, MapObjectOutOfScopePacket, ObjectMovedPacket, ObjectWalkedPacket, SummonHealthUpdatePacket } from '@versions/shared/packets/ServerToClientPackets';
+import { AddCharacterToScopeExtendedPacket, AddCharactersToScopePacket, CharacterInformationExtendedPacket, CharacterInformationPacket, AddNpcsToScopePacket, AddSummonedMonstersToScopePacket, AddTransformedCharactersToScopePacket, AppearanceChangedExtendedPacket, AppearanceChangedPacket, MapObjectOutOfScopePacket, ObjectMovedPacket, ObjectWalkedExtendedPacket, ObjectWalkedPacket, SummonHealthUpdatePacket } from '@versions/shared/packets/ServerToClientPackets';
 import { CharacterClassNumber } from '@/core/types';
+import { readWireString } from '@/core/binaryUtils';
 import { Economy } from '../economy/economy';
 import { Entity, World, type Item } from '@/ecs/world';
 import { EventBus } from '@/core/eventBus';
@@ -386,6 +387,51 @@ function spawnHeroOnJoin(p: { X: number; Y: number; MapId: number }): void {
   hero.transform.pos.set(p.X, world.getTerrainHeight(p.X, p.Y), p.Y);
 }
 
+/**
+ * A player in a skin. The hero is rebuilt as a player wearing the skin's body rather than as
+ * the monster itself: the controller, the camera and every clip it plays are the player rig's,
+ * and the original transforms it the same way - a MODEL_PLAYER with the skin as its subtype.
+ * Skins that are a whole monster instead have no body to lend, so the hero keeps its own.
+ */
+function addSkinned(world: World, char: ScopeCharacter, skin: number): void {
+  if (skin === 0) addCharacterToScope(world, char);
+  else if (Hero.playerId === (char.Id & 0x7fff)) addCharacterToScope(world, char, skin);
+  else addTransformedCharacterToScope(world, char, skin);
+}
+
+/** One `AddTransformedCharactersToScopeExtended` character: 47 bytes, then its effect ids. */
+const TRANSFORMED_EXTENDED_FIXED = 47;
+
+/** The characters of a C2 45 at 106.3 (layout: `AddTransformedCharactersToScopeExtended` in our XML). */
+export function readTransformedExtended(packet: DataView): (ScopeCharacter & { Skin: number })[] {
+  const out: (ScopeCharacter & { Skin: number })[] = [];
+  const count = packet.getUint8(4);
+  let at = 5;
+  for (let i = 0; i < count && at + TRANSFORMED_EXTENDED_FIXED <= packet.byteLength; i++) {
+    const effectCount = packet.getUint8(at + 46);
+    const effects: number[] = [];
+    for (let e = 0; e < effectCount && at + TRANSFORMED_EXTENDED_FIXED + e < packet.byteLength; e++) {
+      effects.push(packet.getUint8(at + TRANSFORMED_EXTENDED_FIXED + e));
+    }
+    const state = packet.getUint8(at + 18);
+    out.push({
+      Id: packet.getUint16(at, false),
+      CurrentPositionX: packet.getUint8(at + 2),
+      CurrentPositionY: packet.getUint8(at + 3),
+      Skin: packet.getUint16(at + 4, false),
+      Name: readWireString(packet, at + 6, at + 16).replace(/ +$/, ''),
+      TargetPositionX: packet.getUint8(at + 16),
+      TargetPositionY: packet.getUint8(at + 17),
+      Rotation: state >> 4,
+      HeroState: state & 0x0f,
+      appearance: deserializeAppearanceExtended(new DataView(packet.buffer.slice(packet.byteOffset + at + 19, packet.byteOffset + at + 19 + APPEARANCE_EXTENDED_LENGTH))),
+      effects,
+    });
+    at += TRANSFORMED_EXTENDED_FIXED + effectCount;
+  }
+  return out;
+}
+
 /** Registers this module's packet listeners (see ../module.ts). */
 export function installNet(): void {
   EventBus.on('CharacterInformation', packet => spawnHeroOnJoin(new CharacterInformationPacket(packet)));
@@ -500,25 +546,24 @@ export function installNet(): void {
     if (!world) return;
 
     for (const char of p.getCharacters()) {
-      const scoped: ScopeCharacter = {
+      addSkinned(world, {
         ...char,
         Name: char.Name.replace(/ +$/, ''),
         appearance: deserializeAppearance(char.Appearance),
         effects: char.Effects.map(e => e.Id),
-      };
-      // The hero is rebuilt as a player wearing the skin's body rather than as
-      // the monster itself: the controller, the camera and every clip it plays
-      // are the player rig's, and the original transforms it the same way -
-      // a MODEL_PLAYER with the skin as its subtype. Skins that are a whole
-      // monster instead have no body to lend, so the hero keeps its own.
-      if (char.Skin === 0) {
-        addCharacterToScope(world, scoped);
-      } else if (Hero.playerId === (char.Id & 0x7fff)) {
-        addCharacterToScope(world, scoped, char.Skin);
-      } else {
-        addTransformedCharacterToScope(world, scoped, char.Skin);
-      }
+      }, char.Skin);
     }
+  });
+
+  // C2 45 at 106.3 (fork-only): the same block with the 27-byte appearance at 19 and, per
+  // character, an effect count at 46 and that many effect ids from 47
+  // (S RemoteView/World/NewPlayersInScopeExtendedPlugIn.cs, xml AddTransformedCharactersToScopeExtended;
+  // client WSclient.cpp ReceiveCreateTransformViewport, TransformViewportEntry.cpp: 47 + count each).
+  EventBus.on('AddTransformedCharactersToScopeExtended', packet => {
+    const world = Ecs.world;
+    if (!world) return;
+
+    for (const char of readTransformedExtended(packet)) addSkinned(world, char, char.Skin);
   });
 
   EventBus.on('MapObjectOutOfScope', packet => {
@@ -585,9 +630,8 @@ export function installNet(): void {
     }
   });
 
-  EventBus.on('ObjectWalked', packet => {
-    const p = new ObjectWalkedPacket(packet);
-
+  /** `ReceiveMoveCharacter` (WSclient.cpp): only the target and the turn are read; the extended source is logged there, not used. */
+  const walked = (p: { ObjectId: number; TargetX: number; TargetY: number; TargetRotation: number }) => {
     const world = Ecs.world;
     if (!world) return;
 
@@ -611,7 +655,10 @@ export function installNet(): void {
     }
 
     obj.transform.rot.y = convertDirectionToAngle(p.TargetRotation);
-  });
+  };
+  EventBus.on('ObjectWalked', packet => walked(new ObjectWalkedPacket(packet)));
+  // D4 at 106.3: SourceX/Y at 5-6 push the target to 7-8 and the steps to 9 (S RemoteView/World/ObjectMovedPlugInExtended.cs:46-58).
+  EventBus.on('ObjectWalkedExtended', packet => walked(new ObjectWalkedExtendedPacket(packet)));
 
   // Legacy layout: a full serialized item whose byte 1 holds
   // `slot << 4 | glowLevel` (AppearanceChangedPlugIn); all 0xFF = unequipped.

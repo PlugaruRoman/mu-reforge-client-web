@@ -58,7 +58,8 @@ imports the modules below directly (baselined in `tools/checks`).
   `loadMuSprite`, `loadInterfaceSprite`, `peekMuSprite`, `peekInterfaceSprite`,
   `clearSpriteCache`, `MuSprite`; `decodeTGA`; `loadGates`, `findEntranceGateAt`;
   `loadQuestTables` and its types; `loadMoveReqList`;
-  `localisedItemName`, `localisedSkillName`, `localisedBuffName`, `localisedNpcName`,
+  `localisedItemName(group, index, own?)` (the pack's fixes, then the item file's own `Names`, then the
+  pack), `localisedSkillName`, `localisedBuffName`, `localisedNpcName`,
   `skillDisplayName(number)` (`mu/skillNames.ts`: the pack's name, else `skillsDatabase`'s; on the door),
   `loadNpcNames`, `onNpcNamesChanged`; `decodeLocalText`, `downloadLocalDataFile`.
 - `itemSetTables()`, `loadItemSetTables(types, options)` and `ItemSet`, `ItemSetTables`, `SetOption`

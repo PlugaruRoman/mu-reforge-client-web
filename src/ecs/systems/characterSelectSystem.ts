@@ -15,7 +15,7 @@ import { CharSelect } from '../../modules/character_select';
 import { AppState, UIState } from '../../controllers/interface/uiState';
 import { ENUM_WORLD } from '@/core/types';
 import { spawnPlayer } from '../../modules/scope/net';
-import { deserializeAppearance } from '../../controllers/actors/deserializeAppearance';
+import { deserializePreview } from '../../controllers/actors/deserializeAppearance';
 import { runInAction } from 'mobx';
 import {
   characterSelectView,
@@ -402,7 +402,7 @@ export const CharacterSelectSystem: ISystemFactory = world => {
 
       if (!position) continue;
 
-      const appearance = deserializeAppearance(character.Appearance);
+      const appearance = deserializePreview(character.Appearance);
       const entity = spawnPlayer(world, { cls: appearance.cls });
 
       world.addComponent(

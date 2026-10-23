@@ -1,0 +1,35 @@
+/** fil text of `versions/shared/ui/windows/add_stats`. */
+
+import type en from './en';
+
+export default {
+  'addStats.title': 'Add Stats',
+  'addStats.tabAdd': 'Add Stats',
+  'addStats.tabAuto': 'Auto Add',
+  'addStats.str': 'Strength',
+  'addStats.agi': 'Agility',
+  'addStats.vit': 'Vitality',
+  'addStats.ene': 'Energy',
+  'addStats.cmd': 'Command',
+  'addStats.available': 'Available points',
+  'addStats.distribute': 'Distribute points',
+  'addStats.full': 'Full',
+  'addStats.clear': 'Clear',
+  'addStats.add': 'Add Points',
+  'addStats.noPoints': 'No level up points to spend.',
+  'addStats.tooMany': 'Too many: {total} of {available} points',
+  'addStats.typeAmount': 'Type an amount, or tick Full.',
+  'addStats.spending': 'Spending {total} of {available} points',
+  'addStats.enable': 'Enable Auto Add',
+  'addStats.every': 'Every',
+  'addStats.levels': 'levels',
+  'addStats.preview': '({points} pts)',
+  'addStats.split': 'Split per interval',
+  'addStats.total': 'Total {total}%',
+  'addStats.totalOver': 'Total {total}% - must not pass 100%',
+  'addStats.asking': 'Asking the server for your settings...',
+  'addStats.unsaved': 'Unsaved changes',
+  'addStats.savedNext': 'Saved - next at level {level}',
+  'addStats.savedOff': 'Saved - currently switched off',
+  'addStats.save': 'Save',
+} satisfies Partial<Record<keyof typeof en, string>>;

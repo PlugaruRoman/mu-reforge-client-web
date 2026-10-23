@@ -3,6 +3,9 @@ import { BaseClass, CharacterClassNumber, getBaseClass } from '../../core/types'
 import { ItemsDatabase } from '@versions/shared/items/itemsDatabase';
 import { InventoryConstants } from '@/core/inventoryConstants';
 import type { Item } from '../../ecs/world';
+// `IsGeneralBowItem` / `IsGeneralCrossbowItem` (CharacterManager.cpp:84-96), with an item file's `Launcher`:
+// Mu Reforge's Hero bows 4/25, 27 and crossbows 26, 28 (server `IsBowEquipped` / `IsCrossBowEquipped`, Weapons.cs).
+import { isBow, isCrossbow } from '@/controllers/actors/weaponClass';
 import { activeSetOptions, classCanUse, wornStatBonus, classOf, harmonyBonus, harmonyNeedCut, hasGuardianOption, itemDef, periodExpired, itemStats, optionSpecials, socketStatusBonus, type OptionSpecial, type SetOptionLine, type SocketStatusBonus } from '@/controllers/item_rules';
 import type { ItemOptionTables, ItemSetTables } from '@/controllers/assets';
 
@@ -89,14 +92,6 @@ const GROUP_HELPER = 13;
 const BOLT = 7;
 const ARROWS = 15;
 
-/** `IsGeneralBowItem` and `IsGeneralCrossbowItem` (CharacterManager.cpp:84-96, _enum.h:2261-2285). */
-function isBow(item: Item): boolean {
-  return item.group === GROUP_BOW && (item.num <= 6 || item.num === 17 || (item.num >= 20 && item.num <= 24));
-}
-
-function isCrossbow(item: Item): boolean {
-  return item.group === GROUP_BOW && ((item.num >= 8 && item.num <= 14) || item.num === 16 || item.num === 18 || item.num === 19);
-}
 
 function isShield(item: Item): boolean {
   return item.group === GROUP_SHIELD;

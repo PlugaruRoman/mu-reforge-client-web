@@ -31,8 +31,9 @@ type loads. Its door is `index.ts`; older readers still import some modules dire
 - `transformedBody.ts`: `transformedBodyFactory`, `characterSkinParts`, `monsterClipFor`.
   `skinBody.ts`: `characterSkinBody(skin)` (its own file: it resolves monster models).
 - `deserializeAppearance.ts`: `deserializeAppearance`, `deserializeAppearanceExtended`,
-  `APPEARANCE_EXTENDED_LENGTH`, `classFromAppearance`, `emptyAppearance`, `withAppearanceClass`,
-  `isAppearanceBlank`, `itemLevelFromGlow`.
+  `APPEARANCE_EXTENDED_LENGTH`, `deserializePreview` (a character list preview, 18 or 27 bytes),
+  `classFromAppearance` (either layout), `emptyAppearance`, `withAppearanceClass`, `isAppearanceBlank`,
+  `itemLevelFromGlow`.
 - `weaponClass.ts`: `GROUP_*`, item tests (`isWeaponItem`, `isTwoHanded`, `isBow`, `isCrossbow`, `isBook`,
   `equippedBowType`, `swordformGlovesModel`), clip pickers (`chooseIdleAction`, `chooseWalkAction`,
   `chooseRunAction`, `chooseFenrir*Action`, `chooseAttackAction`, `chooseHighBowAttackAction`,
@@ -48,7 +49,7 @@ type loads. Its door is `index.ts`; older readers still import some modules dire
   dropped with `Cloth`. `cloaks.ts`: `registerCloaks(rule)` (the wearers' content hands its rule in at boot),
   `cloaksFor(wearer, set, pants)` (the rule builds, destroys and draws on the body's sets as `RenderCharacter` does), types `CloakWearer`,
   `CloakSet`, `CloakRule`; `ecs/systems/clothSystem.ts` asks it every frame.
-- `wings.ts`: `wingSpec`, `isWingItem`, `wingBone`, `isFastWing`, `WING_GROUP`, `HELPER_GROUP`,
+- `wings.ts`: `wingSpec`, `wingFromFile`, `isWingItem`, `wingBone`, `isFastWing`, `WING_GROUP`, `HELPER_GROUP`,
   `WING_BONE`, `CAPE_BONE`, wing index constants (`WING_OF_ELF`, `CAPE_OF_LORD`, ...).
 - `locomotion.ts`: `RUN_THRESHOLD`, `FENRIR_RUN_DELAY`, `RUN_UNITS_PER_SECOND`, `canAccumulateRun`,
   `forcesRun`, `characterMoveSpeed`, `isSwimWorld`, `inChaosCastle`, `inDevilSquare`,
@@ -164,7 +165,13 @@ type loads. Its door is `index.ts`; older readers still import some modules dire
   (`versions/shared/monsters/<name>/`, see its readme); nothing here changes. A new kind of NPC
   shape: a factory here and a branch in `resolveModelFactory`.
 - add a wing or cape: a constant and a `WINGS` / `CAPES` row in `wings.ts`; the model file comes
-  from the item's `szModelFolder` / `szModelName` in its item file.
+  from the item's `szModelFolder` / `szModelName` in its item file. A version's own wing (group 12, no
+  row) is drawn from its item file's `Wing` / `BoneGlow` instead (`wingFromFile`, built once per item:
+  `link` turns it on the back bone, the glow is flare01 sprites on its bones); `isFastWing` reads `Wing.fast`;
+  `capeClothOf` reads `Wing.cloth` (a cape a Dark Lord or Rage Fighter wears as cloth: the wing's
+  `HiddenMesh` is set in `playerObject.setWingsAsync`, the cloth is `versions/shared/cloaks`').
+  A glove weapon's worn pair or a launcher past the original's numbers: the item file's `WornModels` /
+  `Launcher` (`weaponClass.ts`). See versions/reforge/items/readme.md.
 - change where a weapon sits: `weaponAttachment.ts`. How a drop lies: `itemAngle.ts`. An item's
   additive or hidden mesh: `RULES` in `itemObjectAttribute.ts`.
 
@@ -179,7 +186,8 @@ type loads. Its door is `index.ts`; older readers still import some modules dire
 - `weaponSprites.test.ts`: a held weapon's sprites ride their bone at their point in cm, read scale, light
   and rotation off WorldTime and the wearer's light, move a jittering point only while drawn, and fall back
   on the root without a skeleton (`ecs/systems/weaponSpriteSystem.test.ts`: one per hand, rebuilt with the model).
-- `deserializeAppearance.test.ts`: `isAppearanceBlank` on empty and real previews.
+- `deserializeAppearance.test.ts`: `isAppearanceBlank` on empty and real previews; the extended layout's
+  glow levels, the Fenrir kind masked out of the pet number, the 27-byte character list preview.
 - `itemModel.test.ts`: the seeds and seed spheres dressed in their element's colour with Chrome01 (a sphere
   but its mesh 1), the Fireworks' mesh 0 at a fixed full light and mesh 1 red with Chrome01, every other
   item unshone.
@@ -227,6 +235,10 @@ type loads. Its door is `index.ts`; older readers still import some modules dire
 The 18-byte preview carries everything a remote player's gear can show: level glow, excellent and
 ancient passes, wings and the pet. Reading only the item numbers is what once left other players'
 effects and wings off. Hands carry no excellent or ancient bit in this layout.
+
+The extended layout (client >= 106.3) carries a glow level per item like the 18-byte one, so it is
+turned back into an item level the same way, and ORs the Fenrir kind into bits 1-2 of the pet's
+first byte: the pet's number is bit 0 of that byte and the next byte (`ReadEquipmentExtended`).
 
 ### monsterBlendMesh.ts
 Keyed by monster model type; a type's own `blendMesh` (the Valkyrie, the Chaos Goblin and Elf Lala) wins

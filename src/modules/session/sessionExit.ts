@@ -143,6 +143,11 @@ export const SessionExit = new (class _SessionExit {
       this.pending = null;
     });
 
+    // Our server's reserved 255: refused while in PvP combat, keep playing; the reason came as a
+    // blue message (S RemoteView/Login/LogoutPlugIn.cs `Refused`, LogoutAction.cs:102-105;
+    // client Network/Reforge/SessionEndPackets.cpp HandleLogoutResponse, LogoutRules.cpp IsRefusal).
+    if (type > LOGOUT_TYPE.servers) return;
+
     this.leave(KIND_OF_TYPE[type] ?? 'servers');
   }
 

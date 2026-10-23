@@ -40,20 +40,30 @@ const state = observable(
     // The original reads it from a byte after the window id that OpenMU's
     // NpcWindowResponse does not carry, so it stays 0 (enterable).
     remainMinutes: 0,
+    // `LockEnterButton`: our server's DoppelgangerEnterResult (modules/doppelganger/net.ts).
+    locked: false,
   },
   {},
   { deep: false }
 );
 
 /** Lugard's window: whether it is up and the Entry Time it shows. */
-export function doppelgangerWindow(): { open: boolean; remainMinutes: number } {
-  return { open: state.open, remainMinutes: state.remainMinutes };
+export function doppelgangerWindow(): { open: boolean; remainMinutes: number; locked: boolean } {
+  return { open: state.open, remainMinutes: state.remainMinutes, locked: state.locked };
+}
+
+/** `LockEnterButton`: an entry answer locks Enter, `EntranceAvailable` unlocks it. */
+export function lockDoppelgangerEntry(locked: boolean): void {
+  runInAction(() => {
+    state.locked = locked;
+  });
 }
 
 /** `OpeningProcess`: unlock the Enter button and show the window. */
 export function openDoppelganger(): void {
   runInAction(() => {
     state.remainMinutes = 0;
+    state.locked = false;
     state.open = true;
   });
 }
@@ -66,7 +76,7 @@ export function closeDoppelganger(): void {
 
 /** `SendDoppelgangerEnterRequest(0xFF)`: the Enter button. */
 export function enterDoppelganger(): void {
-  if (state.remainMinutes !== 0) return;
+  if (state.remainMinutes !== 0 || state.locked) return;
   const packet = DoppelgangerEnterRequestPacket.createPacket();
   packet.TicketItemSlot = NO_TICKET_SLOT;
   Session.sendToGS(packet.buffer);

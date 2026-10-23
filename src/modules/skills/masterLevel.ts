@@ -15,6 +15,7 @@ import {
   ExperienceGainedPacket,
   MasterCharacterLevelUpdateExtendedPacket,
   MasterCharacterLevelUpdatePacket,
+  MasterStatsUpdateExtendedPacket,
   MasterStatsUpdatePacket,
 } from '@versions/shared/packets/ServerToClientPackets';
 import type { SkillLayer } from './layer';
@@ -141,8 +142,7 @@ function gained(p: { AddedExperience: number }): void {
 
 /** Registers the master level's listeners; the skills module installs it (module.ts). */
 export function installMasterLevel(): void {
-  EventBus.on('MasterStatsUpdate', packet => {
-    const p = new MasterStatsUpdatePacket(packet);
+  const statsUpdate = (p: MasterStatsUpdatePacket | MasterStatsUpdateExtendedPacket) =>
     runInAction(() => {
       state.level = p.MasterLevel;
       state.experience = Number(p.MasterExperience);
@@ -150,7 +150,9 @@ export function installMasterLevel(): void {
       state.levelUpPoints = p.MasterLevelUpPoints;
       state.received = true;
     });
-  });
+  EventBus.on('MasterStatsUpdate', packet => statsUpdate(new MasterStatsUpdatePacket(packet)));
+  // F3 50 at 106.3: the same first 24 bytes, 32-bit maximum stats after them (S RemoteView/Character/UpdateMasterStatsExtendedPlugIn.cs).
+  EventBus.on('MasterStatsUpdateExtended', packet => statsUpdate(new MasterStatsUpdateExtendedPacket(packet)));
 
   EventBus.on('MasterCharacterLevelUpdate', packet =>
     levelUp(new MasterCharacterLevelUpdatePacket(packet))

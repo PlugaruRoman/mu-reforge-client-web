@@ -17,6 +17,7 @@ export default tseslint.config(
       'Data-v097d/**',
       // generated from OpenMU's packet XML - regenerate, never lint
       'versions/shared/packets/*Packets.ts',
+      'versions/reforge/packets/*Packets.ts',
     ],
   },
   js.configs.recommended,
@@ -58,7 +59,7 @@ export default tseslint.config(
   {
     // Content loaders: a Vite glob in the client, a synchronous `require` under Bun (servers and tools),
     // where there is no glob. See versions/shared/items/all.ts.
-    files: ['versions/shared/*/all.ts', 'tools/itemFiles.ts', 'tools/monsterFiles.ts'],
+    files: ['versions/shared/*/all.ts', 'versions/reforge/*/all.ts', 'tools/itemFiles.ts', 'tools/monsterFiles.ts'],
     rules: { '@typescript-eslint/no-require-imports': 'off' },
   }
 );

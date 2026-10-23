@@ -1,7 +1,8 @@
-import { ClosePlayerShopDialogPacket, PlayerShopBuyResultPacket, PlayerShopBuyResultResultKindEnum, PlayerShopClosedPacket, PlayerShopItemListPacket, PlayerShopItemSoldToPlayerPacket, PlayerShopOpenSuccessfulPacket, PlayerShopSetItemPriceResponseItemPriceSetResultEnum, PlayerShopSetItemPriceResponsePacket, PlayerShopsPacket } from '@versions/shared/packets/ServerToClientPackets';
+import { ClosePlayerShopDialogPacket, PlayerShopBuyResultExtendedPacket, PlayerShopBuyResultPacket, PlayerShopBuyResultResultKindEnum, PlayerShopClosedPacket, PlayerShopItemListExtendedPacket, PlayerShopItemListPacket, PlayerShopItemSoldToPlayerPacket, PlayerShopOpenSuccessfulPacket, PlayerShopSetItemPriceResponseItemPriceSetResultEnum, PlayerShopSetItemPriceResponsePacket, PlayerShopsPacket } from '@versions/shared/packets/ServerToClientPackets';
 import { Economy, type ShopStock } from '../economy/economy';
 import { EventBus } from '@/core/eventBus';
-import { ItemSerializer } from '@/controllers/item_rules';
+import { ItemSerializer, readItemData, readItemList } from '@/controllers/item_rules';
+import type { Item } from '@/ecs/world';
 import { PERSONAL_SHOP_SLOTS, StorageKind, localIndexOf } from '../inventory/itemStorage';
 import { Social } from '../social/social';
 import { Hero } from '@/modules/hero';
@@ -18,6 +19,61 @@ import { runInAction } from 'mobx';
 function shopSquareOf(slot: number): number {
   if (slot >= 0 && slot < PERSONAL_SHOP_SLOTS) return slot;
   return localIndexOf(StorageKind.PersonalShop, slot);
+}
+
+/** One `PlayerShopItemExtended` head at `at`: price u32, barter type u16, barter amount u16, slot. */
+export function readShopEntry(packet: DataView, at: number, item: Item): ShopStock {
+  const amount = packet.getUint16(at + 6, true);
+  const entry: ShopStock = { slot: packet.getUint8(at + 8), item, price: packet.getUint32(at, true) };
+  if (amount > 0) entry.barter = { itemType: packet.getUint16(at + 4, true), amount };
+  return entry;
+}
+
+/** The other player's stall, from either list packet. */
+function showShop(
+  p: { Success: boolean; PlayerId: number; PlayerName: string; ShopName: string },
+  entries: ShopStock[]
+): void {
+  if (!p.Success) {
+    Social.errorMessage(t('personalShop.openFailed'));
+    return;
+  }
+
+  const items = new Array<ShopStock | null>(PERSONAL_SHOP_SLOTS).fill(null);
+
+  for (const entry of entries) {
+    const square = shopSquareOf(entry.slot);
+    if (square < 0 || square >= PERSONAL_SHOP_SLOTS) continue;
+    items[square] = entry;
+  }
+
+  Economy.showShop({
+    playerId: p.PlayerId & 0x7fff,
+    playerName: cleanName(p.PlayerName),
+    shopName: cleanName(p.ShopName),
+    items,
+  });
+}
+
+/**
+ * The bought item rides this packet and nothing else: OpenMU's
+ * `BuyRequestAction` puts it in the inventory server-side and reports it
+ * here, with no `ItemAddedToInventory` behind it. Dropping the payload left
+ * the slot empty until the next login.
+ */
+function shopBuyResult(result: PlayerShopBuyResultResultKindEnum, slot: number, item: () => Item): void {
+  if (result !== PlayerShopBuyResultResultKindEnum.Success) {
+    Economy.shopBuyResult(result);
+    return;
+  }
+
+  // ReceivePurchaseItem (WSclient.cpp:9526-9597) plays nothing.
+  const bought = item();
+  runInAction(() => {
+    Hero.items[slot] = bought;
+  });
+
+  Hero.syncPlayerAppearance();
 }
 
 /** Registers this module's packet listeners (see ../module.ts). */
@@ -85,54 +141,30 @@ export function installNet(): void {
 
   EventBus.on('PlayerShopItemList', packet => {
     const p = new PlayerShopItemListPacket(packet);
-
-    if (!p.Success) {
-      Social.errorMessage(t('personalShop.openFailed'));
-      return;
-    }
-
-    const items = new Array<ShopStock | null>(PERSONAL_SHOP_SLOTS).fill(null);
-
-    for (const entry of p.getItems()) {
-      const square = shopSquareOf(entry.ItemSlot);
-      if (square < 0 || square >= PERSONAL_SHOP_SLOTS) continue;
-
-      items[square] = {
-        slot: entry.ItemSlot,
-        item: ItemSerializer.DeserializeItem(new Uint8Array(entry.ItemData.buffer)),
-        price: entry.Price,
-      };
-    }
-
-    Economy.showShop({
-      playerId: p.PlayerId & 0x7fff,
-      playerName: cleanName(p.PlayerName),
-      shopName: cleanName(p.ShopName),
-      items,
-    });
+    showShop(p, p.getItems().map(entry => ({
+      slot: entry.ItemSlot,
+      item: ItemSerializer.DeserializeItem(new Uint8Array(entry.ItemData.buffer)),
+      price: entry.Price,
+    })));
   });
 
-  /**
-   * The bought item rides this packet and nothing else: OpenMU's
-   * `BuyRequestAction` puts it in the inventory server-side and reports it
-   * here, with no `ItemAddedToInventory` behind it. Dropping the payload left
-   * the slot empty until the next login.
-   */
+  // 3F 05 at 106.3: per item its zen price (u32), the barter item type and amount (u16 each), the
+  // slot, then the item from 55 (S RemoteView/PlayerShop/ShowShopItemListExtendedPlugIn.cs:48-78).
+  // A barter price is an amount > 0 (client PersonalShopCurrency.cpp DecodeExtendedPrice); our server
+  // writes none yet (the plug-in's "todo"), so only the zen price reaches the tooltip.
+  EventBus.on('PlayerShopItemListExtended', packet => {
+    const p = new PlayerShopItemListExtendedPacket(packet);
+    showShop(p, readItemList(packet, 55, p.ItemCount, 9).map(({ at, item }) => readShopEntry(packet, at, item)));
+  });
+
   EventBus.on('PlayerShopBuyResult', packet => {
     const p = new PlayerShopBuyResultPacket(packet);
+    shopBuyResult(p.Result, p.ItemSlot, () => ItemSerializer.DeserializeItem(new Uint8Array(p.ItemData.buffer)));
+  });
 
-    if (p.Result !== PlayerShopBuyResultResultKindEnum.Success) {
-      Economy.shopBuyResult(p.Result);
-      return;
-    }
-
-    // ReceivePurchaseItem (WSclient.cpp:9526-9597) plays nothing.
-    const item = ItemSerializer.DeserializeItem(new Uint8Array(p.ItemData.buffer));
-
-    runInAction(() => {
-      Hero.items[p.ItemSlot] = item;
-    });
-
-    Hero.syncPlayerAppearance();
+  // 3F 06 at 106.3: seller id, result, slot, then the item from 8 (S RemoteView/Inventory/PlayerShopBuyRequestResultExtendedPlugIn.cs:34-50).
+  EventBus.on('PlayerShopBuyResultExtended', packet => {
+    const p = new PlayerShopBuyResultExtendedPacket(packet);
+    shopBuyResult(p.Result as number as PlayerShopBuyResultResultKindEnum, p.ItemSlot, () => readItemData(p.ItemData));
   });
 }

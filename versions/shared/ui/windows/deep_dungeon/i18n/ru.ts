@@ -1,0 +1,36 @@
+/** Russian text of the `deep_dungeon` window. */
+
+import type en from './en';
+
+export default {
+  'deepDungeon.title': 'Deep Dungeon',
+  'deepDungeon.floor': 'Этаж {n}',
+  'deepDungeon.difficulty.easy': 'Легко',
+  'deepDungeon.difficulty.normal': 'Средне',
+  'deepDungeon.difficulty.hard': 'Сложно',
+  'deepDungeon.difficulty.veryHard': 'Оч. сложно',
+  'deepDungeon.difficulty.extreme': 'Экстрим',
+  'deepDungeon.levelRequired': 'Нужен {level} уровень, чтобы войти в Deep Dungeon.',
+  'deepDungeon.closesIn': 'Закроется через {time}',
+  'deepDungeon.closedNow': 'Подземелье закрылось',
+  'deepDungeon.requiresLevel': 'Нужен уровень {level}',
+  'deepDungeon.requiresLevelYou': 'Нужен уровень {level} (у вас {you})',
+  'deepDungeon.monstersLabel': 'Монстры',
+  'deepDungeon.monsterLevels': 'ур. {min}-{max}',
+  'deepDungeon.suggestedLabel': 'Для вас',
+  'deepDungeon.resetRange': '{min}-{max} ресетов',
+  'deepDungeon.resetsFrom': 'от {min} ресетов',
+  'deepDungeon.enterFloor': 'Войти: этаж {n}',
+  'deepDungeon.loot.0a': 'Bless, Soul, Chaos, Life',
+  'deepDungeon.loot.0b': 'Talisman of Luck, зен',
+  'deepDungeon.loot.1a': 'Creation, Guardian, зен',
+  'deepDungeon.loot.1b': 'Box of Luck, экселлент',
+  'deepDungeon.loot.2a': 'Harmony, Skill, Luck',
+  'deepDungeon.loot.2b': 'Gemstone, билет BC',
+  'deepDungeon.loot.3a': 'Экселлент, анцент, петы',
+  'deepDungeon.loot.3b': 'Chaos Assembly, сокеты',
+  'deepDungeon.loot.4a': 'Экс. сокет, анцент, петы',
+  'deepDungeon.loot.4b': 'Chaos Assembly, сокеты',
+  'deepDungeon.hudFloor': 'Deep Dungeon - этаж {n}',
+  'deepDungeon.hudClosing': 'Закрывается - вас сейчас телепортирует!',
+} satisfies Partial<Record<keyof typeof en, string>>;

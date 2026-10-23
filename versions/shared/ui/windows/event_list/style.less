@@ -1,0 +1,76 @@
+@import (reference) '@/controllers/interface/components/mu_text/style.less';
+// The Event List (B): one card per mini-game, a hint line and the Event Timer button.
+.event-list {
+  position: absolute;
+  left: 16px;
+  top: 38px;
+  width: 158px;
+  height: 382px;
+  font-size: 11px;
+  user-select: none;
+  text-shadow: 1px 1px 0 #000;
+
+  .event-list-cards {
+    height: 290px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    pointer-events: auto;
+  }
+
+  .event-list-placeholder {
+    display: block;
+    margin-top: 20px;
+    text-align: center;
+  }
+
+  .event-list-card {
+    margin-bottom: 6px;
+    padding: 4px;
+    background: rgba(0, 0, 0, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+
+    &:hover {
+      border-color: rgba(255, 220, 120, 0.5);
+    }
+
+    &.spent {
+      opacity: 0.6;
+    }
+  }
+
+  .event-list-line {
+    display: flex;
+    justify-content: space-between;
+    white-space: nowrap;
+  }
+
+  .event-list-bar {
+    height: 3px;
+    margin: 3px 0;
+    background: rgba(255, 255, 255, 0.12);
+  }
+
+  .event-list-fill {
+    height: 100%;
+    background: rgb(120, 200, 120);
+
+    &.full {
+      background: rgb(230, 90, 70);
+    }
+  }
+
+  .event-list-footer {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 296px;
+    text-align: center;
+    white-space: normal;
+  }
+
+  .event-list-timer {
+    position: absolute;
+    left: 25px;
+    bottom: 6px;
+  }
+}

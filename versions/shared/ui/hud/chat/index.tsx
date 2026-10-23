@@ -193,7 +193,7 @@ const CompletionRow = ({
   >
     <span className="chat-completion-name">{command.name}</span>
     {command.usage && <span className="chat-completion-usage">{command.usage}</span>}
-    <span className="chat-completion-help">{t(command.helpKey)}</span>
+    <span className="chat-completion-help">{command.help ?? (command.helpKey ? t(command.helpKey) : '')}</span>
   </div>
 );
 

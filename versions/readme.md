@@ -6,11 +6,12 @@ the server list picks one per page load. Overview: [docs/versions.md](../docs/ve
 ## Public API
 - `VERSION_REGISTRY`: every shipped version (`id`, `label`, `listTag`, `load`, `loadUi`).
 - `DEFAULT_VERSION_ID`: `'season6'`.
-- `VersionModule`, `VersionPackets`, `VersionEntry`: the types a version folder fills.
+- `VersionModule`, `VersionPackets` (the union of the Season 6 and Mu Reforge packet sets), `VersionEntry`:
+  the types a version folder fills.
 
 ## How it works
 - `registry.ts` keeps the entry metadata eager, so the server picker can match a list tag
-  (`S6EP3`, `V097D`) without loading a version body.
+  (`S6EP3`, `V097D`, `REFORGE`) without loading a version body.
 - `load()` imports `versions/<id>/index.ts` (the `GameVersion` plus its packet lists).
   `loadUi()` imports `versions/<id>/ui` separately, because UI reaches app code.
 - A version's `index.ts` imports only the contract (`src/version/contract.ts`), generated packet
@@ -22,6 +23,7 @@ registry.ts   every version the client ships
 shared/       content any version can load (skills, maps, items, ui, packets...)
 season6/      Season 6 Episode 3, the default
 v097d/        MU 0.97d
+reforge/      Mu Reforge: Season 6 over our server's 106.3 protocol
 _template/    copy to start a new version (compiles, never registered)
 ```
 
@@ -35,5 +37,5 @@ _template/    copy to start a new version (compiles, never registered)
 - change one version only: edit `versions/<id>/`, never add an `if (version)` in `src/`.
 
 ## Tests
-- `registry.test.ts`: the registry lists season6 (default) and v097d, entry metadata matches each
+- `registry.test.ts`: the registry lists season6 (default), v097d and reforge, entry metadata matches each
   body, list tags are distinct, and Season 6 keeps its login bytes, Xor keys and variant ranks.

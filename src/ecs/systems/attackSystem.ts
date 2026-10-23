@@ -31,6 +31,7 @@ import { t } from '../../i18n';
 import { heldWeapons } from '../../controllers/actors';
 import { serverSetting } from '../../modules/servers/serverManifest';
 import { GameOptions } from '../../controllers/settings';
+import { monsterRegistry } from '../../controllers/monsters';
 import { isOn } from '../../controllers/fidelity';
 import { isSliding } from './positionSlideSystem';
 
@@ -104,7 +105,7 @@ export function isNpcOrTrapType(type: number): boolean {
   if (type === 200) return false;
   if (type > 200 && type < 260) return true;
   if (type >= 480 && type <= 491) return false;
-  if (NPC_TYPE_OVERRIDES.has(type)) return true;
+  if (NPC_TYPE_OVERRIDES.has(type) || monsterRegistry.def(type)?.npc) return true;
   if (type >= 100 && type <= 110) return true;
   return false;
 }

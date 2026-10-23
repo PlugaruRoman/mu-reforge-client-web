@@ -1,12 +1,16 @@
 import { registerCloaks, type CloakSet, type CloakWearer } from '@/controllers/actors/cloaks';
+import { capeClothOf } from '@/controllers/actors/wings';
 import type { Rgb } from '@/controllers/cloth';
 import { BaseClass, CharacterClassNumber, getBaseClass } from '@/core/types';
 import {
   CAPE_OF_LORD_CLOTH,
   MANTLE_OF_MONARCH_CLOTH,
   MANTLE_OF_MONARCH_STRAPS,
+  SMALL_CAPE_OF_LORD_CLOTH,
   isCapeOfLord,
   isMantleOfMonarch,
+  isSmallCapeOfLord,
+  lordClothOf,
 } from './cape_of_lord';
 import { robeFor } from './robe';
 import { tearsSet } from './delete_cloth';
@@ -17,7 +21,16 @@ import { DEATH_KING, DEATH_KING_ROBE, FRED, FRED_CLOTH, NIGHTMARE, NIGHTMARE_ROB
 import { MAGIC_SKELETON_CLOTH, isMagicSkeleton } from './magic_skeleton';
 import { pantsCloth } from './soul_pants';
 import { bodyCloths } from './ring_bodies';
-import { CAPE_OF_FIGHTER_CLOTH, CAPE_OF_OVERRULE_CLOTH, CAPE_OF_OVERRULE_STRAPS, isCapeOfFighter, isCapeOfOverrule } from './cape_of_fighter';
+import {
+  CAPE_OF_FIGHTER_CLOTH,
+  CAPE_OF_OVERRULE_CLOTH,
+  CAPE_OF_OVERRULE_STRAPS,
+  LITTLE_WARRIORS_CLOAK_CLOTH,
+  fighterClothOf,
+  isCapeOfFighter,
+  isCapeOfOverrule,
+  isLittleWarriorsCloak,
+} from './cape_of_fighter';
 
 const WHITE: Rgb = [1, 1, 1];
 
@@ -40,7 +53,9 @@ function buildDarkLord(w: CloakWearer, set: CloakSet): void {
   const mantle = isMantleOfMonarch(w.wing);
   set.build(0, DARK_LORD_HAIR[0]);
   set.build(1, DARK_LORD_HAIR[1]);
-  set.build(2, mantle ? MANTLE_OF_MONARCH_CLOTH : CAPE_OF_LORD_CLOTH);
+  // The small shop cape (MuMain) and an item file's cloth cape (Mu Reforge's `CreateHeroCapeCloth`) come before the plain one.
+  const cape = isSmallCapeOfLord(w.wing) ? SMALL_CAPE_OF_LORD_CLOTH : lordClothOf(w.wing);
+  set.build(2, mantle ? MANTLE_OF_MONARCH_CLOTH : (cape ?? CAPE_OF_LORD_CLOTH));
   const body = ownBody(w);
   if (body !== null) set.build(3, body === 'emperor' ? LORD_EMPEROR_SKIRT_BUILT : DARK_LORD_SKIRT_BUILT);
   if (mantle) {
@@ -72,7 +87,8 @@ function followArmour(w: CloakWearer, set: CloakSet): void {
 /** The Rage Fighter's set (:9777-9824): 0 the cape, 1 and 2 the Overrule's straps. */
 function buildRageFighter(w: CloakWearer, set: CloakSet): void {
   const overrule = isCapeOfOverrule(w.wing);
-  set.build(0, overrule ? CAPE_OF_OVERRULE_CLOTH : CAPE_OF_FIGHTER_CLOTH);
+  const cape = isLittleWarriorsCloak(w.wing) ? LITTLE_WARRIORS_CLOAK_CLOTH : fighterClothOf(w.wing);
+  set.build(0, overrule ? CAPE_OF_OVERRULE_CLOTH : (cape ?? CAPE_OF_FIGHTER_CLOTH));
   if (overrule) {
     set.build(1, CAPE_OF_OVERRULE_STRAPS[0]);
     set.build(2, CAPE_OF_OVERRULE_STRAPS[1]);
@@ -92,10 +108,10 @@ function drawSet(w: CloakWearer, base: BaseClass, team: boolean, set: CloakSet):
   for (let i = 0; i < set.count; i++) {
     if (!set.has(i)) continue;
     if (base === BaseClass.DarkLord) {
-      if (i === 2 && !team && !isCapeOfLord(w.wing) && !isMantleOfMonarch(w.wing)) continue;
+      if (i === 2 && !team && !isCapeOfLord(w.wing) && !isMantleOfMonarch(w.wing) && !isSmallCapeOfLord(w.wing) && !capeClothOf(w.wing)) continue;
       if ((i <= 1 || i === 3) && ring) continue;
     }
-    if (base === BaseClass.RageFighter && i === 0 && !team && !isCapeOfFighter(w.wing) && !isCapeOfOverrule(w.wing)) continue;
+    if (base === BaseClass.RageFighter && i === 0 && !team && !isCapeOfFighter(w.wing) && !isCapeOfOverrule(w.wing) && !isLittleWarriorsCloak(w.wing) && !capeClothOf(w.wing)) continue;
     if (i === 0 && darkCloak) continue;
     set.draw(i);
   }

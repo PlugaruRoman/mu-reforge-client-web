@@ -1,0 +1,260 @@
+// `CInGameShop`: the classic message-box back, MU table frames around the grid and the storage.
+.xshop-window {
+  position: absolute;
+  left: 120px;
+  top: 80px;
+  pointer-events: auto;
+  user-select: none;
+  background-size: 100% 100%;
+  background-color: rgba(0, 0, 0, 0.85);
+  border: 1px solid #5a4a2a;
+  font-size: 11px;
+  color: #ddd;
+  text-shadow: 1px 1px 0 #000;
+  transform-origin: 0 0;
+
+  .xshop-title {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 8px;
+    text-align: center;
+    font-weight: bold;
+    color: #ffd927;
+  }
+
+  .xshop-close {
+    position: absolute;
+    right: 8px;
+    top: 4px;
+    cursor: pointer;
+    color: #999;
+    font-size: 14px;
+
+    &:hover {
+      color: #fff;
+    }
+  }
+
+  .xshop-points {
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    top: 26px;
+    display: flex;
+    gap: 18px;
+    color: #bbb;
+
+    b {
+      color: #ffd927;
+    }
+  }
+
+  .xshop-zones,
+  .xshop-categories {
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    display: flex;
+    gap: 2px;
+  }
+
+  .xshop-zones {
+    top: 44px;
+  }
+
+  .xshop-categories {
+    top: 66px;
+  }
+
+  .xshop-tab {
+    padding: 2px 10px;
+    cursor: pointer;
+    color: #999;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid #3a3020;
+
+    &.small {
+      padding: 1px 7px;
+    }
+
+    &.active {
+      color: #fff;
+      background: rgba(255, 210, 120, 0.18);
+      border-color: #8a7040;
+    }
+  }
+
+  .xshop-grid {
+    position: absolute;
+    display: grid;
+    grid-template-columns: repeat(3, 112px);
+    grid-auto-rows: 78px;
+    gap: 4px;
+  }
+
+  .xshop-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2px;
+    cursor: pointer;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid #333;
+
+    &:hover,
+    &.selected {
+      border-color: #8a7040;
+      background: rgba(255, 210, 120, 0.08);
+    }
+  }
+
+  .xshop-card-icon {
+    width: 40px;
+    height: 40px;
+    position: relative;
+  }
+
+  .xshop-card-name {
+    width: 100%;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #fff;
+  }
+
+  .xshop-card-price {
+    color: #ffd927;
+
+    .unit {
+      color: #aaa;
+    }
+  }
+
+  .xshop-pager {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+  }
+
+  button {
+    font: inherit;
+    color: #ddd;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid #5a4a2a;
+    padding: 1px 8px;
+    cursor: pointer;
+
+    &:disabled {
+      color: #666;
+      cursor: default;
+    }
+  }
+
+  .xshop-storage-title {
+    position: absolute;
+    color: #ffd927;
+  }
+
+  .xshop-storage {
+    position: absolute;
+    overflow-y: auto;
+  }
+
+  .xshop-storage-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 0;
+    border-bottom: 1px solid #222;
+  }
+
+  .xshop-storage-icon {
+    width: 24px;
+    height: 24px;
+    position: relative;
+    flex: none;
+  }
+
+  .xshop-storage-name {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .xshop-empty {
+    color: #888;
+    padding: 6px;
+  }
+
+  .xshop-message {
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    bottom: 6px;
+    color: #ff6060;
+    text-align: center;
+
+    &.good {
+      color: #8fd96b;
+    }
+  }
+
+  .xshop-buy {
+    position: absolute;
+    left: 90px;
+    top: 100px;
+    width: 300px;
+    padding: 10px;
+    background: rgba(10, 8, 4, 0.96);
+    border: 1px solid #8a7040;
+
+    .xshop-buy-title {
+      font-weight: bold;
+      color: #ffd927;
+      text-align: center;
+      margin-bottom: 6px;
+    }
+
+    .xshop-buy-text {
+      color: #ccc;
+      margin-bottom: 6px;
+    }
+
+    .xshop-buy-tiers label {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      cursor: pointer;
+
+      .price {
+        margin-left: auto;
+        color: #ffd927;
+      }
+
+      &.chosen {
+        color: #fff;
+      }
+    }
+
+    .xshop-buy-price {
+      margin-top: 6px;
+      color: #ffd927;
+    }
+
+    .xshop-buy-short {
+      color: #ff6060;
+    }
+
+    .xshop-buy-buttons {
+      margin-top: 8px;
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+    }
+  }
+}

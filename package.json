@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "APP_ENV=dev vite --force",
     "build": "APP_ENV=prod vite build && bun run copy-data && bun run compress-assets && bun run lite-assets && bun run assets-index && bun run asset-bundles",
-    "copy-data": "bun run tools/copyData.ts && bun run tools/copyData.ts --src Data-v097d --out dist/Data-v097d",
+    "copy-data": "bun run tools/copyData.ts && bun run tools/copyData.ts --src Data-v097d --out dist/Data-v097d && bun run tools/copyData.ts --src Data-reforge --out dist/Data-reforge",
     "compress-assets": "bun run tools/compressAssets.ts",
     "lite-assets": "bun run tools/liteAssets.ts",
     "assets-index": "bun run tools/assetsIndex.ts",

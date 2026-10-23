@@ -74,6 +74,8 @@ const MAP_IMAGES: Record<number, string> = {
   63: 'pkfield.OZT',
   64: 'duelarena.OZT',
   79: 'MapName_MarketRolen.OZT',
+  // Mu Reforge's Team vs Team (`ReforgeMaps.cpp` AddMapNameImages; its Data-reforge ships the picture).
+  87: 'TeamVsTeam.OZT',
 };
 
 function bannerImage(map: number): string | null {
@@ -85,6 +87,8 @@ function bannerImage(map: number): string | null {
   if (map >= 65 && map <= 68) return 'Doppelganger.OZT';
   if (map >= 69 && map <= 72) return 'EmpireGuardian.OZT';
   if (map === 80 || map === 81) return 'mapname_karutan.ozt';
+  // Mu Reforge's Deep Dungeon floors 1-5, one picture each (`ReforgeMaps.cpp`).
+  if (map >= 90 && map <= 94) return `DeepDungeon${map - 89}.OZT`;
   return MAP_IMAGES[map] ?? null;
 }
 

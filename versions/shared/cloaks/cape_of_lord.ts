@@ -1,5 +1,5 @@
 import { PCT_CURVED, PCT_HEAVY, PCT_MASK_ALPHA, PCT_SHORT_SHOULDER, type ClothSpec } from '@/controllers/cloth';
-import { CAPE_OF_EMPEROR, CAPE_OF_LORD, HELPER_GROUP, WING_GROUP } from '@/controllers/actors/wings';
+import { CAPE_OF_EMPEROR, CAPE_OF_LORD, HELPER_GROUP, WING_GROUP, capeClothOf } from '@/controllers/actors/wings';
 import type { Item } from '@/ecs/world';
 
 /** The cape's spheres: the upper back, bone 17 (ZzzCharacter.cpp:9737-9740). */
@@ -48,3 +48,14 @@ export const MANTLE_OF_MONARCH_STRAPS = [strap(30, 15), strap(-30, 20)] as const
 
 export const isCapeOfLord = (wing: Item | null): boolean => wing?.group === HELPER_GROUP && wing.num === CAPE_OF_LORD;
 export const isMantleOfMonarch = (wing: Item | null): boolean => wing?.group === WING_GROUP && wing.num === CAPE_OF_EMPEROR;
+
+/** `MODEL_SMALL_CAPE_OF_LORD` (wing 130, a later season's shop cape): the Dark Lord's cape at 100 x 100 (ZzzCharacter.cpp, MuMain). */
+export const SMALL_CAPE_OF_LORD = 130;
+export const SMALL_CAPE_OF_LORD_CLOTH: ClothSpec = { ...CAPE_OF_LORD_CLOTH, size: [100, 100] };
+export const isSmallCapeOfLord = (wing: Item | null): boolean => wing?.group === WING_GROUP && wing.num === SMALL_CAPE_OF_LORD;
+
+/** A cape an item file hangs as cloth (`Wing.cloth`, Mu Reforge's Hero Cape): the Cape of Emperor's shape in its texture (`CreateHeroCapeCloth`). */
+export function lordClothOf(wing: Item | null): ClothSpec | null {
+  const cloth = capeClothOf(wing);
+  return cloth ? { ...MANTLE_OF_MONARCH_CLOTH, front: cloth.texture, back: cloth.texture } : null;
+}

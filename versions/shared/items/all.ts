@@ -1,4 +1,4 @@
-import { ItemRegistry, type ItemRecord } from '@/controllers/items';
+import { ItemRegistry, setActiveItems, type ItemRecord } from '@/controllers/items';
 
 /**
  * Every item file under this folder (`<group>/<item>.ts`), found by glob in the client build and in
@@ -18,3 +18,6 @@ function itemFiles(): ItemRecord[] {
 }
 
 export const items = new ItemRegistry(itemFiles());
+
+// The controllers that need an item's record (wings, item looks) read it from here.
+setActiveItems(items);

@@ -8,6 +8,7 @@ import { Bag } from '@/modules/inventory';
 import { Hero } from '@/modules/hero';
 import { Ecs } from '@/ecs/current';
 import { Economy } from '@/modules/economy/economy';
+import { GuildBank } from '@/modules/guild_bank';
 import { JewelMix } from '@/modules/chaos_mix/jewelMix';
 import { events } from '@/modules/events';
 import { ItemIcon } from '@/controllers/interface/components/item_icon';
@@ -41,6 +42,7 @@ import { MuButton } from '@/controllers/interface/components/mu_button';
 import { MuItemWindow, MuTableFrame } from '@/controllers/interface/components/mu_window';
 import { playUiSound } from '@/controllers/sound/sfx';
 import { INVENTORY_QUEST, quests } from '@/modules/quests';
+import { InventoryShortcuts, depositFromBag } from '../jewel_bank';
 import {
   BUTTON_FRAMES,
   BUTTON_HEIGHT,
@@ -494,6 +496,10 @@ export const Inventory = observer(() => {
     // `ProcessMyInvenItemAutoMove` (NewUIStorageInventory.cpp:400): with a
     // storage window open the right click shuttles the item into it instead
     // of equipping or drinking it.
+    // Mu Reforge: the open guild bank takes it (GuildBankTransfers.h `TryDepositAtPointer`).
+    if (GuildBank.open && GuildBank.deposit(entry.slot)) return;
+    // Mu Reforge: the open jewel bank takes a jewel (JewelBankDeposit.cpp `TryDepositAtPointer`).
+    if (depositFromBag(entry.slot, entry.item)) return;
     const target = Economy.autoMoveTarget;
     if (target !== null) {
       // The chaos machine only takes a mix source, while ready (NewUIMixInventory.cpp:1027-1037).
@@ -729,6 +735,7 @@ export const Inventory = observer(() => {
 
       {}
       {}
+      <InventoryShortcuts />
     </MuItemWindow>
   );
 });

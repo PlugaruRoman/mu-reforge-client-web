@@ -8,6 +8,8 @@ import { MinimapMarkerKind, type MinimapMarker } from '@/controllers/terrain/min
 import { useMuSprite } from '@/controllers/interface/components/mu_sprite';
 import { MuButton } from '@/controllers/interface/components/mu_button';
 import { mapRotation } from './rotation';
+import { reaction } from 'mobx';
+import { ReforgeHud } from '@/modules/reforge_hud';
 
 /**
  * What the sheet and the corner panel share: the art, the marker tables and
@@ -63,17 +65,35 @@ export type MapPoint = { x: number; y: number };
 /** Our own marker kind for party members; not in the file format. */
 const PARTY_KIND = 3;
 
+/** Mu Reforge's monster spots (C2 D5, modules/reforge_hud); our client draws `mini_map_ui_mob`, the NPC art stands in. */
+const MOB_SPOT_KIND = 4;
+const MOB_SPOT_SIZE = 10;
+
 export const MARKER_SIZE: Record<number, number> = {
   [MinimapMarkerKind.Npc]: NPC_SIZE,
   [MinimapMarkerKind.Portal]: PORTAL_SIZE,
   [PARTY_KIND]: PARTY_SIZE,
+  [MOB_SPOT_KIND]: MOB_SPOT_SIZE,
 };
 
 export const MARKER_SPRITE: Record<number, string> = {
   [MinimapMarkerKind.Npc]: NPC_SPRITE,
   [MinimapMarkerKind.Portal]: PORTAL_SPRITE,
   [PARTY_KIND]: PARTY_SPRITE,
+  [MOB_SPOT_KIND]: NPC_SPRITE,
 };
+
+/** The monster spots of the hero's map as markers (`ReforgeMiniMapDots.cpp`); none off a Mu Reforge world. */
+export function useMobSpotMarkers(active: boolean): MinimapMarker[] {
+  const [markers, setMarkers] = useState<MinimapMarker[]>(NO_MARKERS);
+  useEffect(() => {
+    if (!active) return;
+    const toMarkers = () =>
+      ReforgeHud.mobSpots.map(s => ({ kind: MOB_SPOT_KIND, x: s.x, y: s.y, rotation: 0, name: s.name }));
+    return reaction(toMarkers, setMarkers, { fireImmediately: true });
+  }, [active]);
+  return active ? markers : NO_MARKERS;
+}
 
 /**
  * The decoded map of `map`: `undefined` while it loads, `null` for a world

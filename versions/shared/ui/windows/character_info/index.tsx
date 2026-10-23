@@ -22,6 +22,7 @@ import { MuSpriteFrame } from '@/controllers/interface/components/mu_sprite';
 import { MuButton } from '@/controllers/interface/components/mu_button';
 import { playUiSound } from '@/controllers/sound/sfx';
 import { toggleMasterSkillsWindow } from '../master_skills/windowState';
+import { ResetCharacterButtons } from '../reset';
 import { togglePetInfoWindow } from '../pet_info/windowState';
 import {
   MuItemWindow,
@@ -793,6 +794,7 @@ export const CharacterInfo = observer(() => {
         disabled={!isMasterClass(playerData.charClass)}
         onClick={() => toggleMasterSkillsWindow()}
       />
+      <ResetCharacterButtons />
     </MuItemWindow>
   );
 });

@@ -1,6 +1,6 @@
 import { Economy } from '../economy/economy';
 import { EventBus } from '@/core/eventBus';
-import { ItemSerializer } from '@/controllers/item_rules';
+import { readItemData } from '@/controllers/item_rules';
 import { Social } from '../social/social';
 import { TradeButtonStateChangedPacket, TradeFinishedPacket, TradeItemAddedPacket, TradeItemRemovedPacket, TradeMoneyUpdatePacket, TradeRequestAnswerPacket, TradeRequestPacket as TradeRequestS2CPacket } from '@versions/shared/packets/ServerToClientPackets';
 import { cleanName } from '../chat/chat';
@@ -35,7 +35,7 @@ export function installNet(): void {
 
   EventBus.on('TradeItemAdded', packet => {
     const p = new TradeItemAddedPacket(packet);
-    const item = ItemSerializer.DeserializeItem(new Uint8Array(p.ItemData.buffer));
+    const item = readItemData(p.ItemData);
     Economy.setYourTradeItem(p.ToSlot, item);
   });
 

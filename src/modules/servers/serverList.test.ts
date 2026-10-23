@@ -37,6 +37,14 @@ describe('parseServerLine', () => {
     });
   });
 
+  it('reads the tag of a carried version even without a digit', () => {
+    expect(parseServerLine('[1:REFORGE:Molten:A world:en](127.0.0.1:44406@ws://localhost:3000)')).toMatchObject({
+      version: 'REFORGE',
+      name: 'Molten',
+      csPort: 44406,
+    });
+  });
+
   it('keys a world by the id it published', () => {
     expect(
       parseServerLine('[1:S6EP3:Ignies:A world:es](ignies.net)')

@@ -32,6 +32,7 @@ import { itemOptionTables, itemSetTables } from '@/controllers/assets';
 import { skills } from '@/modules/skills';
 import { InventoryConstants } from '@/core/inventoryConstants';
 import { stallPriceColor } from './stallPrice';
+import { periodItemLines } from '@/modules/xshop';
 
 /** One inventory square of the picture, as the grids draw it. */
 const PICTURE_SQUARE = 20;
@@ -317,6 +318,11 @@ export const ItemTooltip = observer(
       Pets.requestPetInfo(pet, petSlot);
     }, [pet, petSlot]);
 
+    // A rental (Mu Reforge D2 12): its expiry closes the tooltip (ZzzInventory.cpp:5127-5144).
+    const rental: TooltipLine[] =
+      context === 'inventory' ? periodItemLines(slot ?? Hero.items.indexOf(item), item).map(l => ({ ...l, bold: false })) : [];
+    const rentalStamp = rental.map(l => l.text).join('|');
+
     const lines = useMemo(() => {
       if (!data) return null;
       const [name, ...rest] = data.lines;
@@ -324,11 +330,12 @@ export const ItemTooltip = observer(
         ? [name, ...priceLines(item, context, name.color, price), ...rest]
         : [...data.lines];
       if (pet !== undefined && petSlot >= 0) all.push(...petLines(pet, petSlot));
+      all.push(...rental);
       return all;
       // Tracked observables (shop, repair mode, pet info) re-run the observer,
       // and the stamps cover the item itself.
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [data, context, price, pet, petSlot, Merchant.npcShop, Merchant.repairMode, Pets.petInfo]);
+    }, [data, context, price, pet, petSlot, Merchant.npcShop, Merchant.repairMode, Pets.petInfo, rentalStamp]);
 
     const move = (clientX: number, clientY: number) => {
       cursor.current = { x: clientX, y: clientY };

@@ -9,6 +9,7 @@
  * `attackSystem` (range + ammo gate) and `networkSystem`'s path truncation.
  */
 import type { Item } from '../../ecs/world';
+import { isCrossbow as isCrossbowModel } from '../actors/weaponClass';
 import type { CombatLayer } from './layer';
 
 // ---- 1. tuning -------------------------------------------------------------
@@ -30,9 +31,6 @@ const BOW_GROUP = 4;
 const BOLTS_INDEX = 7;
 const ARROWS_INDEX = 15;
 
-/** `IsCrossbowModel` (CharacterManager.cpp:76): 8-14, 16, 18, 19; 17 and 20-24 are bows. */
-const CROSSBOW_INDICES = new Set([8, 9, 10, 11, 12, 13, 14, 16, 18, 19]);
-
 // ---- 2. state + readers ----------------------------------------------------
 
 export type Hands = { leftHand: Item | null; rightHand: Item | null } | undefined;
@@ -49,9 +47,12 @@ function isRangedWeapon(item: Item | null): item is Item {
   return !!item && item.group === BOW_GROUP && !isAmmo(item);
 }
 
-/** `BOWTYPE_CROSSBOW` for the launcher, `BOWTYPE_BOW` otherwise. */
+/**
+ * `BOWTYPE_CROSSBOW` for the launcher, `BOWTYPE_BOW` otherwise: `IsCrossbowModel` (CharacterManager.cpp:76)
+ * and an item file's `Launcher` past the original's numbers (Mu Reforge's Hero crossbows 26, 28).
+ */
 function isCrossbow(weapon: Item): boolean {
-  return CROSSBOW_INDICES.has(weapon.num);
+  return isCrossbowModel(weapon);
 }
 
 /** The equipped launcher, if any. */

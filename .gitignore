@@ -6,6 +6,8 @@ dist-register
 # are committed in their place. Note `dist` above does not cover
 # `dist-register`: gitignore matches whole path segments, not prefixes.
 .env
+# A developer's local overrides (vite reads it; deploy/reforge/web.Dockerfile deletes it too).
+.env.local
 
 # gzip sidecars (tools/compressAssets.ts). Generated into dist/ by the build;
 # a dev server can be given its own set under public/, which is not committed -

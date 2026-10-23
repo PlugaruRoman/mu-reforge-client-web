@@ -65,3 +65,23 @@ describe('Select Server on the character screen', () => {
     [send, drop, online].forEach(spy => spy.mockRestore());
   });
 });
+
+// Mu Reforge: LogoutPlugIn.LogoutRefusedAsync sends type 0xFF while the hero is in PvP combat
+// (S RemoteView/Login/LogoutPlugIn.cs); the client stays in the world (LogoutRules.cpp IsRefusal).
+describe('a refused logout (type 255)', () => {
+  it('ends the wait and keeps the hero in the world', () => {
+    const send = vi.spyOn(Session, 'sendToGS').mockImplementation(() => undefined);
+    const drop = vi.spyOn(Session, 'disconnectFromGameServer').mockImplementation(() => undefined);
+    runInAction(() => {
+      Session.isOffline = false;
+      AppState.uiState = UIState.World;
+    });
+    SessionExit.request('characters');
+    expect(SessionExit.pending).toBe('characters');
+    SessionExit.onResponse(0xff);
+    expect(SessionExit.pending).toBeNull();
+    expect(AppState.uiState).toBe(UIState.World);
+    expect(drop).not.toHaveBeenCalled();
+    [send, drop].forEach(spy => spy.mockRestore());
+  });
+});

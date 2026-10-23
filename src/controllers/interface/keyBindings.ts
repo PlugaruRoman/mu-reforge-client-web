@@ -101,6 +101,16 @@ const DEFAULTS: KeyBindings = {
   performanceReadout: '',
 };
 
+/**
+ * A game version's own defaults over `DEFAULTS` (`GameVersion.keyDefaults`): a server whose
+ * players come from another client keeps that client's letters. Set once at boot.
+ */
+let versionDefaults: Partial<KeyBindings> = {};
+
+function defaults(): KeyBindings {
+  return { ...DEFAULTS, ...versionDefaults };
+}
+
 /** Keys that cannot be bound: they already mean something else. */
 const RESERVED = new Set([
   'Escape',
@@ -174,10 +184,10 @@ const MOVED_DEFAULTS: Partial<KeyBindings> = { sessionStats: 'KeyU' };
 function load(): KeyBindings {
   // The character's own set if it has one, else the shared one.
   const parsed = (profile ? readStored(profile) : null) ?? readStored('');
-  if (!parsed) return { ...DEFAULTS };
+  if (!parsed) return defaults();
 
   try {
-    const loaded = { ...DEFAULTS };
+    const loaded = defaults();
     for (const action of KEY_ACTIONS) {
       const code = parsed[action];
       if (typeof code === 'string' && code && !RESERVED.has(code) && MOVED_DEFAULTS[action] !== code) {
@@ -186,7 +196,7 @@ function load(): KeyBindings {
     }
     return loaded;
   } catch {
-    return { ...DEFAULTS };
+    return defaults();
   }
 }
 
@@ -243,8 +253,18 @@ export function setKeyBinding(action: KeyAction, code: string): boolean {
   return true;
 }
 
+/**
+ * Installs the active version's own defaults (`GameVersion.keyDefaults`) and reloads the live
+ * bindings over them; a key the player saved still wins. Called once at boot.
+ */
+export function setVersionKeyDefaults(overrides: Partial<KeyBindings>): void {
+  versionDefaults = overrides;
+  runInAction(() => Object.assign(KeyBindings, load()));
+  for (const listener of listeners) listener(KeyBindings);
+}
+
 export function resetKeyBindings(): void {
-  runInAction(() => Object.assign(KeyBindings, DEFAULTS));
+  runInAction(() => Object.assign(KeyBindings, defaults()));
   save();
 }
 

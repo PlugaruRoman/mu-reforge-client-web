@@ -360,7 +360,7 @@ const DoppelgangerWindow = observer(() => {
   const w = doppelgangerWindow();
   if (!w.open) return null;
 
-  const locked = w.remainMinutes !== 0;
+  const locked = w.remainMinutes !== 0 || w.locked;
   const timeLine = locked
     ? formatText(EVENT_TEXT.dgEnterAfter, w.remainMinutes)
     : EVENT_TEXT.dgEnterNow;
@@ -642,14 +642,19 @@ const BloodCastleResult = observer(() => {
   if (!score) return null;
 
   // OpenMU ends a Chaos Castle with this same packet (B16): word it for the map.
-  const cc = Ecs.world !== null && inChaosCastle(Ecs.world.mapIndex);
+  const cc = !!score.kills || (Ecs.world !== null && inChaosCastle(Ecs.world.mapIndex));
   const lines: string[] = score.success
     ? [EVENT_TEXT.bcCongrats, cc ? EVENT_TEXT.ccQuestDone : EVENT_TEXT.bcQuestDone]
     : [EVENT_TEXT.bcUnfortunately, cc ? EVENT_TEXT.ccQuestFailed : EVENT_TEXT.bcQuestFailed];
   lines.push(
     formatText(EVENT_TEXT.rewardedExp, score.exp),
-    formatText(EVENT_TEXT.rewardedZen, score.zen),
-    formatText(cc ? EVENT_TEXT.chaosCastlePoint : EVENT_TEXT.bloodCastlePoint, score.score)
+    // Chaos Castle's own 0xFE result (NewChaosCastleSystem.cpp CollectMatchResult): kills, no zen.
+    ...(score.kills
+      ? [formatText(EVENT_TEXT.monsterKills, score.kills.monsters), formatText(EVENT_TEXT.playerKills, score.kills.players)]
+      : [
+          formatText(EVENT_TEXT.rewardedZen, score.zen),
+          formatText(cc ? EVENT_TEXT.chaosCastlePoint : EVENT_TEXT.bloodCastlePoint, score.score),
+        ])
   );
 
   return (

@@ -284,3 +284,19 @@ registerModelClass(499, GoldenIronKnight);
 registerModelClass(500, GoldenNapin);
 registerModelClass(501, GreatGoldenDragon);
 registerModelClass(502, GoldenRabbit);
+
+/**
+ * Mu Reforge's golden Aida line (759-762, `versions/reforge/monsters/golden_*`): the Aida bodies with
+ * this same pass (our client's ReforgeMonsters.cpp draws them "with the golden chrome pass of the
+ * classic golden monsters"). Only our server sends these numbers; their model and scale are the
+ * reforge folders'.
+ */
+function reforgeGolden(npcType: number) {
+  return class ReforgeGolden extends GoldenMonster {
+    static get OverrideScale() {
+      return monsterScaleOf(npcType);
+    }
+    protected readonly npcType = npcType;
+  };
+}
+for (const type of [759, 760, 761, 762]) registerModelClass(type, reforgeGolden(type));

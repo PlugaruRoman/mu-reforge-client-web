@@ -23,3 +23,19 @@ export class ItemRegistry {
     return this.list;
   }
 }
+
+/**
+ * The registry the item files filled, handed over by the content that owns it
+ * (`versions/shared/items/all.ts`). Controllers read an item's record through
+ * `itemDef` instead of importing content: dependencies point down (AGENTS.md).
+ */
+let active: ItemRegistry | null = null;
+
+export function setActiveItems(registry: ItemRegistry): void {
+  active = registry;
+}
+
+/** The item file for (group, index), or null before the items are loaded or when there is none. */
+export function itemDef(group: number, index: number): ItemRecord | null {
+  return active?.get(group, index) ?? null;
+}

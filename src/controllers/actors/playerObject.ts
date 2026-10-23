@@ -22,7 +22,7 @@ import {
 import { itemVisualTier, type ItemVisualTier } from '../item_fx/itemVisualTier';
 import { requestGlowProbe } from '../render/sceneLook';
 import { WingObject } from './wingObject';
-import { WING_BONE, wingSpec } from './wings';
+import { WING_BONE, capeClothOf, wingSpec } from './wings';
 import { ItemsDatabase } from '@versions/shared/items/itemsDatabase';
 import { archangelWeapon } from '../item_rules';
 import { IMP_BONE, petSpec, type PetSpec } from '@/controllers/pets';
@@ -289,6 +289,10 @@ export class PlayerObject extends ModelObject {
     }
 
     this.Wings.prepare(spec);
+    // A Dark Lord or Rage Fighter wears a cloth cape's hanging part as cloth (`HideClothPartOfHeroCape`).
+    const base = this.playerClass % 100;
+    const capeWearer = base === PlayerClass.DarkLord || base === PlayerClass.RageFighter;
+    this.Wings.HiddenMesh = capeWearer ? (capeClothOf(wings)?.mesh ?? -1) : -1;
 
     await this.loadPartAsync(
       def.szModelFolder,

@@ -2,6 +2,7 @@ import { Matrix } from '../render/babylon/exports';
 import type { Item } from '../../ecs/world';
 import { angleLinkMatrix, type BmdLink } from '../render/boneLink';
 import type { HeldTexture } from '../fx/effectParticles';
+import { itemDef, type ItemBoneGlow, type ItemWing, type ItemWingCloth } from '@/controllers/items';
 
 /**
  * Wing and cape specs (`c->Wing`): `RenderCharacterBackItem` ZzzCharacter.cpp:15100-15142,
@@ -130,11 +131,15 @@ export type WingSpec = {
   readonly flyPlaySpeed?: number;
   /** Capes are link-bound to bone 19 with an explicit matrix. */
   readonly cape?: 'emperor' | 'overrule';
+  /** A turn on the back bone (an item file's `Wing.link`: a cloak authored facing the other way). */
+  readonly link?: BmdLink;
   /**
    * No model on the character: `RenderLinkObject` skips the Cape of Lord and Cape of Fighter
    * (ZzzCharacter.cpp:7004-7011), which are the `CPhysicsCloth` alone (`versions/shared/cloaks`).
    */
   readonly clothOnly?: true;
+  /** A Dark Lord or Rage Fighter wears it as his cape's cloth, its `mesh` hidden (an item file's `Wing.cloth`). */
+  readonly cloth?: ItemWingCloth;
   /**
    * Clip to play inside a safe zone instead of clip 0 - the Wings of Darkness
    * fold shut in town (`RenderLinkObject`, ZzzCharacter.cpp:6785).
@@ -277,13 +282,60 @@ export function isWingItem(item: Item | null | undefined): item is Item {
 
 export function wingSpec(item: Item | null | undefined): WingSpec | null {
   if (!item) return null;
-  if (item.group === WING_GROUP) return WINGS[item.num] ?? null;
+  if (item.group === WING_GROUP) return WINGS[item.num] ?? fileWing(item.num);
   if (item.group === HELPER_GROUP) return CAPES[item.num] ?? null;
   return null;
 }
 
-/** The link matrix a cape needs, or null for a plain bone-47 wing. */
+/** Wings the table does not name, built once from their item file's `Wing` (a version's own items). */
+const fileWings = new Map<number, WingSpec | null>();
+
+function fileWing(num: number): WingSpec | null {
+  let spec = fileWings.get(num);
+  if (spec === undefined) {
+    const def = itemDef(WING_GROUP, num);
+    spec = def?.Wing ? wingFromFile(def.Wing, def.BoneGlow) : null;
+    fileWings.set(num, spec);
+  }
+  return spec;
+}
+
+/** An item file's wing: plain on the back bone, turned by `link`, lit by its bone glow. */
+export function wingFromFile(wing: ItemWing, glow?: ItemBoneGlow): WingSpec {
+  return {
+    blendMesh: -1,
+    ...(wing.clothOnly ? { clothOnly: true } : {}),
+    ...(wing.cloth ? { cloth: wing.cloth } : {}),
+    ...(wing.link ? { link: wing.link } : {}),
+    ...(glow ? { sprites: [boneGlowSprite(glow)] } : {}),
+  };
+}
+
+/**
+ * Mu Reforge's `ApplyBoneGlow` on a wing (its client's Render/Items/Reforge/ReforgeItemEffects.cpp): a
+ * flare01 light on every second bone, pulsing in size and lifted toward white. Its sparkle is not drawn.
+ */
+function boneGlowSprite(glow: ItemBoneGlow): WingSprite {
+  const colour: [number, number, number] = [0, 0, 0];
+  const [r, g, b] = glow.color;
+  return {
+    texture: 'flare01',
+    blend: 'add',
+    bones: glow.bones,
+    scale: t => (Math.abs(Math.sin(t * 0.003)) * 0.15 + 0.5) * glow.size,
+    light: t => {
+      const l = Math.abs(Math.sin(t * 0.0025)) * 0.35;
+      colour[0] = Math.min(1, r + l);
+      colour[1] = Math.min(1, g + l);
+      colour[2] = Math.min(1, b + l);
+      return colour;
+    },
+  };
+}
+
+/** The link matrix a cape or a turned cloak needs, or null for a plain bone-47 wing. */
 export function wingLinkMatrix(spec: WingSpec | null): Matrix | null {
+  if (spec?.link) return angleLinkMatrix(spec.link);
   if (!spec?.cape) return null;
   return angleLinkMatrix(CAPE_LINKS[spec.cape]);
 }
@@ -300,6 +352,17 @@ export function isFastWing(item: Item | null | undefined): boolean {
   return (
     !!item &&
     item.group === WING_GROUP &&
-    (item.num === WINGS_OF_DRAGON || item.num === WING_OF_STORM)
+    (item.num === WINGS_OF_DRAGON ||
+      item.num === WING_OF_STORM ||
+      // An item file's own wing that says so (Mu Reforge's 4th and Hero wings, `IsFastWingModel`).
+      (!WINGS[item.num] && itemDef(WING_GROUP, item.num)?.Wing?.fast === true))
   );
+}
+
+/**
+ * The cape cloth a Dark Lord or Rage Fighter hangs for this wing (Mu Reforge's `HeroCapeCloth.cpp`): the item
+ * file's `Wing.cloth`, else null. Other classes wear the model whole.
+ */
+export function capeClothOf(item: Item | null | undefined): ItemWingCloth | null {
+  return (item?.group === WING_GROUP && wingSpec(item)?.cloth) || null;
 }

@@ -1,0 +1,85 @@
+@import (reference) '@/controllers/interface/components/mu_text/style.less';
+// Team vs Team: the Battle Master's window inside the item window frame, and the arena's score board.
+.tvt-title {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 12px;
+}
+
+.tvt-body {
+  position: absolute;
+  left: 20px;
+  top: 44px;
+  width: 150px;
+  font-size: 11px;
+  user-select: none;
+  text-shadow: 1px 1px 0 #000;
+  text-align: center;
+
+  .tvt-caption,
+  .tvt-status,
+  .tvt-section,
+  .tvt-line {
+    display: block;
+    white-space: normal;
+  }
+
+  .tvt-status {
+    margin: 2px 0 12px;
+    font-size: 14px;
+    line-height: 18px;
+  }
+
+  .tvt-section {
+    margin: 10px 0 4px;
+  }
+
+  .tvt-slots {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px;
+  }
+
+  .tvt-slot {
+    padding: 1px 4px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+
+    &.next {
+      border-color: rgba(255, 210, 60, 0.8);
+    }
+  }
+}
+
+.tvt-join {
+  position: absolute;
+  left: 41px;
+  top: 350px;
+}
+
+.tvt-score {
+  position: absolute;
+  transform-origin: top right;
+  pointer-events: none;
+  padding: 4px 10px;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  text-align: center;
+  text-shadow: 1px 1px 0 #000;
+
+  .tvt-score-title,
+  .tvt-score-team,
+  .tvt-score-time {
+    display: block;
+  }
+
+  .tvt-score-team.own {
+    text-decoration: underline;
+  }
+
+  .tvt-score-time {
+    margin-top: 2px;
+    font-size: 13px;
+  }
+}

@@ -765,7 +765,7 @@ export function installLegacyQuests(): void {
   // right after the character information. OpenMU also resends that on a bulk
   // stat add or a reset, so only a different hero starts from a blank chain.
   let heroName: string | null = null;
-  EventBus.on('CharacterInformation', () => {
+  const characterChanged = () => {
     if (Hero.name !== heroName) {
       heroName = Hero.name;
       runInAction(() => {
@@ -778,7 +778,10 @@ export function installLegacyQuests(): void {
       });
     }
     requestLegacyQuestStates();
-  });
+  };
+  EventBus.on('CharacterInformation', characterChanged);
+  // The 106.3 form of the same packet (versions/reforge).
+  EventBus.on('CharacterInformationExtended', characterChanged);
 }
 
 function reset(): void {

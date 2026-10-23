@@ -53,7 +53,7 @@ import { gameVersion } from '../version';
 import { createWorld } from '../ecs/createWorld';
 import { EventBus } from '../core/eventBus';
 import { installLoginMusic } from '../controllers/sound/loginMusic';
-import { setKeyProfile } from '../controllers/interface/keyBindings';
+import { setKeyProfile, setVersionKeyDefaults, type KeyBindings } from '../controllers/interface/keyBindings';
 import { installBrowserHotkeyGuard } from '../controllers/interface/browserHotkeys';
 import { SessionResume } from '../modules/session/sessionResume';
 import { reaction } from 'mobx';
@@ -95,7 +95,9 @@ startBuildCheck();
 // list; the session module stays unaware of the resume.
 Session.resumeHook = () => SessionResume.retry() || SessionResume.begin();
 
-// Hot keys are per character: the shared set is what a new one starts from.
+// The version's own default letters (a server whose players come from another client), then the
+// per-character sets: the shared set is what a new character starts from.
+setVersionKeyDefaults((gameVersion.keyDefaults ?? {}) as Partial<KeyBindings>);
 reaction(
   () => Hero.name,
   name => setKeyProfile(name)

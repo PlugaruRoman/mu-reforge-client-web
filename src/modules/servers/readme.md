@@ -69,7 +69,8 @@ connect server's own list (`Servers.serverList`) is filled by `session/net.ts`.
 
 ## Tests
 - `serverConfig.test.ts`: `matchesSearch`.
-- `serverList.test.ts`: line parsing, game server and channel names, the committed `serverlist.md`.
+- `serverList.test.ts`: line parsing (a carried version's tag without a digit, `REFORGE`), game server
+  and channel names, the committed `serverlist.md`.
 - `serverAccounts.test.ts`: several accounts per world, remember off (no token), clamping, URL profile,
   `record` (keeps the token), tokens (text round trip, per name, dropped on a rename), and the
   passwords an older client saved wiped on load (`mu_accounts` and the legacy blob), names kept.
@@ -99,7 +100,8 @@ connect server's own list (`Servers.serverList`) is filled by `session/net.ts`.
   `list:<host>:<port>`. When a world first publishes an id, `setListed` moves the selection, the
   last played world and its saved accounts (`onWorldRekeyed`) from the old key to the new one. The version is the
   `gameVersion.listTag` of a `versions/<id>` folder (`S6EP3`); a world asking for another is shown
-  as not playable here.
+  as not playable here. A version token is short, unspaced and has a digit, or is the tag of a version
+  this client carries (`REFORGE`).
 - The target is `host:port` (the connect server as the world's proxy reaches it) or the world's
   domain alone, which uses the convention in `serverServices.ts`.
 - Directly under its line a world may name its game servers (`- 0: Valhalla`, id = `ServerId >> 8`)

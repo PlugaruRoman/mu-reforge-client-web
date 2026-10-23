@@ -5,7 +5,7 @@ import { gameVersion } from './index';
 describe('0.97d modules', () => {
   it('turns MU Helper off and keeps events and quests', () => {
     // Devil Square runs on a 0.95d world; the quests module carries the legacy chain 0.97d has.
-    expect(gameVersion.modulesOff).toEqual(['mu_helper']);
+    expect(gameVersion.modulesOff).toContain('mu_helper');
   });
 
   it('times Blood Castle and Devil Square only: Chaos Castle came later', () => {

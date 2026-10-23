@@ -13,7 +13,9 @@ connect server.
   `src/Network/Packets/{ServerToClient,ClientToServer,ConnectServer}/*.xml`, with one change:
   `AddNpcsToScope`'s `NpcData` carries its effect list after `EffectCount`, as the original reads it
   (WSclient.cpp:2958-2964, :3059); OpenMU's fixed 10 bytes misread every NPC after one with effects.
-- `bun run generate` runs `generate.ts`. It reads each XML with `HTMLRewriter`, builds the matching
+- `bun run generate` runs `generate.ts`; `bun run generate -- versions/<id>/packets` reads that folder's
+  `packetsDefinitions/` and writes beside it instead (`versions/reforge`). `<Packet>`s an XML writes after
+  `</Packets>` are moved into the list first. It reads each XML with `HTMLRewriter`, builds the matching
   `.ts` file in memory and writes it over the old one (no index: `src/controllers/net/packets.ts`
   picks the active version's set). A class keeps only the read helpers (`_readString`, `_readDataView`) its getters call and a file only
   the imports its code uses, so the output passes `noUnusedLocals`. `_readString` is
@@ -25,7 +27,7 @@ connect server.
 
 ## Depends on / used by
 - uses: `src/core/types` (`CharacterClassNumber`), `src/core/binaryUtils`
-- used by: `versions/season6/packets`, `versions/v097d/packets`, module `net.ts` files and the
+- used by: `versions/season6/packets`, `versions/v097d/packets`, `versions/reforge/packets` (the generator), module `net.ts` files and the
   socket dispatcher, through `@versions/shared/packets/*`
 
 ## Change it

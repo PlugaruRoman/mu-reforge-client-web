@@ -39,6 +39,7 @@ import {
   WIN_WIDTH,
 } from '@/controllers/interface/components/msg_window';
 import { useNearbyPlayers } from '../_shared/nearby_players';
+import { GuildReforgeButtons } from '../guild_bank';
 
 /**
  * `CNewUIGuildInfoWindow` (Guild/NewUIGuildInfoWindow.cpp) - the three tabs
@@ -640,6 +641,8 @@ export const GuildWindow = observer(() => {
           onClick={close}
         />
       </div>
+      {/* Mu Reforge: Settings and Castle beside Exit (guild_bank module; nothing when it is off). */}
+      <GuildReforgeButtons />
     </MuItemWindow>
   );
 });

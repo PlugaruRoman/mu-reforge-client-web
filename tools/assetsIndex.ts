@@ -38,12 +38,15 @@ import type { VersionData } from '../src/version/contract';
 import { season6Data } from '../versions/season6/data';
 import { MAP_LAYERS } from '../versions/shared/maps/layers';
 import { v097dData } from '../versions/v097d/data';
+import { reforgeData } from '../versions/reforge/data';
 import { liteAssetsWanted } from './liteAssets';
 
 /** Every version the client carries (`versions/registry.ts`), each with its own index. */
 export const INDEXED_VERSIONS: readonly { id: string; data: VersionData }[] = [
   { id: 'season6', data: season6Data },
   { id: 'v097d', data: v097dData },
+  // Mu Reforge: Season 6's trees plus its own (versions/reforge/data), its own index.
+  { id: 'reforge', data: reforgeData },
 ];
 
 const slash = (p: string) => p.split(sep).join('/');
@@ -274,12 +277,15 @@ function main(): void {
   }
 
   const mb = (n: number) => `${(n / 1048576).toFixed(1)} MB`;
+  const written = new Set<string>();
   for (const { id, data } of INDEXED_VERSIONS) {
     const file = folderOf(assetsIndexUrl(data));
     if (file === null) {
       console.log(`assetsIndex: ${id} serves its assets from another origin; no index`);
       continue;
     }
+    if (written.has(file)) continue;
+    written.add(file);
 
     const { sidecars, groups } = buildAssetsIndex(TREE, data, { lite: liteAssetsWanted(process.env, process.argv) });
     const out = join(TREE, file);

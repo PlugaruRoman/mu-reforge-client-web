@@ -5,6 +5,7 @@ import { InventoryConstants } from '@/core/inventoryConstants';
 import {
   ConsumeItemRequestPacket,
   DropItemRequestPacket,
+  ItemMoveRequestExtendedPacket,
   ItemMoveRequestPacket,
 } from '@versions/shared/packets/ClientToServerPackets';
 import { NetStats } from '@/controllers/net';
@@ -235,12 +236,15 @@ export const Bag = new (class {
     const wireStorage = (storage: StorageKind): number =>
       storage === StorageKind.ChaosMachine ? this.grids?.mixWireStorage() ?? storage : storage;
 
-    const packet = ItemMoveRequestPacket.createPacket();
+    // With the extended item codec the server reads C3 07 24 without the item's bytes
+    // (S MessageHandler/Items/ItemMoveExtendedHandlerPlugIn.cs:22-38).
+    const extended = gameVersion.protocol.itemCodec === 'extended';
+    const packet = extended ? ItemMoveRequestExtendedPacket.createPacket() : ItemMoveRequestPacket.createPacket();
     packet.FromStorage = wireStorage(fromStorage);
     packet.FromSlot = wireSlotOf(fromStorage, fromSlot);
     packet.ToStorage = wireStorage(toStorage);
     packet.ToSlot = wireSlotOf(toStorage, toSlot);
-    packet.setItemData(serializeItemBytes(item), 12);
+    if (!extended) (packet as ItemMoveRequestPacket).setItemData(serializeItemBytes(item), 12);
 
     this.beginItemMove(fromStorage, fromSlot, toStorage, toSlot);
     NetStats.markSent('itemMove');

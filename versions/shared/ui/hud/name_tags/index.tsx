@@ -24,6 +24,7 @@ import {
   SHOP_TITLE_PREFIX,
   chatLineBg,
   guildLine,
+  nameTintOf,
   pkTextColour,
   relationStyle,
   shopTitleColours,
@@ -143,11 +144,12 @@ function buildLines(entity: TagEntity): Line[] {
   // Self-defense outranks the PK tint for its 60s: the aggressor is marked
   // to the victim (violet in the official client; the state itself comes
   // from OpenMU's blue message, modules/social/social.ts trackSelfDefense).
+  // A module's tint (our PvP flag) outranks self-defense and the PK tint.
+  const tint = isGm ? null : nameTintOf(entity.netId);
   const nameColour = isGm
     ? GM_NAME_TEXT
-    : Social.isSelfDefenseActive(entity.objectNameInWorld)
-      ? SELF_DEFENSE_COLOUR
-      : pkTextColour(tag.color);
+    : (tint ??
+      (Social.isSelfDefenseActive(entity.objectNameInWorld) ? SELF_DEFENSE_COLOUR : pkTextColour(tag.color)));
   lines.push({
     text: entity.objectNameInWorld ?? '',
     colour: nameColour,

@@ -9,6 +9,8 @@ export { goldColor } from './goldColor';
 export { COMPARE_TOOLTIP_LABEL_KEYS, COMPARE_TOOLTIP_MAX, CompareTooltips, compareTooltipsOn, comparedItem } from './itemCompare';
 export { itemLevelLook, itemLevelName } from './itemLevelLook';
 export { ItemSerializer } from './itemSerializer';
+export { ItemSerializerExtended } from './itemSerializerExtended';
+export { minItemLength, readItem, readItemData, readItemList } from './itemCodec';
 export { ItemGroup, calcMaxDurability, classCanUse, classOf, classUnrestricted, isArmorPart, isCapeOfFighter, isCapeOfLord, isDivineArchangelWeapon, isFirstWing, isJewel, isPendant, isRing, isScepter, isSecondWing, isShield, isStaff, isSummonerBook, isThirdWing, isWeapon, isWeaponOfArchangel, isWing, itemDef, itemStats, skillMana } from './itemStats';
 export type { HeroStats, ItemDef, ItemStats } from './itemStats';
 export { isRepairBanned, isSellingBanned, itemValue, needsRepair, repairAllCost, repairCost, withTax } from './itemValue';

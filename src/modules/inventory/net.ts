@@ -3,7 +3,7 @@ import { CharacterInventoryPacket, InventoryItemUpgradedPacket, InventoryMoneyUp
 import { Economy } from '../economy/economy';
 import { EventBus } from '@/core/eventBus';
 import { InventoryConstants } from '@/core/inventoryConstants';
-import { ItemSerializer } from '@/controllers/item_rules';
+import { readItemData, readItemList } from '@/controllers/item_rules';
 import { NetStats } from '@/controllers/net/roundTrip';
 import { Bag } from './state';
 import { Hero } from '@/modules/hero';
@@ -42,10 +42,8 @@ function storeStorageOf(storage: StorageKind, wireSlot: number): StorageKind {
 export function installNet(): void {
   EventBus.on('CharacterInventory', packet => {
     const p = new CharacterInventoryPacket(packet);
-    const entries = p.getItems(p.ItemCount).map(item => ({
-      slot: item.ItemSlot,
-      item: ItemSerializer.DeserializeItem(new Uint8Array(item.ItemData.buffer)),
-    }));
+    // C4 F3 10: count at 5, then slot + item from 6 (S RemoteView/Inventory/UpdateInventoryListPlugIn.cs:40-82).
+    const entries = readItemList(packet, 6, p.ItemCount, 1).map(({ at, item }) => ({ slot: packet.getUint8(at), item }));
 
     runInAction(() => {
       const items = Hero.items;
@@ -93,7 +91,7 @@ export function installNet(): void {
       return;
     }
 
-    const item = ItemSerializer.DeserializeItem(new Uint8Array(p.ItemData.buffer));
+    const item = readItemData(p.ItemData);
 
     // OpenMU keeps the personal store inside the inventory storage and its
     // ItemMovedPlugIn (RemoteView/Inventory/ItemMovedPlugIn.cs:43) rewrites
@@ -120,7 +118,7 @@ export function installNet(): void {
   EventBus.on('ItemAddedToInventory', packet => {
     const p = new ItemAddedToInventoryPacket(packet);
 
-    const item = ItemSerializer.DeserializeItem(new Uint8Array(p.ItemData.buffer));
+    const item = readItemData(p.ItemData);
 
     // ReceiveItemPickUp (WSclient.cpp:5727-5734) / buy / trade: the pickup clink.
     playUiSound(pickupSound(item));
@@ -151,7 +149,7 @@ export function installNet(): void {
   EventBus.on('InventoryItemUpgraded', packet => {
     const p = new InventoryItemUpgradedPacket(packet);
 
-    const item = ItemSerializer.DeserializeItem(new Uint8Array(p.ItemData.buffer));
+    const item = readItemData(p.ItemData);
 
     Bag.upgradeInventoryItem(p.InventorySlot, item);
   });
@@ -161,10 +159,13 @@ export function installNet(): void {
    * system-log line per refusal (`Social` drops an identical line within a
    * second, so a burst of clicks reads as one).
    */
-  EventBus.on('ItemConsumptionFailed', () => {
+  const consumptionFailed = () => {
     Bag.consumptionFailed();
     addNotification(t('notify.cannotUseItem'), 'error');
-  });
+  };
+  EventBus.on('ItemConsumptionFailed', consumptionFailed);
+  // 26 FD at 106.3: the same refusal with 32-bit health and shield (S RemoteView/Inventory/RequestedItemConsumptionFailedExtendedPlugIn.cs).
+  EventBus.on('ItemConsumptionFailedExtended', consumptionFailed);
 
   EventBus.on('ItemDurabilityChanged', packet => {
     const p = new ItemDurabilityChangedPacket(packet);

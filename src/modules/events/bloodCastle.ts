@@ -159,7 +159,17 @@ export type BloodCastleScore = {
   score: number;
   exp: number;
   zen: number;
+  /** Chaos Castle's own result (type 0xFE): what `CNewChaosCastleSystem::CollectMatchResult` shows instead of zen and score. */
+  kills?: { monsters: number; players: number };
 };
+
+/**
+ * Byte 4 of the 29-byte C1 93: 0xFF Blood Castle, 0xFE Chaos Castle. Our server ends a Chaos Castle
+ * with `ChaosCastleScore` (S RemoteView/MiniGames/ChaosCastleScoreTableViewPlugin.cs, xml Type 0xFE:
+ * monster kills at 17, exp at 21, player kills at 25); the client tells them apart by this byte
+ * (NewChaosCastleSystem.cpp / NewBloodCastleSystem.cpp SetMatchResult 254 / 255).
+ */
+export const CHAOS_CASTLE_SCORE_TYPE = 0xfe;
 
 const state = observable(
   {
@@ -494,8 +504,21 @@ export function installBloodCastle(): void {
   /** `ReceiveDevilSquareRank` with the 29-byte Blood Castle body. */
   EventBus.on('BloodCastleScore', packet => {
     const p = new BloodCastleScorePacket(packet);
-    if (p.Success) weaponReturned = true;
     scoreLeft = RESULT_SECONDS;
+    if (p.Type === CHAOS_CASTLE_SCORE_TYPE) {
+      runInAction(() => {
+        state.score = {
+          success: p.Success,
+          name: p.PlayerName,
+          score: 0,
+          exp: p.BonusExperience,
+          zen: 0,
+          kills: { monsters: p.TotalScore, players: p.BonusMoney },
+        };
+      });
+      return;
+    }
+    if (p.Success) weaponReturned = true;
     runInAction(() => {
       state.score = {
         success: p.Success,

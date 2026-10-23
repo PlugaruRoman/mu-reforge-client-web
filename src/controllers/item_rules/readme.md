@@ -12,6 +12,11 @@ the table would import itself.
 
 ## Public API
 - `ItemSerializer.DeserializeItem(bytes)` / `SerializeItem(target, item)`, `NeededSpace`: the 12-byte item.
+- `ItemSerializerExtended.DeserializeItem(bytes, at)` -> `{ item, length }`, `ItemLength`, `ToStandard`: the
+  5-15 byte item of OpenMU's `ItemSerializerExtended` (client >= 106.3, the `reforge` version).
+- `readItem(bytes, at)`, `readItemData(view)`, `readItemList(view, start, count, head)`, `minItemLength()`
+  (`itemCodec.ts`): an item, a single-item packet's `ItemData` and an item list in the codec the active
+  version names (`gameVersion.protocol.itemCodec`). Every packet handler that reads items goes through these.
 - `itemDef(group, num)`: the normalised item record (cached), or null.
 - `ItemGroup`, `isWeapon`, `isShield`, `isWing`, `isJewel`, `isRing`, `isPendant`, `isStaff`, ... : item kinds.
 - `itemStats(item)`: damage, defence, durability and requirements for one item. `calcMaxDurability`.
@@ -54,6 +59,10 @@ the table would import itself.
   (`CalcCompiledCount`), or the pieces of the potions that list names.
 
 ## How it works
+- `itemSerializerExtended.ts` rewrites the variable item into the 12 bytes `ItemSerializer` writes for the
+  same item (option level split over bytes 1 and 3, ancient nibbles to bits 0-3 of byte 4, 380 flag to byte 5,
+  socket bonus nibble 0xF to 0xFF) and parses that, so `raw` and every reader of it stay as they are. Item
+  numbers above 511 do not fit the 12-byte layout; no Season 6 item has one.
 - `itemSerializer.ts` reads level, luck, skill, option level, excellent, ancient and socket bytes. On wings
   and capes the excellent byte holds the wing options (bits 0-3) and `OptionType` (bits 4-5), and the Horn
   of Fenrir keeps its variant there: neither counts as excellent. Dark Horse
@@ -110,6 +119,10 @@ the table would import itself.
 - `itemSerializer.test.ts`: round trips (plain, +13 luck skill, excellent, ancient, sockets, pets, number > 255),
   a socket bonus of 0;
   wing options and kind, the Fenrir variant.
+- `itemSerializerExtended.test.ts`: hand-made fixtures of OpenMU's `ItemSerializerExtended` (plain, +13 excellent
+  with luck, skill and option, ancient, harmony, three sockets, wing option type, Fenrir, all 15 bytes) and their length.
+- `itemCodec.test.ts`: the standard 1 + 12 stride; under `reforge`, an inventory and a drop list of mixed
+  item lengths, a short packet, a padded crafting result.
 - `itemClasses.test.ts`: the Rage Fighter class column and unrestricted items; every row's class block
   against `Data/Local/Eng/item_eng.bmd`'s.
 - `itemRequirements.test.ts`: strength per option level, wing and pet level requirements.

@@ -58,6 +58,8 @@ export type MonsterDef = {
   classicShadow?: false | 'alive';
   /** An NPC drawn from its own model file instead of a monster model. */
   npcModel?: NpcModel;
+  /** An NPC the hero talks to and never attacks, where the type's number alone does not say so (a version's own). */
+  npc?: true;
   /** Talked to from this many tiles away (straight line), instead of from a tile beside it. */
   talkRange?: number;
   /** A player-rig NPC in a fixed kit. */

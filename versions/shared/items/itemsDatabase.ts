@@ -21,9 +21,6 @@ export const ItemsDatabase = {
  * only what the player reads.
  */
 export function itemBaseName(group: number, index: number): string {
-  return (
-    localisedItemName(group, index) ??
-    ItemsDatabase.getItem(group, index)?.ItemName ??
-    ''
-  );
+  const item = ItemsDatabase.getItem(group, index);
+  return localisedItemName(group, index, item?.Names) ?? item?.ItemName ?? '';
 }

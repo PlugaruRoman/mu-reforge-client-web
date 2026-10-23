@@ -11,6 +11,7 @@
  * a client that logs in as ClientVersion(0, 97) is answered with a distinct
  * packet mix (see variantRank).
  */
+import { REFORGE_ONLY_MODULES } from '../shared/reforgeOnlyModules';
 import { asciiBytes, type GameVersion } from '@/version/contract';
 import { v097dData } from './data';
 // The shared monsters (and their bodies) this version spawns, registered with the monsters controller.
@@ -150,7 +151,7 @@ export const gameVersion: GameVersion = {
   // map, World12, but no server side yet; Chaos Castle is not in 0.97d).
   // `quests` stays: it carries the legacy chain 0.97d has (Local/Quest.bmd,
   // OpenMU NpcWindow.LegacyQuest); its Season 6 windows are never fed.
-  modulesOff: ['mu_helper'],
+  modulesOff: ['mu_helper', ...REFORGE_ONLY_MODULES],
   // Its NpcName table has Blood Castle's Archangel (232, 233) and Devil Square's
   // Charon (237); no Chaos Castle monster (162-173) and no World19.
   miniGames: ['bloodCastle', 'devilSquare'],

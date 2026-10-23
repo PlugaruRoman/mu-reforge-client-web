@@ -1,0 +1,46 @@
+@import (reference) '@/controllers/interface/components/mu_text/style.less';
+// The Hunting Log: a black plate on the left of the stage while the MU Helper runs.
+.hunt-log {
+  position: absolute;
+  width: 168px;
+  transform-origin: top left;
+  pointer-events: auto;
+  user-select: none;
+  padding: 4px 6px;
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 11px;
+  text-shadow: 1px 1px 0 #000;
+
+  .hunt-log-head,
+  .hunt-log-row {
+    display: flex;
+    justify-content: space-between;
+    white-space: nowrap;
+  }
+
+  .hunt-log-head {
+    margin-bottom: 3px;
+  }
+
+  .hunt-log-close {
+    .mu-font();
+    color: #ccc;
+    cursor: pointer;
+    padding: 0 2px;
+
+    &:hover {
+      color: #fff;
+    }
+  }
+
+  .hunt-log-row.gap {
+    margin-top: 5px;
+  }
+
+  .hunt-log-reset {
+    display: block;
+    margin-top: 5px;
+    text-align: center;
+  }
+}

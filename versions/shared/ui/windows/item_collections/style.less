@@ -1,0 +1,286 @@
+@import (reference) '@/controllers/interface/components/mu_text/style.less';
+// Our client's reforge_item_collections window on the classic black plate with a gold rule.
+// Coordinates live in the component; this is the look.
+.item-collections {
+  .mu-font();
+  position: absolute;
+  left: 60px;
+  top: 40px;
+  pointer-events: auto;
+  user-select: none;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.85);
+  border: 1px solid rgba(180, 140, 60, 0.8);
+  box-sizing: border-box;
+  color: #e2e2e2;
+  font-size: 11px;
+  text-shadow: 1px 1px 0 #000;
+
+  .ic-title {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 8px;
+    text-align: center;
+    color: rgb(255, 204, 26);
+    font-weight: bold;
+    font-size: 13px;
+  }
+
+  .ic-close {
+    position: absolute;
+    right: 8px;
+    top: 6px;
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+    background: rgba(153, 0, 0, 0.9);
+    &::after {
+      content: 'x';
+      position: absolute;
+      left: 4px;
+      top: -1px;
+      color: #fff;
+    }
+  }
+
+  .ic-tabs {
+    position: absolute;
+    left: 12px;
+    top: 30px;
+    display: flex;
+    gap: 4px;
+  }
+
+  .ic-tab {
+    width: 80px;
+    height: 18px;
+    line-height: 18px;
+    text-align: center;
+    cursor: pointer;
+    background: rgba(60, 50, 30, 0.8);
+    border: 1px solid rgba(120, 100, 60, 0.8);
+    &.active {
+      color: rgb(255, 204, 26);
+      background: rgba(110, 80, 20, 0.9);
+    }
+  }
+
+  .ic-stats {
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    top: 56px;
+    display: flex;
+    justify-content: space-between;
+    color: rgb(127, 178, 255);
+  }
+
+  .ic-head {
+    position: absolute;
+    top: 74px;
+    color: rgb(255, 204, 26);
+  }
+
+  .ic-empty {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 200px;
+    text-align: center;
+    color: #aaa;
+  }
+
+  .ic-row {
+    position: absolute;
+    left: 6px;
+    right: 6px;
+    border-top: 1px solid rgba(120, 100, 60, 0.35);
+    &.complete .ic-name-text {
+      color: rgb(255, 204, 26);
+    }
+    &.started .ic-status {
+      color: rgb(140, 220, 120);
+    }
+    &.complete .ic-status {
+      color: rgb(255, 204, 26);
+    }
+  }
+
+  .ic-name {
+    position: absolute;
+    top: 2px;
+    width: 150px;
+    cursor: default;
+  }
+
+  .ic-name-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .ic-status {
+    color: #888;
+  }
+
+  .ic-slot {
+    position: absolute;
+    top: 0;
+    box-sizing: border-box;
+    border: 1px solid rgba(90, 90, 90, 0.8);
+    background: rgba(30, 30, 30, 0.8);
+    img,
+    .item-icon {
+      max-width: 100%;
+      max-height: 100%;
+    }
+    &.open {
+      opacity: 0.45;
+    }
+    &.fits {
+      border-color: rgb(80, 220, 80);
+      cursor: pointer;
+    }
+    &.filled {
+      border-color: rgb(255, 204, 26);
+      background: rgba(90, 70, 10, 0.6);
+    }
+    &.ancient.filled {
+      border-color: rgb(90, 160, 255);
+    }
+  }
+
+  .ic-level {
+    position: absolute;
+    right: 1px;
+    bottom: 0;
+    font-size: 9px;
+    color: #fff;
+  }
+
+  .ic-bonuses {
+    position: absolute;
+    top: 1px;
+    width: 108px;
+    font-size: 10px;
+    color: rgb(170, 200, 255);
+    white-space: nowrap;
+  }
+
+  .ic-pager {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 372px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .ic-page-btn {
+    width: 18px;
+    height: 16px;
+    line-height: 16px;
+    text-align: center;
+    cursor: pointer;
+    background: rgba(60, 50, 30, 0.8);
+    border: 1px solid rgba(120, 100, 60, 0.8);
+    &.disabled {
+      opacity: 0.35;
+      cursor: default;
+    }
+  }
+
+  .ic-tooltip {
+    position: absolute;
+    z-index: 2;
+    min-width: 140px;
+    max-width: 230px;
+    padding: 4px 6px;
+    background: rgba(0, 0, 0, 0.9);
+    border: 1px solid rgba(120, 100, 60, 0.9);
+    text-align: center;
+    pointer-events: none;
+    transform: translateY(-100%);
+    .first {
+      font-weight: bold;
+    }
+  }
+
+  .ic-tip-gold {
+    color: rgb(255, 204, 26);
+  }
+  .ic-tip-white {
+    color: #fff;
+  }
+  .ic-tip-green {
+    color: rgb(100, 230, 100);
+  }
+  .ic-tip-blue {
+    color: rgb(127, 178, 255);
+  }
+  .ic-tip-red {
+    color: rgb(255, 90, 80);
+  }
+  .ic-tip-yellow {
+    color: rgb(255, 230, 120);
+  }
+  .ic-tip-gray {
+    color: #999;
+  }
+
+  .ic-confirm-shade {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ic-confirm {
+    width: 300px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.95);
+    border: 1px solid rgba(180, 140, 60, 0.9);
+    text-align: center;
+    line-height: 16px;
+  }
+
+  .ic-confirm-title {
+    color: rgb(255, 204, 26);
+    font-weight: bold;
+    margin-bottom: 4px;
+  }
+
+  .ic-confirm-item {
+    font-weight: bold;
+  }
+
+  .ic-confirm-warning {
+    color: rgb(255, 90, 80);
+    font-weight: bold;
+  }
+
+  .ic-confirm-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 8px;
+  }
+
+  .ic-button {
+    min-width: 70px;
+    height: 18px;
+    line-height: 18px;
+    cursor: pointer;
+    background: rgba(60, 50, 30, 0.9);
+    border: 1px solid rgba(160, 130, 70, 0.9);
+    &:hover {
+      color: rgb(255, 204, 26);
+    }
+  }
+}

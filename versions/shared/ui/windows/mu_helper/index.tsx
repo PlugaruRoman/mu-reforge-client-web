@@ -16,6 +16,7 @@ import { skillDisplayName } from '@/controllers/assets';
 import { uiClick } from '@/controllers/sound/sfx';
 import { useEventBus } from '@/controllers/interface/hooks';
 import { MuButton } from '@/controllers/interface/components/mu_button';
+import { OffExpButton } from '../reforge_hud/offModes';
 import { MuSpriteFrame } from '@/controllers/interface/components/mu_sprite';
 import { MuItemWindow } from '@/controllers/interface/components/mu_window';
 import { SkillIcon } from '../../components/skill_icon';
@@ -738,6 +739,8 @@ export const MuHelperWindow = observer(() => {
           {t('muHelper.save')}
         </button>
       </div>
+
+      <OffExpButton style={{ left: EXIT_BUTTON.x + EXIT_BUTTON.width + 8, top: EXIT_BUTTON.y + 6 }} />
 
       <div
         data-no-drag="true"

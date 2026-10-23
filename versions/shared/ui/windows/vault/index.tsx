@@ -11,6 +11,7 @@ import { MuSpriteFrame } from '@/controllers/interface/components/mu_sprite';
 import { MuButton } from '@/controllers/interface/components/mu_button';
 import { MuItemWindow } from '@/controllers/interface/components/mu_window';
 import { ItemGrid } from '../../components/item_grid';
+import { VaultPager } from './pager';
 import { ItemSearchBox, useItemSearch } from '@/controllers/interface/components/item_search';
 import { BulkMove } from '@/modules/inventory/bulkMove';
 import { QuickItemActions } from '@/modules/inventory/quickItemActions';
@@ -249,6 +250,8 @@ export const Vault = observer(() => {
           <span className="button-tooltip">{t(LOCK_TOOLTIP)}</span>
         </MuButton>
       </div>
+
+      <VaultPager />
     </MuItemWindow>
   );
 });
