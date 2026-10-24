@@ -55,6 +55,7 @@ export default {
   'cmd.battlesoccer': 'Πρόκληση σε αγώνα Battle Soccer',
   'cmd.language': 'Αλλαγή της γλώσσας των μηνυμάτων του διακομιστή',
   'cmd.offlevel': 'Ανέβασμα επιπέδου εκτός σύνδεσης',
+  'cmd.offstore': 'Κατάστημα εκτός σύνδεσης',
   'cmd.pkclear': 'Καθαρισμός της κατάστασης φονιά',
   'cmd.openware': 'Άνοιγμα της αποθήκης',
   'cmd.npc': 'Άνοιγμα καταστήματος NPC',

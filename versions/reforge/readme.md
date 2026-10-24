@@ -102,10 +102,8 @@ plug-ins: the `...Extended` packets and the 5-15 byte `ItemSerializerExtended` i
 
 ## Not yet
 - Our monsters and maps: sounds for our own art (our client sets none either), the Fortress
-  Crystal's aurora, the golden bone names, Lorencia's Fort Siege fortress (our `World1` terrain,
-  `Object1/Fort01-19.bmd` in slots 104..159, `ReforgeFortObjects.cpp`), our gate.bmd (its new rows
-  are Season 14 maps 83/95/96 only). What Lorencia's fortress needs is under "Lorencia's Fort Siege
-  fortress" below.
+  Crystal's aurora, the golden bone names, the Fort Siege state on the fortresses (see "Lorencia's and Noria's Fort
+  Siege fortresses" below), our gate.bmd (its new rows are Season 14 maps 83/95/96 only).
 - Castle Siege: our B2 16-19 / B7 / B9 03 are other names and layouts (`CastleSiegeCrownState`,
   `CastleSiegeRegimentState`, `CastleSiegeMachineUseResult`, `CastleSiegeHuntingZoneInfo`, ...).
   Babylon has no siege UI that reads them, so they arrive as unhandled packets, never misread.
@@ -117,25 +115,35 @@ plug-ins: the `...Extended` packets and the 5-15 byte `ItemSerializerExtended` i
   are wire-compatible: the first is ignored, the second gets the "nothing yet" path.
 - Every fork feature packet (VIP, banks, market, events): M3-M5.
 
-## Lorencia's Fort Siege fortress (not ported)
-Our client's `World1` is not Season 6's: `EncTerrain1.att`, `.map`, `.obj` and `TerrainHeight.OZB` all
-differ (`TerrainLight.OZJ` is the same). The `.obj` holds 3015 objects (stock 2870) and places the 19 fort
-models in the slots Lorencia leaves free (`ReforgeMaps.cpp` `LorenciaFortModelSlots`: 104, 112-114,
-134-139, 147-149, 157-159, 154-156 for `Object1/Fort01-19.bmd`). Porting it needs:
-1. The four terrain files copied into `public/game-assets-reforge/World1/` (they would then win over
-   Season 6's for Mu Reforge only, `borrows.ownAssets`).
-2. The 19 models converted as `Object1/Object<slot + 1>.glb` into the same tree (`bmdToGlb.ts`). Those
-   slots have no class in `versions/shared/maps/lorencia/create.ts`, so the generic `MapTileObject` loads
-   them by that name; Season 6 never places them.
-3. The blocker: our `.map` paints 674 cells with tile 14 (`ExtTile01.OZJ`), and the Lorencia layer has 9
-   tile slots (`ROCK02_TILES`). A slot 14 in the shared layer makes Season 6 ask for a file its `World1`
-   lacks, and one 404 rejects the whole terrain download. It needs a per-version tile list (a
-   `VersionData` field the maps controller reads, or a Lorencia layer Mu Reforge registers over the
-   shared one): a contract change in `src/version` and `src/controllers/maps`.
-4. The siege behaviour of `ReforgeFortObjects.cpp`: the gate model placed and turned to the camera
-   (Lorencia 220.5/104, Noria 79.5/112.1, Devias 225.7/223.9), the council chair, the hall furniture
-   hidden during a battle (types 154-156, Noria 75-77) and the Life Stone drawn built. That is driven by
-   our Fort Siege state packets (`GameLogic/Reforge/ReforgeFortSiege`), which Babylon does not read yet.
+## Lorencia's and Noria's Fort Siege fortresses
+Our `World1` / `World4` are not Season 6's: `EncTerrain<n>.att`, `.map`, `.obj` and `TerrainHeight.OZB`
+differ (`TerrainLight.OZJ`, the tiles and the minimap are the same bytes). Ported as:
+- Terrain: those four files and `ExtTile01.OZJ` in `public/game-assets-reforge/World1/` and `World4/`;
+  `borrows.ownAssets` makes them win over Season 6's for Mu Reforge only.
+- Tiles: our `.map` paints slot 14, `ExtTile01` (the `ExtTile` loop, MapManager.cpp:1452-1459): 674
+  cells in Lorencia, 679 in Noria. The per-version tile list is `VersionData.maps` (`src/version/contract.ts`),
+  rows `maps.layerFor` merges over the shared entry for this version only (`maps/index.ts` here):
+  Lorencia gets 15 slots (9-13 name `TileRock02`, none painted), Noria 15 (11-13 name `TileRock04`).
+  Season 6 has no `maps`, so its lists, requests and rows are unchanged.
+- Lorencia's models: `Object1/Fort01-19.bmd` converted as `Object1/Fort<nn>.glb`, placed in the slots
+  `ReforgeMaps.cpp` `LorenciaFortModelSlots` names through the new `MapLayer.objectModels` (type -> file),
+  which `MapTileObject` reads (`maps.objectModelFor`). Fort10 (slot 139) is placed nowhere in our `.obj`,
+  so it is not shipped. Noria's are `Object4/Object51-78.bmd` (types 50-77), found by the generic
+  `Object<type + 1>` name; Object63 is placed nowhere and not shipped.
+- `ReforgeFortObjects.cpp` furniture: the council chair, hall chair and hall bench are seats facing the
+  object's way (`terrain.rest`, Lorencia 159/154/155, Noria 71/75/76), the hall candelabra's mesh 1 is
+  additive (`blendMeshes`, Lorencia 156, Noria 77).
+- Walk map: the cells of our `EncTerrain1.att` / `EncTerrain4.att` equal the server's `Terrain1.att` /
+  `Terrain4.att` (`Persistence/Initialization/Resources`) inside the fort areas `AddFortSiegeUpdateSeason6`
+  copies; Noria is identical everywhere. Lorencia keeps 236 cells outside the fort where every Season 6
+  client already differs from OpenMU's file (map edge, mostly client-blocked).
+- Converted with `MU_DATA=<client-next>/src/bin/Data GLB_OUTPUT=<scratch> bun tools/bmdToGlb.ts
+  Object1/Fort01.bmd ... Object4/Object51.bmd ...`, then the GLBs no `.obj` places removed.
+
+Not yet: the siege-state behaviour (the gate placed and turned to the camera, the hall furniture hidden
+during a battle, the Life Stone drawn built) is driven by our Fort Siege packets
+(`GameLogic/Reforge/ReforgeFortSiege`), which Babylon does not read; outside a battle the hall shows, as
+in our client.
 
 ## Depends on / used by
 - uses: `../season6` (game version, hand-written packets, UI), `versions/shared/packets`
@@ -151,7 +159,9 @@ models in the slots Lorencia leaves free (`ReforgeMaps.cpp` `LorenciaFortModelSl
 ## Tests
 - `monsters/monsters.test.ts`: the 78 rows, the 57 own-art GLBs exist, scales, NPCs, names.
 - `data/data.test.ts`: the two lists match their trees, own files and borrowed ones resolve, every
-  terrain file and tile slot of our worlds exists.
+  terrain file and tile slot of our worlds exists; Season 6's Lorencia / Noria tile lists unchanged,
+  ours carry `ExtTile01` at 14 and cover every slot our `.map` paints, every fort model and Noria type
+  resolves, the seats and candelabra rows.
 - `reforge.test.ts`: the login bytes, the Season 6 keys, the item codec, the variant ranks, no
   replaced or old-client packet in the set, nothing on E7, only the Market on E8, one class at
   each code M1 and M2 read, nothing on FA.

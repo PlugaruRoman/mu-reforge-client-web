@@ -9,7 +9,10 @@
 // `loadInterfaceSprite`, `loadEffectTexture` and `resolveDataUrl` call site;
 // keep them in step when a new folder or extension is fetched.
 //
-// Usage: bun run tools/copyData.ts [--src Data] [--out dist/Data] [--dry]
+// A source in SHIPPED_WHOLE (`Data-reforge`) is copied file for file instead: it is not a client's
+// Data/ to be pruned but an overlay that only holds what its version reads.
+//
+// Usage: bun run tools/copyData.ts [--src Data] [--out dist/Data] [--all] [--dry]
 // Skipped entirely when DATA_COPY=off (e.g. a deployment that serves Data/
 // from another origin via VITE_DATA_URL).
 
@@ -21,7 +24,7 @@ import {
   rmSync,
   statSync,
 } from 'fs';
-import { join, relative, resolve } from 'path';
+import { basename, join, relative, resolve } from 'path';
 
 type Rule = {
   /** Folder under Data/ (`''` = the root, not recursed). */
@@ -80,6 +83,19 @@ const RULES: Rule[] = [
   },
 ];
 
+/**
+ * Source trees copied whole, by folder name (lower case). `Data-reforge/` holds only the files Mu
+ * Reforge reads in place of, or besides, Season 6's - each one listed in
+ * `versions/reforge/data/inventory.ts` - so the rules above would only drop files the client then
+ * asks for (`Item/Cape_Bronze25_0.OZT`, the Hero Cape's cloth, was one: a 404 on production only).
+ */
+const SHIPPED_WHOLE = new Set(['data-reforge']);
+
+/** Whether `src` (`Data-reforge`, `/app/Data-reforge`) is copied file for file. */
+export function shipsWhole(src: string): boolean {
+  return SHIPPED_WHOLE.has(basename(resolve(src)).toLowerCase());
+}
+
 function keep(rule: Rule, file: string): boolean {
   const lower = file.toLowerCase();
   if (rule.names?.includes(lower)) return true;
@@ -109,6 +125,7 @@ function main() {
   const SRC = resolve(ROOT, arg('--src', 'Data'));
   const OUT = resolve(ROOT, arg('--out', 'dist/Data'));
   const DRY = process.argv.includes('--dry');
+  const WHOLE = process.argv.includes('--all') || shipsWhole(SRC);
 
   if ((process.env.DATA_COPY ?? 'on') === 'off') {
     console.log('copyData: DATA_COPY=off, skipping');
@@ -155,7 +172,9 @@ function main() {
     mkdirSync(OUT, { recursive: true });
   }
 
-  for (const rule of RULES) {
+  if (WHOLE) copyTree({ dir: '', ext: null }, SRC, true);
+
+  for (const rule of WHOLE ? [] : RULES) {
     if (rule.dir === '') {
       copyTree(rule, SRC, false);
       continue;
@@ -178,7 +197,7 @@ function main() {
     console.log(`  ${dir.padEnd(12)} ${String(stat.files).padStart(5)} files  ${mb(stat.bytes)}`);
   }
   console.log(
-    `copyData: ${DRY ? 'would copy' : 'copied'} ${files} files, ${mb(bytes)} → ${OUT}`
+    `copyData: ${DRY ? 'would copy' : 'copied'} ${files} files${WHOLE ? ' (whole tree)' : ''}, ${mb(bytes)} → ${OUT}`
   );
 }
 

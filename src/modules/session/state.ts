@@ -48,6 +48,21 @@ const TOKEN_LOGIN_ANSWER_MS = 10_000;
 /** `ServerChangeAuthentication`'s XOR3 name fields are 12 bytes each. */
 const SERVER_CHANGE_NAME_LENGTH = 12;
 
+/**
+ * Re-dialling a lost connect server: 2 s doubling to 30 s, a random half of each taken off so a
+ * server restart is not met by every open page in the same second, and 6 tries before the server
+ * list stays put with a message (`redialConnectServer`).
+ */
+const CS_REDIAL_MS = 2000;
+const CS_REDIAL_MAX_MS = 30_000;
+const CS_REDIAL_TRIES = 6;
+
+/** The wait before re-dial `attempt` (0-based): half to all of 2 s * 2^attempt, capped at 30 s. */
+export function csRedialDelay(attempt: number, random: () => number = Math.random): number {
+  const base = Math.min(CS_REDIAL_MAX_MS, CS_REDIAL_MS * 2 ** attempt);
+  return Math.round(base * (0.5 + random() * 0.5));
+}
+
 const xor32 = new Xor32Encryptor();
 xor32.xor32Key = gameVersion.protocol.encryption.xor32Key;
 
@@ -76,6 +91,14 @@ export const Session = new (class {
   resumeHook: (() => boolean) | null = null;
 
   private encryptor?: SimpleModulusEncryptor;
+
+  /**
+   * A new game-server socket that has not logged in yet (a first login, a resume, a map-server
+   * switch): only the login itself goes out as C3/C4. Our server checks the C3 counter and drops
+   * the connection on a gap (S PipelinedSimpleModulusDecryptor.cs), so a ping or skill of the hero
+   * still standing in the world must not take a counter value ahead of the login.
+   */
+  private gsHandshake = false;
 
   username = '';
 
@@ -174,11 +197,42 @@ export const Session = new (class {
     }
     if (socket === this.csSocket) {
       this.csSocket = undefined;
-      if (AppState.uiState === UIState.Servers || this.awaitingDirectChannel) {
-        addNotification(t('notify.serverListLost'), 'error');
-        this.playOnline();
-      }
+      if (AppState.uiState === UIState.Servers || this.awaitingDirectChannel) this.redialConnectServer();
     }
+  }
+
+  /** Re-dials of the connect server since it last answered (`onConnectServerReached`). */
+  private csRedials = 0;
+
+  private csRedialTimer: ReturnType<typeof setTimeout> | null = null;
+
+  /**
+   * The connect server went away while the server list needed it: dial again after
+   * `csRedialDelay`, never at once (the proxy closes the socket the moment the TCP connect
+   * fails, which made this a tight loop while the server was down). After `CS_REDIAL_TRIES` the
+   * list stays as it is and says so.
+   */
+  private redialConnectServer(): void {
+    if (this.csRedialTimer) return;
+    if (this.csRedials >= CS_REDIAL_TRIES) {
+      this.csRedials = 0;
+      runInAction(() => {
+        this.loginProcessing = false;
+      });
+      addNotification(t('resume.serverListGaveUp'), 'error');
+      return;
+    }
+    if (this.csRedials === 0) addNotification(t('notify.serverListLost'), 'error');
+    const wait = csRedialDelay(this.csRedials++);
+    this.csRedialTimer = setTimeout(() => {
+      this.csRedialTimer = null;
+      this.playOnline();
+    }, wait);
+  }
+
+  /** The connect server said hello: the next loss starts the re-dials over. */
+  onConnectServerReached(): void {
+    this.csRedials = 0;
   }
 
   /** Direct login: on the login with no game server yet, so the connect server's list picks one. */
@@ -267,6 +321,7 @@ export const Session = new (class {
    * fresh one; a token login gets its replacement without asking.
    */
   onLoginAccepted(): void {
+    this.gsHandshake = false;
     this.saveLoginData();
     if (!this.lastLogin.token && this.keepsLoginTokens) this.sendToGS(LoginTokenRequestPacket.createPacket().buffer);
   }
@@ -314,19 +369,32 @@ export const Session = new (class {
     this.csSocket?.send(buffer);
   }
 
-  sendToGS(buffer: DataView) {
+  /**
+   * Encrypts and sends one packet. Nothing is encrypted for a socket that is not open, or for a
+   * C3/C4 other than the login (`handshake`) before the login went through (`gsHandshake`): the
+   * SimpleModulus counter only moves for a packet that really leaves.
+   */
+  sendToGS(buffer: DataView, handshake = false) {
+    const socket = this.gsSocket;
+    if (socket?.readyState !== WebSocket.OPEN) return;
+
     let packet = new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength);
 
     const header = packet[0];
+    if (header >= 0xc3 && this.gsHandshake && !handshake) return;
     xor32.Encrypt(packet);
     if (this.encryptor && header >= 0xc3) {
       packet = this.encryptor.Encrypt(packet);
     }
 
-    if (this.gsSocket?.readyState === WebSocket.OPEN) this.gsSocket.send(packet);
+    socket.send(packet);
   }
 
   connectToConnectServer() {
+    // Dialled now (a click, a lost game server): a re-dial still waiting is not needed.
+    if (this.csRedialTimer) clearTimeout(this.csRedialTimer);
+    this.csRedialTimer = null;
+
     // A world that needs another carried version is entered by reloading
     // into it; the selection is already persisted.
     if (!ensureActiveVersion(ServerConfig.active.version)) return;
@@ -366,6 +434,7 @@ export const Session = new (class {
     });
 
     this.gsSocket = socket;
+    this.gsHandshake = true;
 
     this.encryptor = new SimpleModulusEncryptor();
     this.encryptor.encryptionKeys = SimpleModulusKeys.CreateEncryptionKeys([
@@ -477,7 +546,9 @@ export const Session = new (class {
     p.setClientVersion(gameVersion.clientVersionBytes);
     p.setClientSerial(gameVersion.serialBytes);
 
-    this.sendToGS(p.buffer);
+    // The switch authenticates with this packet: what follows is the hero's own again.
+    this.sendToGS(p.buffer, true);
+    this.gsHandshake = false;
     return true;
   }
 
@@ -549,7 +620,7 @@ export const Session = new (class {
     loginShortPasswordPacket.setClientSerial(gameVersion.serialBytes);
 
     console.log(`send login`);
-    this.sendToGS(loginShortPasswordPacket.buffer);
+    this.sendToGS(loginShortPasswordPacket.buffer, true);
   }
 
   /** The account name Xor3-encoded as in the login, the token, the client version. */
@@ -562,7 +633,7 @@ export const Session = new (class {
     packet.setToken(token, token.length);
     packet.setClientVersion(gameVersion.clientVersionBytes);
 
-    this.sendToGS(packet.buffer);
+    this.sendToGS(packet.buffer, true);
     this.loginAnswered();
     this.tokenLoginTimer = setTimeout(() => this.giveUpTokenLogin(), TOKEN_LOGIN_ANSWER_MS);
   }

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { readdirSync, readFileSync } from 'node:fs';
-import { shipsDataFile } from './copyData';
+import { shipsDataFile, shipsWhole } from './copyData';
+import { REFORGE_DATA_FILES } from '../versions/reforge/data/inventory';
 
 /** The sprites a registry names: each is fetched from Data/ at run time. */
 function namedDataFiles(registry: string): string[] {
@@ -59,5 +60,15 @@ describe('copyData', () => {
     expect(shipsDataFile('World74/mini_map.OZT')).toBe(true);
     expect(shipsDataFile('World74/EncTerrain74.att')).toBe(false);
     expect(shipsDataFile('gate.bmd')).toBe(true);
+  });
+
+  it('ships Data-reforge whole, files the rules would drop included', () => {
+    expect(shipsWhole('Data-reforge')).toBe(true);
+    expect(shipsWhole('/app/Data-reforge')).toBe(true);
+    expect(shipsWhole('Data')).toBe(false);
+    expect(shipsWhole('Data-v097d')).toBe(false);
+    // Why it is copied whole: the Hero Cape's cloth is in no rule.
+    expect(REFORGE_DATA_FILES).toContain('item/cape_bronze25_0.ozt');
+    expect(shipsDataFile('Item/Cape_Bronze25_0.OZT')).toBe(false);
   });
 });

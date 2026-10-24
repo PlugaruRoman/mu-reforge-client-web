@@ -51,6 +51,8 @@ import fortSiege from './fort_siege/module';
 import reforgeHud from './reforge_hud/module';
 import offlineModes from './offline_modes/module';
 import vaultPages from './vault_pages/module';
+import reforgeMix from './reforge_mix/module';
+import questBoard from './quest_board/module';
 import gm from './gm/module';
 import credits from './credits/module';
 
@@ -105,6 +107,8 @@ export const MODULES: readonly ModuleDef[] = [
   reforgeHud,
   offlineModes,
   vaultPages,
+  reforgeMix,
+  questBoard,
   gm,
   credits,
 ];

@@ -10,13 +10,17 @@
  * Mu Reforge's server writes its own links too: `\x01` + the sender's item bytes in hex + `\x02`
  * (S GameServer/MessageHandler/ChatItemLinkExpander.cs, from the sender's inventory, in the
  * sender's item codec, the extended 5-15 bytes at 106.3; client GameLogic/Reforge/ReforgeChatLinks.h).
- * They are read the same way, with the active version's codec.
+ * They are read the same way, with the active version's codec. Where the version says
+ * `protocol.chatItemLinks: 'slot'`, a link goes out as `\x01` + the inventory slot in hex + `\x02`
+ * (the server fills in the item it holds there) and only the server's links are read: a `{...}`
+ * token is anyone's say-so about an item.
  */
 
 import type { Item } from '../../ecs/world';
 import { ItemSerializer, readItem } from '@/controllers/item_rules';
 import { itemDef, itemStats } from '@/controllers/item_rules';
 import { itemDisplayName } from '../../controllers/interface/itemTooltip';
+import { gameVersion } from '@/version';
 
 /** `{` + 16 characters + `}`. */
 export const ITEM_LINK_LENGTH = 18;
@@ -24,6 +28,23 @@ export const ITEM_LINK_LENGTH = 18;
 /** Ours (`{` base64url `}`) or the server's (`\x01` hex of a 5-15 byte item `\x02`). */
 // eslint-disable-next-line no-control-regex -- the server's link is framed by the control bytes 0x01/0x02 (ChatItemLinkExpander.cs).
 const TOKEN = /\{([A-Za-z0-9_-]{16})\}|\x01((?:[0-9A-Fa-f]{2}){5,15})\x02/g;
+
+/** The server's links only (`chatItemLinks: 'slot'`). */
+// eslint-disable-next-line no-control-regex -- the same control-byte frame as TOKEN.
+const SERVER_TOKEN = /\x01((?:[0-9A-Fa-f]{2}){5,15})\x02/g;
+
+/** What the sender sends under `slot`, before the server expands it: two hex digits. */
+// eslint-disable-next-line no-control-regex -- the same control-byte frame as TOKEN.
+const SLOT_TOKEN = /\x01([0-9A-Fa-f]{2})\x02/g;
+
+const slotLinks = () => gameVersion.protocol.chatItemLinks === 'slot';
+
+/** The hero's inventory by server slot, handed in by the chat module's install (`setItemLinkBag`). */
+let bag: () => readonly (Item | null)[] = () => [];
+
+export function setItemLinkBag(read: () => readonly (Item | null)[]): void {
+  bag = read;
+}
 
 const hasLink = (text: string) => text.includes('{') || text.includes('\x01');
 
@@ -38,8 +59,15 @@ function fromBase64Url(text: string): Uint8Array {
   return Uint8Array.from(binary, c => c.charCodeAt(0));
 }
 
-/** The link an item is sent as. */
+/**
+ * The link an item is sent as. Under `slot` it is the hero's own inventory slot; an item that is
+ * not in the hero's inventory (a shop's, another player's) goes as its plain name.
+ */
 export function itemLinkToken(item: Item): string {
+  if (slotLinks()) {
+    const slot = bag().indexOf(item);
+    return slot >= 0 && slot <= 0xff ? `\x01${slot.toString(16).toUpperCase().padStart(2, '0')}\x02` : itemLinkLabel(item);
+  }
   const bytes = new Uint8Array(ItemSerializer.NeededSpace);
   // Items built for a window (the cash shop) carry no durability: a new one is full.
   const durability = item.durability ?? itemStats(item)?.maxDurability;
@@ -112,8 +140,9 @@ type ItemLinkHit = { start: number; end: number; item: Item };
 export function scanItemLinks(text: string): ItemLinkHit[] {
   const hits: ItemLinkHit[] = [];
   if (!hasLink(text)) return hits;
-  for (const m of text.matchAll(TOKEN)) {
-    const item = m[1] !== undefined ? itemFromLink(m[1]) : itemFromServerLink(m[2]);
+  const slot = slotLinks();
+  for (const m of text.matchAll(slot ? SERVER_TOKEN : TOKEN)) {
+    const item = slot ? itemFromServerLink(m[1]) : m[1] !== undefined ? itemFromLink(m[1]) : itemFromServerLink(m[2]);
     if (item) hits.push({ start: m.index!, end: m.index! + m[0].length, item });
   }
   return hits;
@@ -122,7 +151,7 @@ export function scanItemLinks(text: string): ItemLinkHit[] {
 /** The line without its links, for the word matches that fire emotes: the bytes spell anything. */
 export function stripItemLinks(text: string): string {
   if (!hasLink(text)) return text;
-  return text.replace(TOKEN, ' ').replace(/\s+/g, ' ').trim();
+  return text.replace(TOKEN, ' ').replace(SLOT_TOKEN, ' ').replace(/\s+/g, ' ').trim();
 }
 
 /**
@@ -170,7 +199,7 @@ export function wireToLabels(wire: string): { text: string; links: Map<string, s
   const links = new Map<string, string>();
   let text = '';
   let at = 0;
-  for (const hit of scanItemLinks(wire)) {
+  for (const hit of slotLinks() ? scanSlotLinks(wire) : scanItemLinks(wire)) {
     const token = wire.slice(hit.start, hit.end);
     const label = uniqueLinkLabel(itemLinkLabel(hit.item), token, links);
     links.set(label, token);
@@ -178,4 +207,16 @@ export function wireToLabels(wire: string): { text: string; links: Map<string, s
     at = hit.end;
   }
   return { text: text + wire.slice(at), links };
+}
+
+/** A sent line's slot links (`slot`), read back against the hero's inventory for the history keys. */
+function scanSlotLinks(text: string): ItemLinkHit[] {
+  const hits: ItemLinkHit[] = [];
+  if (!text.includes('\x01')) return hits;
+  for (const m of text.matchAll(SLOT_TOKEN)) {
+    const item = bag()[parseInt(m[1], 16)];
+    const start = m.index ?? 0;
+    if (item) hits.push({ start, end: start + m[0].length, item });
+  }
+  return hits;
 }

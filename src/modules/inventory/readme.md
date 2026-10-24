@@ -18,6 +18,8 @@ items themselves are the hero's (`Hero.items`, `Hero.money`).
 - `InventorySort.start()`: auto-arrange. `BulkMove.start(from, to, wanted)`: move every matching item.
 - `QuickItemActions`: Ctrl-click moves, sell / drop confirmations, the merchant's bulk buy. `MAX_BULK_BUY`.
 - `isUpgradeJewel`, `jewelTargetError`, `JEWEL_OF_CHAOS` (`jewelUpgrade.ts`; versions re-export it as `jewelRules`).
+- `isRightClickConsumable` (`itemUse.ts`): what a right click in the bag uses with ConsumeItemRequest.
+- `REFORGE_JEWEL`, `isReforgeJewel`, `reforgeJewelApplies` (`reforgeJewels.ts`, no client code: the cash shop server imports `jewelUpgrade.ts`) and `jewelTargetFacts` (`reforgeJewelFacts.ts`, the item data they need): Mu Reforge's own jewels.
 - `ITEM_HOTKEY_CODES`, `canRegisterItemHotkey`, `canBindItemHotkey`, `findHotkeyItem`, `countHotkeyItems`,
   `HOTKEY_COUNT`, `UNBOUND_HOTKEY`. `canBindItemHotkey(features.itemHotkeys, slot)` is the one rule the bar's
   drop and the inventory's Ctrl+key bind by: a slot the bar draws, on a version whose slots bind
@@ -48,6 +50,18 @@ items themselves are the hero's (`Hero.items`, `Hero.money`).
   and the player's option of that name is on, mana under a tenth drinks the potion the unbound W
   key would (`findHotkeyItem`, the same `consumeItemRequest`), at most once a second, alive and in
   the world. The original never drinks by itself, so both default off.
+
+- Right click use (`itemUse.ts`): our C++ client's `TryConsumeItem` kept to the items our server has a
+  consume handler or a `ConsumeEffect` for: potions, Town Portal, the X-shop buff scrolls (14/72-77, 97,
+  98), elite potions (14/70, 71, 133), the Jack O'Lantern and Cherry Blossom food, the Magic Backpack
+  (14/162), the Vault Expansion Certificate (14/163), the Life Stone (13/11) and the Kalima ticket. Elixirs
+  and the other cash items the server cannot use are left out. Stat fruits (13/15, Create / Decrease box)
+  are not ported yet.
+- Our jewels (`reforgeJewels.ts`, `ReforgeJewels.cpp`): Jewel of Skill (14/124) on an item with a skill
+  in its data that lacks it, Jewel of Luck (14/125) on gear or wings without luck, Jewel of Sea (14/176)
+  on an upgradeable ring or pendant below +9, Socket Gem (14/177) on a socket item below five sockets.
+  They go out as Bless does (0x26, jewel slot, target slot). Bless and Soul also take our 4th and Hero
+  wings (12/51-59, 66, 67).
 
 ## Packets
 - `CharacterInventory`: the full bag, emptied first (WSclient.cpp:1672-1683); slots past `FirstStoreItemSlotIndex` go to `Economy.myShopItems`.
@@ -87,6 +101,7 @@ items themselves are the hero's (`Hero.items`, `Hero.money`).
 - `itemStorage.test.ts`: `storageBan` returns a translated refusal per storage.
 - `itemHotkeys.test.ts`: which slots a version lets Ctrl+key or a drop bind.
 - `net.test.ts`: `CharacterInventory` empties the bag and the stall before filling them.
-- `jewelUpgrade.test.ts`: a ring or pendant takes Bless, Soul and Life only with `jewelryUpgrade` on a world that allows it.
+- `jewelUpgrade.test.ts`: a ring or pendant takes Bless, Soul and Life only with `jewelryUpgrade` on a world that allows it; our four jewels' targets.
+- `itemUse.test.ts`: which items a right click uses.
 - `autoMana.test.ts`: low mana drinks the W key's mana potion once a second, and nothing happens
   where the server or the player has not turned it on, for a dead hero or with no potion.

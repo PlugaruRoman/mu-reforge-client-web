@@ -13,4 +13,5 @@ export default {
   'login.tokenRefused': 'A mentett bejelentkezés lejárt. Add meg a jelszavadat.',
   'login.tokenUnanswered':
     'A szerver nem válaszolt a mentett bejelentkezésre. Add meg a jelszavadat.',
+  'resume.serverListGaveUp': 'A szerver nem válaszol. Töltsd újra az oldalt az újrapróbálkozáshoz.',
 } satisfies Partial<Record<keyof typeof en, string>>;

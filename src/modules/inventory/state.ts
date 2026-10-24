@@ -35,6 +35,7 @@ import {
   findHotkeyItem,
 } from './itemHotkeys';
 import { jewelTargetError } from './jewelUpgrade';
+import { jewelTargetFacts } from './reforgeJewelFacts';
 import { jewelryUpgradeAllowed } from './jewelryUpgrade';
 import { gameVersion } from '../../version';
 
@@ -505,7 +506,7 @@ export const Bag = new (class {
       return true;
     }
 
-    const error = jewelTargetError(picked.item, target, targetSlot, jewelryUpgradeAllowed());
+    const error = jewelTargetError(picked.item, target, targetSlot, jewelryUpgradeAllowed(), jewelTargetFacts(target));
     if (error) {
       // The original keeps the jewel on the cursor; a wrong square is a no-op.
       addNotification(error, 'error');

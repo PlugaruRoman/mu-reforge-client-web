@@ -21,3 +21,18 @@ export function clipChatText(text: string, max: number): string {
   const last = cut.charCodeAt(cut.length - 1);
   return last >= 0xd800 && last <= 0xdbff ? cut.slice(0, -1) : cut;
 }
+
+/**
+ * The longest start of `text` whose UTF-8 is at most `maxBytes`, never cutting a character in
+ * two: a fixed text field OpenMU reads as UTF-8 (the personal shop title, 26 bytes).
+ */
+export function fitUtf8(text: string, maxBytes: number): string {
+  let bytes = 0;
+  let end = 0;
+  for (const ch of text) {
+    bytes += encoder.encode(ch).length;
+    if (bytes > maxBytes) break;
+    end += ch.length;
+  }
+  return text.slice(0, end);
+}

@@ -56,6 +56,7 @@ export default {
   'cmd.battlesoccer': '申请公会足球赛',
   'cmd.language': '更改服务器消息的语言',
   'cmd.offlevel': '离线挂机升级',
+  'cmd.offstore': '离线商店',
   'cmd.pkclear': '清除 PK 状态',
   'cmd.openware': '打开仓库',
   'cmd.npc': '打开 NPC 商店',

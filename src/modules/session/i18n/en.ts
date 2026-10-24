@@ -13,6 +13,8 @@ const en = {
   'login.tokenRefused': 'Your saved login has expired. Enter your password.',
   /** A token login the server never answered (no plugin behind a server.json that offers tokens): the form asks for the password. */
   'login.tokenUnanswered': 'The server did not answer the saved login. Enter your password.',
+  /** The connect server stayed unreachable through every re-dial (`Session.redialConnectServer`). */
+  'resume.serverListGaveUp': 'The server is not answering. Reload the page to try again.',
 };
 
 export default en;

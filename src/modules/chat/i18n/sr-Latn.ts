@@ -55,6 +55,7 @@ export default {
   'cmd.battlesoccer': 'Izazovi na meč Battle Soccer',
   'cmd.language': 'Promeni jezik poruka servera',
   'cmd.offlevel': 'Podizanje nivoa van mreže',
+  'cmd.offstore': 'Oflajn prodavnica',
   'cmd.pkclear': 'Obriši PK status',
   'cmd.openware': 'Otvori skladište',
   'cmd.npc': 'Otvori prodavnicu NPC lika',

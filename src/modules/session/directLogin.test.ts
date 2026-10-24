@@ -117,12 +117,16 @@ describe('direct login on', () => {
     expect(AppState.uiState).toBe(UIState.Login);
   });
 
-  it('dials the connect server again when it drops while the login waits', () => {
+  it('dials the connect server again, after a pause, when it drops while the login waits', () => {
     const dial = vi.spyOn(Session, 'connectToConnectServer').mockImplementation(() => undefined);
+    vi.useFakeTimers();
     Session.playOnline();
     const socket = {} as WebSocket;
     Session.csSocket = socket;
     Session.onSocketLost(socket);
+    expect(dial).toHaveBeenCalledTimes(1);
+    vi.advanceTimersByTime(2000);
+    vi.useRealTimers();
     expect(dial).toHaveBeenCalledTimes(2);
     expect(AppState.uiState).toBe(UIState.Login);
   });

@@ -5,7 +5,7 @@ world, and the room helpers. The maps themselves are content in `versions/shared
 (see [docs/content.md](../../../docs/content.md)).
 
 ## Public API
-- `MapLayer`, `Room`, `Spawn`, `PerWorld`, `ByWorld` (`layer.ts`): the contract one map entry
+- `MapLayer`, `MapOverride`, `Room`, `Spawn`, `PerWorld`, `ByWorld` (`layer.ts`): the contract one map entry
   implements. `sound`, `lighting`, `weather`, `terrain`, `render`, `fx`, `actors` are the map's own rows,
   one field per controller; each controller owns its field's type (`MapSound`, `MapLighting`,
   `MapWeather`, `MapTerrain`, `MapRender`, `MapFx`, `MapActors`, exported from that controller's `index.ts`).
@@ -14,7 +14,9 @@ world, and the room helpers. The maps themselves are content in `versions/shared
     runtime (returns the unregister).
   - readers: `layerFor`, `all`, `worldsOf`, `worldsWhere`, `assetWorldNum`, `tiles`,
     `cutoutTileFor`, `spawn`, `isOutdoor`, `canRain`, `isSnow`, `isUnderwater`, `clearColorFor`,
-    `roomsOf`, `blendMeshFor`, `isEffectOnly`, `emissionsFor`.
+    `roomsOf`, `blendMeshFor`, `isEffectOnly`, `emissionsFor`, `objectModelFor` (the entry's
+    `objectModels`, else `Object<type + 1>.glb`).
+  - `useVersionMaps(read)`: read another version's map rows (tests, tools); returns the restore.
   - the map's own rows: `rowFor(world, pick)` (the row resolved for the world), `worldSet(pick)`
     and `worldMap(read)` (live views that ask on every call, for module-level constants).
 - `forWorld(row, world)`: a `PerWorld` row as one world sees it.
@@ -41,6 +43,10 @@ world, and the room helpers. The maps themselves are content in `versions/shared
   `worldSet` / `worldMap` views let a controller keep a `ReadonlySet` constant (a layer's `maps`)
   without reading the list at load, which is what made the old per-controller tables fragile to
   import order.
+- A version whose own `World<n>` / `Object<n>` differ (Mu Reforge's fortresses) declares
+  `VersionData.maps`: a `MapOverride` per `ENUM_WORLD`. `layerFor` merges it over the shared entry
+  (plain-object rows key by key, nested; arrays and values replace), once per row set, so every reader
+  sees it and no `if (version)` is needed. Season 6 declares none.
 - `canRain` is the one place that answers "may rain fall here": `outdoor`, and not `rain:
   false`, `snow`, `underwater` or `desert`.
 - `create` binds the map's object classes. It is written as a dynamic import
@@ -63,7 +69,7 @@ world, and the room helpers. The maps themselves are content in `versions/shared
   and records roof and wall types so prop batching leaves them alone (`roomStructureTypes`).
 
 ## Depends on / used by
-- uses: `core/types`, `assets` (download, world folder), `terrain/parseTerrainObjects`,
+- uses: `core/types`, `version` (`gameVersion.data.maps`), `assets` (download, world folder), `terrain/parseTerrainObjects`,
   `lighting/profiles`, `render/sceneLook`. The list comes in through `registerMaps`.
 - used by: `controllers.ts`, `app/lifecycle.ts`, `terrain` (load, tiles, grass), `weather`
   (rain, snow), `lighting` (profiles, director), `render` (blend meshes, effect-only objects,
@@ -87,7 +93,7 @@ world, and the room helpers. The maps themselves are content in `versions/shared
 - `versions/shared/maps/mapRows.golden.test.ts`: every per-map row the sound, lighting, weather
   and terrain controllers answer, for every world.
 - `maps.test.ts`: `rowFor` / `forWorld` per world, the live `worldSet` / `worldMap` views and
-  that they follow `register`.
+  that they follow `register`; a version's rows merge over one world only, absent by default.
 - `roomEnumeration.test.ts`: buildings from roof slabs and wall lines, base from the lowest wall,
   separate buildings, roofs without walls, other storeys, matching rooms by centre.
 - `versions/shared/maps/tileFiles.test.ts`: every tile slot names a file in its world folder.

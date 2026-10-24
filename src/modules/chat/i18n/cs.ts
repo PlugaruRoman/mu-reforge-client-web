@@ -55,6 +55,7 @@ export default {
   'cmd.battlesoccer': 'Vyzvat k zápasu Battle Soccer',
   'cmd.language': 'Změnit jazyk zpráv serveru',
   'cmd.offlevel': 'Offline levelování',
+  'cmd.offstore': 'Offline obchod',
   'cmd.pkclear': 'Vymazat stav PK',
   'cmd.openware': 'Otevřít sklad',
   'cmd.npc': 'Otevřít obchod NPC',

@@ -26,7 +26,7 @@ export {
 export type { BandMidiEvent } from './bandProtocol';
 export { CHAT_SERVER_PORT } from './chatRoomProtocol';
 export type { ChatClient } from './chatRoomProtocol';
-export { clipChatText, toChatWire } from './chatWire';
+export { clipChatText, fitUtf8, toChatWire } from './chatWire';
 export { buildEscrowRequest, parseEscrowResult } from './escrowWire';
 export type {
   EscrowOperationName,

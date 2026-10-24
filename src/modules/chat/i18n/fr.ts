@@ -57,6 +57,7 @@ export default {
   'cmd.battlesoccer': 'Demander un match de Battle Soccer',
   'cmd.language': 'Changer la langue des messages du serveur',
   'cmd.offlevel': 'Montée de niveau hors ligne',
+  'cmd.offstore': 'Boutique hors ligne',
   'cmd.pkclear': 'Effacer l’état de PK',
   'cmd.openware': 'Ouvrir l’entrepôt',
   'cmd.npc': 'Ouvrir une boutique PNJ',

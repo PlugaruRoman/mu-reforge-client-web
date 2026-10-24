@@ -56,6 +56,7 @@ export default {
   'cmd.battlesoccer': 'درخواست مسابقه فوتبال نبرد',
   'cmd.language': 'تغییر زبان پیام‌های سرور',
   'cmd.offlevel': 'ارتقای سطح آفلاین',
+  'cmd.offstore': 'فروشگاه آفلاین',
   'cmd.pkclear': 'پاک کردن وضعیت PK',
   'cmd.openware': 'باز کردن انبار',
   'cmd.npc': 'باز کردن فروشگاه NPC',

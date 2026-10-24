@@ -29,6 +29,7 @@ let serverListRequested = false;
 /** Registers this module's packet listeners (see ../module.ts). */
 export function installNet(): void {
   EventBus.on('Hello', () => {
+    Session.onConnectServerReached();
     // A direct login picks from a fresh list on every connect.
     if (serverListRequested && !DirectLogin.on) return;
     serverListRequested = true;

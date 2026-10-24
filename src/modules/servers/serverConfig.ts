@@ -1,6 +1,6 @@
 import { makeAutoObservable, runInAction } from 'mobx';
 import { LocalStorage } from '../../core/localStorage';
-import { CS_HOST, CS_PORT, WS_HOST, WS_PORT } from './defaults';
+import { CS_HOST, CS_PORT, PINNED_WORLD, WS_HOST, WS_PORT } from './defaults';
 import { versionByTag } from '../../version';
 
 /** Where the client connects: the saved server profiles, the selected one, and the proxy
@@ -357,6 +357,9 @@ type StoredState = {
 };
 
 function load(): StoredState {
+  // A pinned build reads nothing saved: a profile another visit left behind is not a way in.
+  if (PINNED_WORLD) return { profiles: [], activeId: '' };
+
   const fallback = (): StoredState => {
     const profile =
       legacyProfile() ?? (seedsDefaultProfile() ? defaultProfile() : null);
@@ -406,7 +409,7 @@ function urlOverride(saved: StoredState): {
   profile: ServerProfile | null;
   selectId: string | null;
 } {
-  if (typeof location === 'undefined') return { profile: null, selectId: null };
+  if (PINNED_WORLD || typeof location === 'undefined') return { profile: null, selectId: null };
 
   const params = new URLSearchParams(location.search);
   const cs = params.get('cs');
@@ -494,6 +497,9 @@ class ServerConfigStore {
   /** The installer's direct login (`directLogin.ts`): the one world, over everything else; never saved. */
   pinned: ServerProfile | null = null;
 
+  /** `VITE_PINNED_WORLD` (defaults.ts): the build's own list names the only world; nothing is edited or saved. */
+  readonly pinnedBuild = PINNED_WORLD;
+
   constructor() {
     const saved = load();
     const { profile, selectId } = urlOverride(saved);
@@ -568,7 +574,7 @@ class ServerConfigStore {
    * the way out of it, and makes a profile that does save.
    */
   get readOnly(): boolean {
-    return this.lockedByUrl || this.activeIsListed || this.isEmpty;
+    return this.pinnedBuild || this.lockedByUrl || this.activeIsListed || this.isEmpty;
   }
 
   /**
@@ -578,6 +584,15 @@ class ServerConfigStore {
    * A world that just published an id moves off its address key (readme.md).
    */
   setListed(entries: ServerProfile[]): void {
+    if (this.pinnedBuild) {
+      // The first world of the build's own list, selected: there is nothing else to pick.
+      runInAction(() => {
+        this.listed = entries.slice(0, 1);
+        this.activeId = entries[0]?.id ?? '';
+      });
+      return;
+    }
+
     runInAction(() => {
       this.listed = entries;
 
@@ -606,6 +621,7 @@ class ServerConfigStore {
   }
 
   private save(): void {
+    if (this.pinnedBuild) return;
     LocalStorage.save(
       SERVERS_KEY,
       JSON.stringify({
@@ -643,6 +659,7 @@ class ServerConfigStore {
   }
 
   update(id: string, patch: Partial<ServerProfile>): void {
+    if (this.pinnedBuild) return;
     const index = this.profiles.findIndex(p => p.id === id);
 
     if (index < 0) return;
@@ -660,6 +677,8 @@ class ServerConfigStore {
    */
   add(from?: Partial<ServerProfile>): ServerProfile {
     const base = this.active ?? defaultProfile();
+    // A pinned build keeps its one world: nothing to add, and nothing saved.
+    if (this.pinnedBuild) return base;
     const profile = sanitizeProfile(
       {
         ...from,
@@ -693,7 +712,7 @@ class ServerConfigStore {
 
   /** Removing the last profile is a no-op: there is always one to connect with. */
   remove(id: string): void {
-    if (this.profiles.length < 2) return;
+    if (this.pinnedBuild || this.profiles.length < 2) return;
 
     runInAction(() => {
       this.profiles = this.profiles.filter(p => p.id !== id);
@@ -711,6 +730,7 @@ class ServerConfigStore {
   }
 
   reset(): void {
+    if (this.pinnedBuild) return;
     const profile = defaultProfile();
 
     runInAction(() => {

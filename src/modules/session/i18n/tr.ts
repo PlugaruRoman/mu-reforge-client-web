@@ -11,4 +11,5 @@ export default {
   'login.closingOldSession': 'Hesap hâlâ bağlı: eski oturum kapatılıp yeniden deneniyor...',
   'login.tokenRefused': 'Kayıtlı girişinin süresi doldu. Şifreni gir.',
   'login.tokenUnanswered': 'Sunucu kayıtlı girişe yanıt vermedi. Şifreni gir.',
+  'resume.serverListGaveUp': 'Sunucu yanıt vermiyor. Tekrar denemek için sayfayı yeniden yükleyin.',
 } satisfies Partial<Record<keyof typeof en, string>>;

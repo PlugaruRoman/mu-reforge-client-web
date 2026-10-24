@@ -32,7 +32,10 @@ export type CommandKind =
   | 'addFriend'
   | 'follow'
   | 'battle'
-  | 'attack';
+  | 'attack'
+  /** A typed `/offlevel` / `/offstore`: the offline hand-over of a module (`setHandOverCommand`), else sent as typed. */
+  | 'offlevel'
+  | 'offstore';
 
 export type ChatCommand = {
   /** With the leading slash, lower case. */
@@ -80,7 +83,9 @@ const CHAT_COMMANDS: readonly ChatCommand[] = [
   { name: '/war', usage: '<guild>', helpKey: 'cmd.war' },
   { name: '/battlesoccer', usage: '<guild>', helpKey: 'cmd.battlesoccer' },
   { name: '/language', usage: '<isoCode>', helpKey: 'cmd.language' },
-  { name: '/offlevel', helpKey: 'cmd.offlevel' },
+  // Typed, they take the hand-over path the windows' buttons take (`setHandOverCommand`).
+  { name: '/offlevel', helpKey: 'cmd.offlevel', local: 'offlevel' },
+  { name: '/offstore', helpKey: 'cmd.offstore', local: 'offstore' },
   { name: '/pkclear', usage: '[char]', helpKey: 'cmd.pkclear' },
   { name: '/openware', helpKey: 'cmd.openware', gm: true },
   { name: '/npc', usage: '[id]', helpKey: 'cmd.npc', gm: true },
@@ -130,6 +135,21 @@ const CHAT_COMMANDS: readonly ChatCommand[] = [
   { name: '/startcc', helpKey: 'cmd.startcc', gm: true },
   { name: '/startds', helpKey: 'cmd.startds', gm: true },
 ];
+
+/** The typed commands a module takes over (offline_modes: the server disconnects on purpose, the resume must stay away). */
+const handOvers = new Map<CommandKind, () => void>();
+
+export function setHandOverCommand(kind: 'offlevel' | 'offstore', run: (() => void) | null): void {
+  if (run) handOvers.set(kind, run);
+  else handOvers.delete(kind);
+}
+
+/** Runs the module's hand-over for `kind`; false when no module took it (the line is then sent as typed). */
+export function runHandOverCommand(kind: CommandKind): boolean {
+  const run = handOvers.get(kind);
+  run?.();
+  return !!run;
+}
 
 /** The commands the server listed (Mu Reforge's F5 01, modules/reforge_hud), after the client's own. */
 let serverCommands: readonly ChatCommand[] = [];

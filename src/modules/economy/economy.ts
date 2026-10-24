@@ -11,6 +11,7 @@ import type { Item } from '../../ecs/world';
 import { playUiSound } from '../../controllers/sound/sfx';
 import { Notices } from '../chat/notices';
 import { InventoryConstants } from '@/core/inventoryConstants';
+import { fitUtf8, toChatWire } from '@/controllers/net/protocols';
 import { MsgBox, MsgWinCode } from '@/controllers/interface/msgWin';
 import { mixRecipes } from '@/controllers/assets';
 import { findFreeSlot } from '../inventory/inventoryFit';
@@ -1116,7 +1117,8 @@ export const Economy = new (class _Economy {
 
   /** `SendPlayerShopOpen`. */
   startSelling(name: string): void {
-    const title = name.trim().slice(0, MAX_SHOP_TITLE);
+    // OpenMU reads the 26 bytes as UTF-8: as many whole characters as fit (personal_shop/readme.md).
+    const title = fitUtf8(name.trim(), MAX_SHOP_TITLE);
 
     if (!title) {
       Social.errorMessage(t('personalShop.needName'));
@@ -1144,7 +1146,7 @@ export const Economy = new (class _Economy {
     }
 
     const packet = PlayerShopOpenPacket.createPacket();
-    packet.setStoreName(title, 26);
+    packet.setStoreName(toChatWire(title), MAX_SHOP_TITLE);
     Session.sendToGS(packet.buffer);
   }
 

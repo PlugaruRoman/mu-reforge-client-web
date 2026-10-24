@@ -45,6 +45,39 @@ const MIX_VALUE: Readonly<Record<number, number>> = {
   [code(14, 16)]: 0,
 };
 
+/**
+ * A server's own recipes and item flags over `Mix.bmd` (our C++ client's GameLogic/Reforge/
+ * ReforgeMixRecipes.cpp `AdjustRecipes` / `AdjustMixItem` / `GetRecipeName`). A module that knows
+ * its server sets it in `install`; with none set, everything is `Mix.bmd`'s.
+ */
+export type MixAdjuster = {
+  /** The recipe list of one mix type, with the server's records added, removed or corrected. */
+  recipes(list: readonly MixRecipe[]): readonly MixRecipe[];
+  /** Corrects the flags `toMixItem` derived. */
+  item(mix: MixItem, item: Item): void;
+  /** The name of a recipe that carries no `Text.bmd` ids, or null. */
+  name(recipe: MixRecipe): string | null;
+};
+
+let adjuster: MixAdjuster | null = null;
+let adjustedLists = new WeakMap<readonly MixRecipe[], readonly MixRecipe[]>();
+
+export function setMixAdjuster(next: MixAdjuster | null): void {
+  adjuster = next;
+  adjustedLists = new WeakMap();
+}
+
+/** The adjusted list, built once per loaded list. */
+function adjusted(list: readonly MixRecipe[]): readonly MixRecipe[] {
+  if (!adjuster) return list;
+  let out = adjustedLists.get(list);
+  if (!out) {
+    out = adjuster.recipes(list);
+    adjustedLists.set(list, out);
+  }
+  return out;
+}
+
 /** `CMixItem`: one kind of item in the tray, its count summed over the stacks of it. */
 export type MixItem = {
   type: number;
@@ -94,7 +127,7 @@ export function toMixItem(item: Item): MixItem {
   if (harmonyOf(item)) special |= SP.harmony;
   const canStack = STACKS.has(type);
   const durability = item.durability ?? 0;
-  return {
+  const mix: MixItem = {
     type,
     level: item.lvl ?? 0,
     option: optionValue(item),
@@ -115,6 +148,8 @@ export function toMixItem(item: Item): MixItem {
     guardianOption: hasGuardianOption(item),
     fenrirOption: type === FENRIR && (item.excellentFlags ?? 0) !== 0,
   };
+  adjuster?.item(mix, item);
+  return mix;
 }
 
 const sameItem = (a: MixItem, b: MixItem) =>
@@ -281,7 +316,8 @@ export type MixCheck = {
 };
 
 /** `CMixRecipeMgr::CheckMixInventory`: `CheckRecipe`, then `CheckRecipeSimilarity`. */
-export function checkMix(recipes: readonly MixRecipe[], tray: readonly (Item | null)[]): MixCheck {
+export function checkMix(loaded: readonly MixRecipe[], tray: readonly (Item | null)[]): MixCheck {
+  const recipes = adjusted(loaded);
   const items = mixItemsOf(tray);
   const charmBonus = items.reduce((sum, item) => sum + (item.charm ? item.count : 0), 0);
   const chaosCharms = items.filter(item => item.chaosCharm).length;
@@ -329,7 +365,8 @@ export function checkMix(recipes: readonly MixRecipe[], tray: readonly (Item | n
 }
 
 /** `IsMixSource` (MixMgr.cpp:254-302): whether the machine takes the item at all. */
-export function isMixSource(recipes: readonly MixRecipe[], item: Item, check: MixCheck): boolean {
+export function isMixSource(loaded: readonly MixRecipe[], item: Item, check: MixCheck): boolean {
+  const recipes = adjusted(loaded);
   // The Lucky armour (indexes 62-72 of groups 7-11) goes to Jerridon only (`Check_LuckyItem`).
   if (item.group >= 7 && item.group <= 11 && item.num >= 62 && item.num <= 72) return false;
   const mix = toMixItem(item);
@@ -384,6 +421,8 @@ export function recipeNameLines(recipe: MixRecipe, firstItemType: number, simila
     return lines.length ? lines : [t('chaos.add380')];
   }
   const [first, second, third] = recipe.names;
+  const own = first === 0 ? adjuster?.name(recipe) : null;
+  if (own) return [own];
   const ids = second === 0 ? [first] : third === 0 ? [first, second] : [first, second, third];
   return [ids.map(globalText).join(' ')];
 }

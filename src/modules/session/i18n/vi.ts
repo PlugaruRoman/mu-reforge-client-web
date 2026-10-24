@@ -11,4 +11,5 @@ export default {
   'login.closingOldSession': 'Tài khoản vẫn đang kết nối: đang đóng phiên cũ và thử lại...',
   'login.tokenRefused': 'Đăng nhập đã lưu đã hết hạn. Hãy nhập mật khẩu.',
   'login.tokenUnanswered': 'Máy chủ không phản hồi đăng nhập đã lưu. Hãy nhập mật khẩu.',
+  'resume.serverListGaveUp': 'Máy chủ không phản hồi. Tải lại trang để thử lại.',
 } satisfies Partial<Record<keyof typeof en, string>>;

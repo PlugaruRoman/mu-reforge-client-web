@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { calls, shop } = vi.hoisted(() => ({
   calls: [] as string[],
-  shop: { myShopSelling: false, myShopItems: [{}], shopHasUnpricedItems: false },
+  shop: { myShopSelling: false, myShopItems: [{}], shopHasUnpricedItems: false, myShopName: 'My store' },
 }));
 
 vi.mock('../chat/sendLine', () => ({ sendChatLine: (line: string) => calls.push(`chat ${line}`) }));
@@ -17,6 +17,8 @@ vi.mock('../economy/economy', () => ({
 }));
 
 const { OfflineModes } = await import('./state');
+const { default: offlineModule } = await import('./module');
+const { runHandOverCommand } = await import('../chat/chatCommands');
 
 beforeEach(() => {
   calls.length = 0;
@@ -43,5 +45,17 @@ describe('the offline hand-overs', () => {
     OfflineModes.askOffStore('Shop');
     expect(OfflineModes.confirmStore).toBeNull();
     expect(calls).toEqual(['open store Shop']);
+  });
+
+  it('takes the typed /offlevel and /offstore down the same path as the buttons', () => {
+    offlineModule.install();
+    runHandOverCommand('offlevel');
+    expect(calls).toEqual(['save helper', 'forget resume', 'chat /offlevel']);
+    calls.length = 0;
+    shop.myShopSelling = true;
+    runHandOverCommand('offstore');
+    expect(OfflineModes.confirmStore).not.toBeNull();
+    OfflineModes.offStore();
+    expect(calls).toEqual(['forget resume', 'chat /offstore', 'close store', 'inventory false']);
   });
 });

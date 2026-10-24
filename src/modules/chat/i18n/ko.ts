@@ -56,6 +56,7 @@ export default {
   'cmd.battlesoccer': '배틀 사커 신청',
   'cmd.language': '서버 메시지 언어 변경',
   'cmd.offlevel': '오프라인 레벨업',
+  'cmd.offstore': '오프라인 상점',
   'cmd.pkclear': 'PK 상태 초기화',
   'cmd.openware': '창고 열기',
   'cmd.npc': 'NPC 상점 열기',

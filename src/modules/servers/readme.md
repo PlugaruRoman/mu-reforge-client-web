@@ -50,6 +50,13 @@ connect server's own list (`Servers.serverList`) is filled by `session/net.ts`.
 - `registerRules.ts` and `reservedNames.ts` are engine-free: `register/server/main.ts` and
   `register/src/registerPage.tsx` import them too.
 
+- Pinned build (`VITE_PINNED_WORLD=on`, `defaults.ts`): the first world of `VITE_SERVER_LIST_URL` is the
+  only one and is selected. Saved profiles, the seeded local profile, the unpinned list cache and every
+  URL override (`?cs=` `?ws=` `?list=` `?version=` `?server=` `?gs=`) are ignored, and nothing is saved
+  or editable, so a link on the served domain cannot send a login to another proxy.
+- `gameVersion.serverSettingsOff` forces a `server.json` offer off for a version whose server cannot
+  honour it (reforge: `jewelBundling`, `loginTokens`).
+
 ## Depends on / used by
 - uses: `core/localStorage`, `src/version` (`versionByTag`).
 - used by: `session` (`state.ts`, `net.ts`), `src/app/boot.tsx`, `src/app/main.tsx`,

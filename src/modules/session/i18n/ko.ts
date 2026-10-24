@@ -11,4 +11,5 @@ export default {
   'login.closingOldSession': '계정이 아직 접속 중입니다. 이전 세션을 닫고 다시 시도하는 중...',
   'login.tokenRefused': '저장된 로그인이 만료되었습니다. 비밀번호를 입력하세요.',
   'login.tokenUnanswered': '서버가 저장된 로그인에 응답하지 않았습니다. 비밀번호를 입력하세요.',
+  'resume.serverListGaveUp': '서버가 응답하지 않습니다. 페이지를 새로 고쳐 다시 시도하세요.',
 } satisfies Partial<Record<keyof typeof en, string>>;

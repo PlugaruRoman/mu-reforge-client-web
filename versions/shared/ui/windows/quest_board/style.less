@@ -1,0 +1,54 @@
+@import (reference) '@/controllers/interface/components/mu_text/style.less';
+// Captain Slough's quest board inside the item window frame.
+.quest-board-title {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 12px;
+}
+
+.quest-board-body {
+  position: absolute;
+  left: 20px;
+  top: 44px;
+  width: 150px;
+  font-size: 11px;
+  user-select: none;
+  text-shadow: 1px 1px 0 #000;
+  text-align: center;
+
+  .quest-board-step,
+  .quest-board-name,
+  .quest-board-line,
+  .quest-board-section {
+    display: block;
+    white-space: normal;
+  }
+
+  .quest-board-name {
+    margin: 4px 0 8px;
+    font-size: 13px;
+  }
+
+  .quest-board-section {
+    margin: 12px 0 4px;
+  }
+
+  .quest-board-bar {
+    height: 6px;
+    margin: 4px 0;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(0, 0, 0, 0.5);
+  }
+
+  .quest-board-fill {
+    height: 100%;
+    background: rgb(220, 170, 40);
+  }
+}
+
+.quest-board-actions {
+  position: absolute;
+  left: 41px;
+  top: 350px;
+}

@@ -13,6 +13,14 @@ const BACKOFF = [1000, 2000, 4000, 8000, 15000];
 
 const MAX_ATTEMPTS = BACKOFF.length;
 
+/**
+ * The wait before attempt `attempt` (0-based): its `BACKOFF` step, half to one and a half of it at
+ * random, so the players a proxy restart dropped together do not all log in in the same second.
+ */
+export function resumeDelay(attempt: number, random: () => number = Math.random): number {
+  return Math.round(BACKOFF[Math.min(attempt, BACKOFF.length - 1)] * (0.5 + random()));
+}
+
 type Step = 'idle' | 'connecting' | 'logging-in' | 'selecting';
 
 export const SessionResume = new (class _SessionResume {
@@ -92,7 +100,7 @@ export const SessionResume = new (class _SessionResume {
   }
 
   private schedule(): void {
-    const wait = BACKOFF[Math.min(this.attempt, BACKOFF.length - 1)];
+    const wait = resumeDelay(this.attempt);
 
     runInAction(() => {
       this.attempt++;

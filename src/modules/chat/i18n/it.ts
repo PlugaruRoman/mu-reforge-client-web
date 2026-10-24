@@ -59,6 +59,7 @@ export default {
   'cmd.battlesoccer': 'Chiedere una partita di Battle Soccer',
   'cmd.language': 'Cambiare la lingua dei messaggi del server',
   'cmd.offlevel': 'Salita di livello offline',
+  'cmd.offstore': 'Negozio offline',
   'cmd.pkclear': 'Azzerare lo stato di PK',
   'cmd.openware': 'Aprire il magazzino',
   'cmd.npc': 'Aprire un negozio NPC',

@@ -55,6 +55,7 @@ export default {
   'cmd.battlesoccer': 'Battle Soccer mérkőzés kezdeményezése',
   'cmd.language': 'A szerverüzenetek nyelvének váltása',
   'cmd.offlevel': 'Offline fejlődés',
+  'cmd.offstore': 'Offline bolt',
   'cmd.pkclear': 'A PK állapot törlése',
   'cmd.openware': 'A raktár megnyitása',
   'cmd.npc': 'NPC-bolt megnyitása',

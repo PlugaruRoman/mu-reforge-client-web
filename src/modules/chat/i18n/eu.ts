@@ -55,6 +55,7 @@ export default {
   'cmd.battlesoccer': 'Eskatu Battle Soccer partida bat',
   'cmd.language': 'Aldatu zerbitzariaren mezuen hizkuntza',
   'cmd.offlevel': 'Lineaz kanpoko maila-igoera',
+  'cmd.offstore': 'Denda konexiorik gabe',
   'cmd.pkclear': 'Garbitu PK egoera',
   'cmd.openware': 'Ireki biltegia',
   'cmd.npc': 'Ireki NPC denda bat',

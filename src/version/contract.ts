@@ -12,6 +12,8 @@
  * `src/version/index.ts`.
  */
 
+import type { MapOverride } from '@/controllers/maps/layer';
+
 /** Folder name under `versions/`; the registry entry's `id`. */
 export type GameVersionId = string;
 
@@ -59,6 +61,13 @@ export interface VersionProtocol {
    * with `ItemMoveRequestExtended`. Omitted = `standard`.
    */
   readonly itemCodec?: 'standard' | 'extended';
+  /**
+   * How an item is linked into chat. `token` (omitted): Babylon's `{` + 12 item bytes in base64url
+   * + `}`, passed along as text. `slot`: `\x01` + the inventory slot in hex + `\x02`, which the
+   * server swaps for the item it really holds there (Mu Reforge, ChatItemLinkExpander); only those
+   * server-written links are read, since a `token` can show an item nobody owns.
+   */
+  readonly chatItemLinks?: 'token' | 'slot';
 }
 
 export interface VersionData {
@@ -99,6 +108,13 @@ export interface VersionData {
   readonly sounds?: Readonly<Record<string, string>>;
   /** How this tree's `gate.bmd` lays out a record, when it is not Season 6's (`gates.ts`). */
   readonly gates?: GateLayout;
+  /**
+   * Map rows this version's own `World<n>` / `Object<n>` folders change, by `ENUM_WORLD`
+   * (more tile slots, named models in free object slots, seats): merged over the shared
+   * entry by `maps.layerFor`. Omit it and every map is the shared entry, which is what
+   * Season 6 does.
+   */
+  readonly maps?: Readonly<Partial<Record<number, MapOverride>>>;
 }
 
 /** One field of a `gate.bmd` record: its byte offset, and 1 for a BYTE or 2 for a WORD. */
@@ -219,6 +235,12 @@ export interface GameVersion {
    * never installed, so no listener of theirs runs and their windows hide.
    */
   readonly modulesOff: readonly string[];
+  /**
+   * The `server.json` offers this version's server can never honour, in the manifest's words
+   * (`jewelBundling`, `loginTokens`): forced off whatever a world's file says
+   * (`modules/servers/serverManifest.ts`). Omit it and the world's file decides.
+   */
+  readonly serverSettingsOff?: readonly string[];
   /**
    * The scheduled mini-games this version's client has: the HUD times and
    * polls only these (`modules/events/schedule.ts`).

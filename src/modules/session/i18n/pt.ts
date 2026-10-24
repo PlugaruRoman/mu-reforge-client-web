@@ -11,4 +11,5 @@ export default {
   'login.closingOldSession': 'Conta ainda conectada: fechando a sessão anterior e tentando de novo...',
   'login.tokenRefused': 'Seu login salvo expirou. Digite sua senha.',
   'login.tokenUnanswered': 'O servidor não respondeu ao login salvo. Digite sua senha.',
+  'resume.serverListGaveUp': 'O servidor não responde. Recarregue a página para tentar novamente.',
 } satisfies Partial<Record<keyof typeof en, string>>;

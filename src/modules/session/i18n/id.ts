@@ -11,4 +11,5 @@ export default {
   'login.closingOldSession': 'Akun masih terhubung: menutup sesi lama dan mencoba lagi...',
   'login.tokenRefused': 'Login tersimpanmu sudah kedaluwarsa. Masukkan kata sandimu.',
   'login.tokenUnanswered': 'Server tidak menjawab login tersimpan. Masukkan kata sandimu.',
+  'resume.serverListGaveUp': 'Server tidak menjawab. Muat ulang halaman untuk mencoba lagi.',
 } satisfies Partial<Record<keyof typeof en, string>>;

@@ -55,6 +55,7 @@ export default {
   'cmd.battlesoccer': 'Battle Soccer ম্যাচের অনুরোধ',
   'cmd.language': 'সার্ভারের বার্তার ভাষা বদলান',
   'cmd.offlevel': 'অফলাইন লেভেলিং',
+  'cmd.offstore': 'অফলাইন দোকান',
   'cmd.pkclear': 'PK অবস্থা মুছুন',
   'cmd.openware': 'ভান্ডার খুলুন',
   'cmd.npc': 'একটি NPC দোকান খুলুন',

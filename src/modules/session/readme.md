@@ -64,6 +64,13 @@ the client-to-server encryption, the login fields and the offline flag.
 - Other modules it reads: `Hero` (id, name), `CharSelect` (select after a resume), `Merchant`
   (`closeNpcShop` on a lost socket).
 
+- `sendToGS` encrypts nothing for a socket that is not open, and on a new game server sends no C3/C4
+  but the login (`handshake`) until the login is accepted or the map-server switch authenticated: a
+  server that checks the C3 counter drops the connection on a gap.
+- A lost connect server is dialled again after `csRedialDelay` (2 s doubling to 30 s, a random half
+  off), 6 times, then the list stays with `resume.serverListGaveUp`; a hello resets the count. The
+  resume's steps get the same spread (`resumeDelay`, 0.5x to 1.5x).
+
 ## Packets
 - `Hello`: requests the server list (once; every time for a direct login).
 - `ServerListResponse`: fills `Servers.serverList`; a direct login waiting on the login asks for its first channel.

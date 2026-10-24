@@ -13,4 +13,5 @@ export default {
   'login.tokenRefused': 'Nag-expire na ang naka-save mong login. Ilagay ang iyong password.',
   'login.tokenUnanswered':
     'Hindi sinagot ng server ang naka-save na login. Ilagay ang iyong password.',
+  'resume.serverListGaveUp': 'Hindi sumasagot ang server. I-reload ang pahina para subukang muli.',
 } satisfies Partial<Record<keyof typeof en, string>>;

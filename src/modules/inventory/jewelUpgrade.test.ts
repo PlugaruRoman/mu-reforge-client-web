@@ -11,6 +11,7 @@ vi.mock('../servers/serverManifest', () => ({
 }));
 const { jewelTargetError } = await import('./jewelUpgrade');
 const { jewelryUpgradeAllowed } = await import('./jewelryUpgrade');
+const { jewelTargetFacts } = await import('./reforgeJewelFacts');
 
 const IN_BAG = InventoryConstants.EquippableSlotsCount;
 const item = (group: number, num: number, lvl = 0) => ({ group, num, lvl }) as Item;
@@ -51,5 +52,52 @@ describe('dropping a jewel on gear', () => {
     setFidelityChoice(FIDELITY_DEFAULT, {});
     server.jewelryUpgrade = false;
     expect(jewelryUpgradeAllowed()).toBe(false);
+  });
+});
+
+// Mu Reforge's jewels (our C++ client's GameLogic/Reforge/ReforgeJewels.cpp `CanApply`).
+describe('our jewels', () => {
+  const SKILL = item(14, 124);
+  const LUCK = item(14, 125);
+  const SEA = item(14, 176);
+  const GEM = item(14, 177);
+  const BLADE = item(0, 5); // Skill 22
+  const KRIS = item(0, 0); // no skill
+  const err = (jewel: Item, target: Item, slot: number) => jewelTargetError(jewel, target, slot, false, jewelTargetFacts(target));
+
+  it('Jewel of Skill: an item with a skill in its data that lacks it', () => {
+    expect(err(SKILL, BLADE, IN_BAG)).toBeNull();
+    expect(err(SKILL, { ...BLADE, hasSkill: true }, IN_BAG)).not.toBeNull();
+    expect(err(SKILL, KRIS, IN_BAG)).not.toBeNull();
+  });
+
+  it('Jewel of Luck: gear or wings without luck, never ammunition', () => {
+    expect(err(LUCK, KRIS, IN_BAG)).toBeNull();
+    expect(err(LUCK, { ...KRIS, luck: true }, IN_BAG)).not.toBeNull();
+    expect(err(LUCK, item(4, 15), IN_BAG)).not.toBeNull();
+    expect(err(LUCK, RING_OF_FIRE, IN_BAG)).not.toBeNull();
+  });
+
+  it('Jewel of Sea: an upgradeable ring or pendant below +9', () => {
+    expect(err(SEA, RING_OF_FIRE, IN_BAG)).toBeNull();
+    expect(err(SEA, item(13, 25, 9), IN_BAG)).not.toBeNull();
+    expect(err(SEA, WIZARDS_RING, IN_BAG)).not.toBeNull();
+    expect(err(SEA, BLADE, IN_BAG)).not.toBeNull();
+  });
+
+  it('Socket Gem: a socket item with fewer than five sockets', () => {
+    const socketSword = item(0, 26);
+    expect(err(GEM, { ...socketSword, socketCount: 3 }, IN_BAG)).toBeNull();
+    expect(err(GEM, { ...socketSword, socketCount: 5 }, IN_BAG)).not.toBeNull();
+    expect(err(GEM, BLADE, IN_BAG)).not.toBeNull();
+  });
+
+  it('is refused on worn gear, as the server refuses it', () => {
+    expect(err(LUCK, KRIS, 0)).not.toBeNull();
+  });
+
+  it('Bless and Soul go on our 4th and Hero wings', () => {
+    expect(err(BLESS, item(12, 51, 3), IN_BAG)).toBeNull();
+    expect(err(SOUL, item(12, 66, 6), IN_BAG)).toBeNull();
   });
 });

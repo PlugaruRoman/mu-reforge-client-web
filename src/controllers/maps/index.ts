@@ -2,9 +2,13 @@ import type { Controller } from '../controller';
 import { ENUM_WORLD } from '../../core/types';
 import type { World } from '../../ecs/world';
 import type { Emission } from '../fx/effectParticles';
-import type { ByWorld, MapLayer, PerWorld, Room, Spawn } from './layer';
+import { gameVersion } from '../../version';
+import type { VersionData } from '../../version/contract';
+import type { ByWorld, MapLayer, MapOverride, PerWorld, Room, Spawn } from './layer';
 
-export type { ByWorld, MapLayer, PerWorld, Room, Spawn } from './layer';
+export type { ByWorld, MapLayer, MapOverride, PerWorld, Room, Spawn } from './layer';
+
+type VersionMaps = VersionData['maps'];
 
 /**
  * The map system: every world the client can load, behind one object. Copy `_template.ts` when adding to it.
@@ -22,6 +26,9 @@ class Maps implements Controller {
   private readonly layers: MapLayer[] = [];
   private readonly byWorld = new Map<ENUM_WORLD, MapLayer>();
   private readonly effectOnlySets = new Map<MapLayer, ReadonlySet<number>>();
+  private readonly merged = new WeakMap<MapOverride, { base: MapLayer; layer: MapLayer }>();
+  /** The running version's rows over the shared entries (`VersionData.maps`). */
+  private versionMaps: () => VersionMaps = () => gameVersion?.data.maps;
 
   constructor() {
     this.reindex();
@@ -64,9 +71,28 @@ class Maps implements Controller {
     return this.layers;
   }
 
-  /** The entry that serves this world, if any. */
+  /**
+   * The entry that serves this world, if any, with the running version's rows for it
+   * (`VersionData.maps`) merged over it. The merge is built once per row set.
+   */
   layerFor(world: ENUM_WORLD): MapLayer | undefined {
-    return this.byWorld.get(world);
+    const layer = this.byWorld.get(world);
+    const over = layer && this.versionMaps()?.[world];
+    if (!layer || !over) return layer;
+    const hit = this.merged.get(over);
+    if (hit?.base === layer) return hit.layer;
+    const merged = mergeRows(layer, over) as unknown as MapLayer;
+    this.merged.set(over, { base: layer, layer: merged });
+    return merged;
+  }
+
+  /** Read another version's map rows (tests, tools). Returns the restore. */
+  useVersionMaps(read: () => VersionMaps): () => void {
+    const before = this.versionMaps;
+    this.versionMaps = read;
+    return () => {
+      this.versionMaps = before;
+    };
   }
 
   /** The worlds an entry serves, by name; empty for an unknown name. */
@@ -90,7 +116,7 @@ class Maps implements Controller {
     world: ENUM_WORLD,
     pick: (layer: MapLayer) => PerWorld<T> | undefined
   ): T | undefined {
-    const layer = this.byWorld.get(world);
+    const layer = this.layerFor(world);
     return layer ? forWorld(pick(layer), world) : undefined;
   }
 
@@ -232,6 +258,14 @@ class Maps implements Controller {
     return set.has(type);
   }
 
+  /** The model file under `Object<n>/` of an object type: `objectModels`, else `Object<type + 1>.glb`. */
+  objectModelFor(world: ENUM_WORLD, type: number): string {
+    return (
+      this.layerFor(world)?.objectModels?.[type] ??
+      `Object${(type + 1).toString().padStart(2, '0')}.glb`
+    );
+  }
+
   /** Particle emissions for an object type. */
   emissionsFor(
     world: ENUM_WORLD,
@@ -239,6 +273,20 @@ class Maps implements Controller {
   ): readonly Emission[] | undefined {
     return this.layerFor(world)?.emissions?.[type];
   }
+}
+
+function isPlainRow(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+/** `over` on `base`: plain-object rows merge key by key (nested too), arrays and values replace. */
+function mergeRows(base: object, over: object): Record<string, unknown> {
+  const out: Record<string, unknown> = { ...base };
+  for (const [key, value] of Object.entries(over)) {
+    const was = out[key];
+    out[key] = isPlainRow(was) && isPlainRow(value) ? mergeRows(was, value) : value;
+  }
+  return out;
 }
 
 function isByWorld<T>(row: PerWorld<T>): row is ByWorld<T> {

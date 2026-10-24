@@ -29,6 +29,10 @@ export function serverManifest(env: Env = process.env) {
       liteAssets: env.MU_LITE_ASSETS === 'on',
     },
     modulesOff: modulesOff(env),
+    // Never true here: login tokens need the installer's OpenMU plug-in (openmu/readme.md), which
+    // Mu Reforge's server does not run. A world that says true makes the client keep and offer a
+    // token the server cannot check. No environment variable turns it on.
+    loginTokens: false,
   };
 }
 

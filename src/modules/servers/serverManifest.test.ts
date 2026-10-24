@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { parseServerLine } from './serverList';
 import { ServerConfig } from './serverConfig';
+import { loadGameVersion } from '@/version';
 import { serverManifestUrl } from './serverServices';
 import { defineModule, installModules, moduleOn } from '../module';
 import {
@@ -273,6 +274,22 @@ describe('the server settings', () => {
     await loadServerManifest(listed);
     expect(serverOffersLoginTokens()).toBe(false);
   });
+
+  it("forces off what the running version's server cannot honour, whatever the file says", async () => {
+    await loadGameVersion('reforge');
+    try {
+      serve('{"version":1,"settings":{"jewelBundling":true,"heldHitRequest":true},"loginTokens":true}');
+      await loadServerManifest(listed);
+      expect(serverSetting('jewelBundling')).toBe(false);
+      expect(serverOffersLoginTokens()).toBe(false);
+      // Everything else is still the world's to decide.
+      expect(serverSetting('heldHitRequest')).toBe(true);
+    } finally {
+      await loadGameVersion('season6');
+    }
+    expect(serverSetting('jewelBundling')).toBe(true);
+    expect(serverOffersLoginTokens()).toBe(true);
+  }, 60_000);
 
   it('keeps the original behaviour when the manifest is missing, unreachable or invalid', async () => {
     for (const [body, status] of [

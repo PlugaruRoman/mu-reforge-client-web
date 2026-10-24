@@ -55,6 +55,7 @@ export default {
   'cmd.battlesoccer': 'Battle Soccer maçı iste',
   'cmd.language': 'Sunucu mesajlarının dilini değiştir',
   'cmd.offlevel': 'Çevrimdışı seviye kasma',
+  'cmd.offstore': 'Çevrimdışı mağaza',
   'cmd.pkclear': 'PK durumunu temizle',
   'cmd.openware': 'Depoyu aç',
   'cmd.npc': 'Bir NPC dükkanı aç',

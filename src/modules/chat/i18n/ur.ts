@@ -56,6 +56,7 @@ export default {
   'cmd.battlesoccer': 'جنگی فٹ بال میچ کی درخواست کریں',
   'cmd.language': 'سرور پیغامات کی زبان بدلیں',
   'cmd.offlevel': 'آف لائن لیولنگ',
+  'cmd.offstore': 'آف لائن دکان',
   'cmd.pkclear': 'PK حالت صاف کریں',
   'cmd.openware': 'تجوری کھولیں',
   'cmd.npc': 'NPC کی دکان کھولیں',

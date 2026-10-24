@@ -11,4 +11,5 @@ export default {
   'login.closingOldSession': 'Konto nadal połączone: zamykanie starej sesji i ponowna próba...',
   'login.tokenRefused': 'Zapisane logowanie wygasło. Podaj hasło.',
   'login.tokenUnanswered': 'Serwer nie odpowiedział na zapisane logowanie. Podaj hasło.',
+  'resume.serverListGaveUp': 'Serwer nie odpowiada. Odśwież stronę, aby spróbować ponownie.',
 } satisfies Partial<Record<keyof typeof en, string>>;

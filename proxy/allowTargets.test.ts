@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isInternalHost, parseAllowTargets, targetAllowed, targetReserved } from './allowTargets';
+import { allowTargetsFromEnv, isInternalHost, parseAllowTargets, targetAllowed, targetReserved } from './allowTargets';
 
 const rules = (raw: string) => parseAllowTargets(raw);
 
@@ -113,5 +113,35 @@ describe('targetReserved', () => {
     expect(targetReserved(presence, 'example.com', 3001)).toBe(false);
     expect(targetReserved([{ host: 'ws.example.net', port: 3001 }], 'ws.example.net', 3001)).toBe(true);
     expect(targetReserved([{ host: 'ws.example.net', port: 3001 }], '127.0.0.1', 3001)).toBe(false);
+  });
+});
+
+describe('allowTargetsFromEnv', () => {
+  it('allows any target only when the variable is unset on a dev box', () => {
+    expect(allowTargetsFromEnv(undefined)).toEqual({ rules: [] });
+    expect('error' in allowTargetsFromEnv(undefined, true)).toBe(true);
+  });
+
+  it('fails closed on a value that is set but names nothing', () => {
+    for (const raw of ['', ' ', '	', ',', ' , ,']) {
+      expect('error' in allowTargetsFromEnv(raw), JSON.stringify(raw)).toBe(true);
+    }
+  });
+
+  it('fails closed on a malformed port', () => {
+    expect('error' in allowTargetsFromEnv('play.mureforge.com:44406abc')).toBe(true);
+    expect('error' in allowTargetsFromEnv('127.0.0.1:0')).toBe(true);
+    expect('error' in allowTargetsFromEnv('127.0.0.1:70000')).toBe(true);
+    expect('error' in allowTargetsFromEnv(':44406')).toBe(true);
+  });
+
+  it('keeps exact matching for a valid list', () => {
+    const result = allowTargetsFromEnv('play.mureforge.com:44406, 169.58.146.212:55902');
+    expect('rules' in result).toBe(true);
+    if (!('rules' in result)) return;
+    expect(targetAllowed(result.rules, 'play.mureforge.com', 44406)).toBe(true);
+    expect(targetAllowed(result.rules, '169.58.146.212', 55902)).toBe(true);
+    expect(targetAllowed(result.rules, '169.58.146.212', 55901)).toBe(false);
+    expect(targetAllowed(result.rules, 'evil.mureforge.com', 44406)).toBe(false);
   });
 });

@@ -13,6 +13,7 @@ install/node_modules
 public/**/*.gz
 Data/**/*.gz
 Data-v097d/**/*.gz
+Data-reforge/**/*.gz
 # Local-only helper files.
 start-local.ps1
 public/reforge-serverlist.md

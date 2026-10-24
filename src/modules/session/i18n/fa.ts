@@ -11,4 +11,5 @@ export default {
   'login.closingOldSession': 'حساب هنوز متصل است: بستن نشست قدیمی و تلاش دوباره...',
   'login.tokenRefused': 'ورود ذخیره‌شده شما منقضی شده است. رمز عبور را وارد کنید.',
   'login.tokenUnanswered': 'سرور به ورود ذخیره‌شده پاسخ نداد. رمز عبور را وارد کنید.',
+  'resume.serverListGaveUp': 'سرور پاسخ نمی‌دهد. برای تلاش دوباره صفحه را بارگذاری مجدد کنید.',
 } satisfies Partial<Record<keyof typeof en, string>>;

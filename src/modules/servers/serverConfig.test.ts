@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { matchesSearch, type ServerProfile } from './serverConfig';
 
 const world = (patch: Partial<ServerProfile> = {}): ServerProfile => ({
@@ -94,5 +94,72 @@ describe('a page served from a LAN address', () => {
     } finally {
       vi.unstubAllGlobals();
     }
+  });
+});
+
+describe('a pinned build (VITE_PINNED_WORLD)', () => {
+  const OURS = '[1:REFORGE:Mu Reforge:Molten x100:en](play.mureforge.com:44406@wss://ws.mureforge.com)';
+  const EVIL = '[1:REFORGE:Evil:Phishing:en](evil.example.com:44406@wss://ws.evil.example.com)';
+
+  async function pinnedBuild(search: string) {
+    vi.resetModules();
+    vi.stubEnv('VITE_PINNED_WORLD', 'on');
+    vi.stubEnv('VITE_SERVER_LIST_URL', 'https://web.mureforge.com/serverlist.md');
+    vi.stubEnv('VITE_CS_HOST', 'play.mureforge.com');
+    vi.stubGlobal('location', { search, hostname: 'web.mureforge.com', protocol: 'https:' });
+    const { LocalStorage } = await import('../../core/localStorage');
+    // A profile and a list another visit left behind.
+    LocalStorage.save('mu_servers', JSON.stringify({
+      profiles: [{ id: 's1', name: 'Planted', csHost: 'evil.example.com', csPort: 44406, wsUrl: 'wss://ws.evil.example.com', gsAddress: 'auto' }],
+      activeId: 's1',
+    }));
+    LocalStorage.save('mu_serverlist', EVIL);
+    return {
+      ...(await import('./serverConfig')),
+      ...(await import('./serverList')),
+    };
+  }
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it('ignores every URL override and every saved profile', async () => {
+    const { ServerConfig, listUrl } = await pinnedBuild(
+      '?ws=wss://evil.example.com&cs=evil.example.com:44406&list=https://evil.example.com/l.md&version=S6EP3&server=s1'
+    );
+
+    expect(ServerConfig.urlProfile).toBeNull();
+    expect(ServerConfig.profiles).toEqual([]);
+    expect(ServerConfig.all).toEqual([]);
+    expect(ServerConfig.readOnly).toBe(true);
+    expect(listUrl()).toBe('https://web.mureforge.com/serverlist.md');
+  });
+
+  it("selects the first world of its own list, never a cached unpinned one", async () => {
+    const { ServerConfig, refreshServerList, wsAddress, connectServerAddress } = await pinnedBuild('?list=https://evil.example.com/l.md');
+    const fetched = vi.fn(async () => new Response(`${OURS}\n${EVIL}\n`));
+    vi.stubGlobal('fetch', fetched);
+
+    await refreshServerList();
+
+    expect(fetched).toHaveBeenCalledWith('https://web.mureforge.com/serverlist.md', expect.anything());
+    expect(ServerConfig.all.map(w => w.name)).toEqual(['Mu Reforge']);
+    expect(ServerConfig.active.version).toBe('REFORGE');
+    expect(wsAddress()).toBe('wss://ws.mureforge.com');
+    expect(connectServerAddress()).toEqual({ host: 'play.mureforge.com', port: 44406 });
+    // Nothing the player does adds another.
+    ServerConfig.add({ csHost: 'evil.example.com' });
+    expect(ServerConfig.all.map(w => w.name)).toEqual(['Mu Reforge']);
+  });
+
+  it('keeps the upstream overrides when the switch is off', async () => {
+    vi.resetModules();
+    vi.stubGlobal('location', { search: '?ws=wss://other.example.com', hostname: 'web.mureforge.com', protocol: 'https:' });
+    const { ServerConfig } = await import('./serverConfig');
+
+    expect(ServerConfig.urlProfile?.wsUrl).toBe('wss://other.example.com');
   });
 });

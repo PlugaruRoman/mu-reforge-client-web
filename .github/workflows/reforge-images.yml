@@ -1,6 +1,6 @@
 # Builds the Mu Reforge web client images and pushes them to the GitHub container registry, so
-# the web box never builds anything (the client build needs the whole Data/ tree and GBs of
-# scratch space next to a live website). On the web box, deploying is then:
+# the web client VPS never builds anything (the client build needs the whole Data/ tree and GBs
+# of scratch space next to live players). On that box, deploying is then:
 #
 #   docker compose pull && docker compose up -d
 #
@@ -18,13 +18,21 @@ on:
       - 'public/**'
       - 'Data/**'
       - 'Data-v097d/**'
+      - 'Data-reforge/**'
+      # Covered by public/** already; named so a narrowing of that line cannot drop it.
+      - 'public/game-assets-reforge/**'
       - 'tools/**'
       - 'proxy/**'
       - 'index.html'
+      - 'index.d.ts'
+      - 'tsconfig.json'
       - 'vite.config.ts'
       - 'package.json'
       - 'bun.lock'
       - 'deploy/reforge/**'
+      # Docs only: no image changes with them.
+      - '!deploy/reforge/runbook.md'
+      - '!deploy/reforge/readme.md'
       - '.github/workflows/reforge-images.yml'
   workflow_dispatch:
 
@@ -109,6 +117,22 @@ jobs:
             type=raw,value=latest
             type=sha,format=long
 
+      # Only the dependency stage is worth caching: the Data/ and dist/ layers are GBs and change
+      # with every content commit, so caching them (mode=max on the real build) would evict
+      # everything else from the 10 GB Actions cache, and mode=min would cache the final image's
+      # layers - the dist copy - and not bun install at all. So the `deps` target is built
+      # (and cached) on its own first; the real build below finds it in the same builder.
+      - name: Cache dependencies
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/reforge/web.Dockerfile
+          target: deps
+          platforms: linux/amd64
+          push: false
+          cache-from: type=gha,scope=web-deps
+          cache-to: type=gha,scope=web-deps,mode=max,ignore-error=true
+
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
@@ -120,7 +144,12 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           # Baked into the bundle (vite). Repository variables override the production defaults
           # without editing this file: Settings -> Secrets and variables -> Actions -> Variables.
+          # The register URL default stays here AND in web.Dockerfile: an empty repository
+          # variable falls back through `||` to it.
+          # VITE_PINNED_WORLD=on pins the page to the serverlist's world and ignores URL overrides
+          # (web.Dockerfile); only a repository variable set to `off` turns it off.
           build-args: |
+            VITE_PINNED_WORLD=${{ vars.REFORGE_PINNED_WORLD || 'on' }}
             VITE_WS_HOST=${{ vars.REFORGE_WS_HOST || 'wss://ws.mureforge.com' }}
             VITE_WS_PORT=${{ vars.REFORGE_WS_PORT || '443' }}
             VITE_CS_HOST=${{ vars.REFORGE_CS_HOST || 'play.mureforge.com' }}
@@ -128,7 +157,5 @@ jobs:
             VITE_SERVER_LIST_URL=${{ vars.REFORGE_SERVER_LIST_URL || 'https://web.mureforge.com/serverlist.md' }}
             VITE_REGISTER_URL=${{ vars.REFORGE_REGISTER_URL || 'https://mureforge.com/register' }}
             GITHUB_SHA=${{ github.sha }}
-          # Only the dependency layer is worth caching: the Data/ and dist/ layers are GBs and
-          # change with every content commit, which would evict everything else from the cache.
-          cache-from: type=gha,scope=web
-          cache-to: type=gha,scope=web,mode=min
+          # No cache-to: the deps stage is cached by the step above, nothing else is worth it.
+          cache-from: type=gha,scope=web-deps

@@ -56,6 +56,7 @@ export default {
   'cmd.battlesoccer': 'ขอแข่งแบทเทิลซอคเกอร์',
   'cmd.language': 'เปลี่ยนภาษาของข้อความจากเซิร์ฟเวอร์',
   'cmd.offlevel': 'เก็บเลเวลแบบออฟไลน์',
+  'cmd.offstore': 'ร้านค้าออฟไลน์',
   'cmd.pkclear': 'ล้างสถานะ PK',
   'cmd.openware': 'เปิดคลังเก็บของ',
   'cmd.npc': 'เปิดร้าน NPC',

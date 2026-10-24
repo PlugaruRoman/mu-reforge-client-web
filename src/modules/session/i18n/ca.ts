@@ -13,4 +13,5 @@ export default {
   'login.tokenRefused': 'L\'inici de sessió desat ha caducat. Escriu la contrasenya.',
   'login.tokenUnanswered':
     'El servidor no ha respost a l\'inici de sessió desat. Escriu la contrasenya.',
+  'resume.serverListGaveUp': 'El servidor no respon. Torna a carregar la pàgina per tornar-ho a provar.',
 } satisfies Partial<Record<keyof typeof en, string>>;

@@ -56,6 +56,7 @@ export default {
   'cmd.battlesoccer': '申請戰盟足球賽',
   'cmd.language': '變更伺服器訊息的語言',
   'cmd.offlevel': '離線練功',
+  'cmd.offstore': '離線商店',
   'cmd.pkclear': '清除 PK 狀態',
   'cmd.openware': '開啟倉庫',
   'cmd.npc': '開啟 NPC 商店',

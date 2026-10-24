@@ -55,6 +55,7 @@ export default {
   'cmd.battlesoccer': 'طلب مباراة Battle Soccer',
   'cmd.language': 'تغيير لغة رسائل الخادم',
   'cmd.offlevel': 'رفع المستوى دون اتصال',
+  'cmd.offstore': 'متجر دون اتصال',
   'cmd.pkclear': 'مسح حالة PK',
   'cmd.openware': 'فتح الخزنة',
   'cmd.npc': 'فتح متجر NPC',

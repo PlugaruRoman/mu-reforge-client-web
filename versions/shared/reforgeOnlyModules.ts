@@ -26,4 +26,6 @@ export const REFORGE_ONLY_MODULES: readonly string[] = [
   'reforge_hud',
   'offline_modes',
   'vault_pages',
+  'reforge_mix',
+  'quest_board',
 ];

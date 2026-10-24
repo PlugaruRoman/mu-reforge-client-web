@@ -56,6 +56,7 @@ export default {
   'cmd.battlesoccer': 'バトルサッカーを申し込む',
   'cmd.language': 'サーバーメッセージの言語を変える',
   'cmd.offlevel': 'オフラインレベリング',
+  'cmd.offstore': 'オフライン露店',
   'cmd.pkclear': 'PK 状態を消す',
   'cmd.openware': '倉庫を開く',
   'cmd.npc': 'NPC ショップを開く',

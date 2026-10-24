@@ -56,6 +56,7 @@ export default {
   'cmd.battlesoccer': 'Запросить матч Battle Soccer',
   'cmd.language': 'Сменить язык сообщений сервера',
   'cmd.offlevel': 'Оффлайн-прокачка',
+  'cmd.offstore': 'Офлайн-магазин',
   'cmd.pkclear': 'Сбросить состояние PK',
   'cmd.openware': 'Открыть склад',
   'cmd.npc': 'Открыть лавку NPC',

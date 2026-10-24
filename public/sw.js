@@ -37,10 +37,12 @@ const revalidated = new Set();
 const ASSET_PREFIXES = [
   '/game-assets/',
   '/game-assets-v097d/',
+  '/game-assets-reforge/',
   '/packs/',
   '/packs-v097d/',
   '/Data/',
   '/Data-v097d/',
+  '/Data-reforge/',
   '/items/',
 ];
 

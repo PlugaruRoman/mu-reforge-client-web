@@ -1,6 +1,7 @@
 import type { Item } from '../../ecs/world';
 import { InventoryConstants } from '@/core/inventoryConstants';
 import { t } from '../../i18n';
+import { isReforgeJewel, reforgeJewelApplies, type JewelTargetFacts } from './reforgeJewels';
 
 /**
  * Item upgrading with jewels: pick a jewel, click it onto an item
@@ -55,14 +56,18 @@ export function isJewel(item: Item): boolean {
         item.num === JEWEL.creation ||
         item.num === JEWEL.guardian ||
         item.num === JEWEL.gemstone)) ||
+    isReforgeJewel(item) ||
     (item.group === JEWEL_OF_CHAOS.group && item.num === JEWEL_OF_CHAOS.num)
   );
 }
 
 /** True when the carried item is a jewel that is applied by clicking it onto gear. */
 export function isUpgradeJewel(item: Item): boolean {
-  return item.group === JEWEL_GROUP && ITEM_JEWELS.has(item.num);
+  return (item.group === JEWEL_GROUP && ITEM_JEWELS.has(item.num)) || isReforgeJewel(item);
 }
+
+/** No item data at hand: our jewels then only take what their own rules allow by number. */
+const NO_FACTS: JewelTargetFacts = { hasSkill: false, wing: false, socketItem: false };
 
 /** Highest item level a jewel still applies to (`iLevel >= 6` / `>= 9` refuse). */
 const BLESS_MAX_TARGET_LEVEL = 5;
@@ -74,6 +79,7 @@ const WING_NUMBERS: ReadonlySet<number> = new Set([
   36, 37, 38, 39, 40, 41, 42, 43, // 3rd class wings + Cape of Emperor
   49, 50, // Cape of Fighter / Overrule
   130, 131, 132, 133, 134, 135, // small wings
+  51, 52, 53, 54, 55, 56, 57, 58, 59, 66, 67, // Mu Reforge: 4th and Hero wings (ReforgeJewels.cpp `UpgradesReforgeWing`)
 ]);
 
 /** Ammunition never takes a jewel (`ITEM_BOLT` 4/7, `ITEM_ARROWS` 4/15). */
@@ -103,12 +109,21 @@ function isJewelTarget(item: Item): boolean {
  * (`jewelryUpgradeAllowed`, ours). Texts match the original's system log
  * tone (GlobalText[474] for the storage case lives in Store).
  */
-export function jewelTargetError(jewel: Item, target: Item, targetSlot: number, jewelry = false): string | null {
+export function jewelTargetError(
+  jewel: Item,
+  target: Item,
+  targetSlot: number,
+  jewelry = false,
+  facts: JewelTargetFacts = NO_FACTS
+): string | null {
   if (!isUpgradeJewel(jewel)) return t('item.jewelNotAJewel');
 
   if (targetSlot < InventoryConstants.EquippableSlotsCount) {
     return t('item.takeItemOffFirst');
   }
+
+  // Mu Reforge: Skill, Luck, Sea and the Socket Gem have targets of their own (reforgeJewels.ts).
+  if (isReforgeJewel(jewel)) return reforgeJewelApplies(jewel, target, facts) ? null : t('item.jewelWrongTarget');
 
   if (!isJewelTarget(target) && !(jewelry && isJewelryUpgrade(jewel, target))) return t('item.jewelNotUpgradable');
 

@@ -55,6 +55,7 @@ export default {
   'cmd.battlesoccer': 'Ajukan pertandingan Battle Soccer',
   'cmd.language': 'Ganti bahasa pesan server',
   'cmd.offlevel': 'Naik level offline',
+  'cmd.offstore': 'Toko offline',
   'cmd.pkclear': 'Hapus status PK',
   'cmd.openware': 'Buka gudang',
   'cmd.npc': 'Buka toko NPC',

@@ -68,3 +68,52 @@ describe('the live views', () => {
     expect([...music.keys()]).toContain(B);
   });
 });
+
+describe("a version's map rows", () => {
+  let restore: (() => void) | null = null;
+  afterEach(() => {
+    restore?.();
+    restore = null;
+  });
+
+  it('change only the world they name, merged over the entry', () => {
+    unregister = maps.register(
+      entry({
+        tiles: ['TileGrass01'],
+        blendMeshes: { 1: 2 },
+        terrain: { rest: { 8: { kind: 'sit', useObjectAngle: false } }, leanCursor: [8] },
+      })
+    );
+    const rows = {
+      [A]: {
+        tiles: ['TileGrass01', 'ExtTile01'],
+        blendMeshes: { 5: 1 },
+        terrain: { rest: { 9: { kind: 'sit', useObjectAngle: true } } },
+        objectModels: { 4: 'Fort01.glb' },
+      },
+    } as const;
+    restore = maps.useVersionMaps(() => rows);
+
+    expect(maps.tiles(A)).toEqual(['TileGrass01', 'ExtTile01']);
+    expect(maps.tiles(B)).toEqual(['TileGrass01']);
+    expect(maps.blendMeshFor(A, 1)).toBe(2);
+    expect(maps.blendMeshFor(A, 5)).toBe(1);
+    expect(maps.blendMeshFor(B, 5)).toBeUndefined();
+    const terrain = maps.rowFor(A, l => l.terrain);
+    expect(terrain?.rest?.[8]?.useObjectAngle).toBe(false);
+    expect(terrain?.rest?.[9]?.useObjectAngle).toBe(true);
+    expect(terrain?.leanCursor).toEqual([8]);
+    expect(maps.objectModelFor(A, 4)).toBe('Fort01.glb');
+    expect(maps.objectModelFor(A, 5)).toBe('Object06.glb');
+    expect(maps.objectModelFor(B, 4)).toBe('Object05.glb');
+    expect(maps.layerFor(A)).toBe(maps.layerFor(A));
+    expect(maps.layerFor(A)?.name).toBe('zzTest');
+  });
+
+  it('are absent by default, so every map is its shared entry', () => {
+    const shared = entry();
+    unregister = maps.register(shared);
+    expect(maps.layerFor(A)).toBe(shared);
+    expect(maps.objectModelFor(A, 103)).toBe('Object104.glb');
+  });
+});

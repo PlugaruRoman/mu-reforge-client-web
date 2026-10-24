@@ -56,6 +56,7 @@ export default {
   'cmd.battlesoccer': 'Yêu cầu trận Battle Soccer',
   'cmd.language': 'Đổi ngôn ngữ tin nhắn máy chủ',
   'cmd.offlevel': 'Luyện cấp ngoại tuyến',
+  'cmd.offstore': 'Cửa hàng ngoại tuyến',
   'cmd.pkclear': 'Xóa trạng thái PK',
   'cmd.openware': 'Mở nhà kho',
   'cmd.npc': 'Mở cửa hàng NPC',

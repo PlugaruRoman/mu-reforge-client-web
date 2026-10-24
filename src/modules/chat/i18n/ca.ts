@@ -55,6 +55,7 @@ export default {
   'cmd.battlesoccer': 'Sol·licita un partit de Battle Soccer',
   'cmd.language': 'Canvia l\'idioma dels missatges del servidor',
   'cmd.offlevel': 'Puja de nivell sense connexió',
+  'cmd.offstore': 'Botiga sense connexió',
   'cmd.pkclear': 'Esborra l\'estat de PK',
   'cmd.openware': 'Obre el magatzem',
   'cmd.npc': 'Obre la botiga d\'un PNJ',

@@ -13,4 +13,5 @@ export default {
   'login.tokenRefused': 'Η αποθηκευμένη σύνδεση έληξε. Εισαγάγετε τον κωδικό σας.',
   'login.tokenUnanswered':
     'Ο διακομιστής δεν απάντησε στην αποθηκευμένη σύνδεση. Εισαγάγετε τον κωδικό σας.',
+  'resume.serverListGaveUp': 'Ο διακομιστής δεν απαντά. Φορτώστε ξανά τη σελίδα για να δοκιμάσετε πάλι.',
 } satisfies Partial<Record<keyof typeof en, string>>;

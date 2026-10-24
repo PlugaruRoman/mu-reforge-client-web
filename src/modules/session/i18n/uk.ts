@@ -11,4 +11,5 @@ export default {
   'login.closingOldSession': 'Акаунт досі в мережі: закриваємо стару сесію й пробуємо знову...',
   'login.tokenRefused': 'Термін збереженого входу минув. Введіть пароль.',
   'login.tokenUnanswered': 'Сервер не відповів на збережений вхід. Введіть пароль.',
+  'resume.serverListGaveUp': 'Сервер не відповідає. Перезавантажте сторінку, щоб спробувати знову.',
 } satisfies Partial<Record<keyof typeof en, string>>;

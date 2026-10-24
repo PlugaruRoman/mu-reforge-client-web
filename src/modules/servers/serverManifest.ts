@@ -1,4 +1,5 @@
 import { LocalStorage } from '../../core/localStorage';
+import { gameVersion } from '@/version';
 import { ServerConfig, onWorldEntered, type ServerProfile } from './serverConfig';
 import { serverManifestUrl } from './serverServices';
 import { setServerModulesOff } from '../module';
@@ -299,13 +300,17 @@ function worldInForce(): InForce {
 
 /** One setting of the world being played. */
 export function serverSetting<K extends keyof ServerSettings>(key: K): ServerSettings[K] {
+  if (forcedOff(key)) return false;
   return worldInForce().settings[key];
 }
 
 /** Whether the world being played issues login tokens: off unless its `server.json` says `loginTokens: true`. */
 export function serverOffersLoginTokens(): boolean {
-  return worldInForce().loginTokens;
+  return !forcedOff('loginTokens') && worldInForce().loginTokens;
 }
+
+/** An offer the running version's server can never honour (`gameVersion.serverSettingsOff`), whatever the file says. */
+const forcedOff = (key: string) => gameVersion.serverSettingsOff?.includes(key) ?? false;
 
 /** Tests only: forget what this launch fetched. */
 export function resetServerManifests(): void {

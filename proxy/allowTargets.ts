@@ -41,6 +41,34 @@ export function parseAllowTargets(raw: string): AllowRule[] {
 }
 
 /**
+ * The rules from the `ALLOW_TARGETS` environment value, failing closed:
+ *
+ * - unset: no rules (any target) - a dev box - unless `production` is set, then an error;
+ * - set but empty, whitespace or only commas: an error, never "any target". A value that is
+ *   there but says nothing is a broken env file, and reading it as "allow all" made it an open relay;
+ * - a rule whose port is not 1..65535: an error.
+ *
+ * `main.ts` refuses to start on an error.
+ */
+export function allowTargetsFromEnv(
+  raw: string | undefined,
+  production = false
+): { rules: AllowRule[] } | { error: string } {
+  if (raw === undefined) {
+    return production
+      ? { error: "ALLOW_TARGETS is unset (NODE_ENV=production): refusing to start an open relay" }
+      : { rules: [] };
+  }
+  const rules = parseAllowTargets(raw);
+  if (!rules.length) {
+    return { error: `ALLOW_TARGETS is set but names no target (${JSON.stringify(raw)}): refusing to start an open relay` };
+  }
+  const bad = rules.find(rule => !rule.host || (rule.port !== null && !(Number.isInteger(rule.port) && rule.port > 0 && rule.port <= 65535)));
+  if (bad) return { error: `ALLOW_TARGETS has a malformed rule "${bad.host}:${bad.port}"` };
+  return { rules };
+}
+
+/**
  * True for hosts that resolve into address space the proxy can reach privately:
  * loopback, RFC1918, CGNAT and link-local (which includes the cloud metadata
  * address 169.254.169.254). Only literal IPs and `localhost` are classified

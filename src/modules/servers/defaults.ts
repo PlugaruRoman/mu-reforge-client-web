@@ -11,3 +11,11 @@ export const CS_PORT = Number(env.VITE_CS_PORT) || 44405;
 
 export const WS_HOST = env.VITE_WS_HOST || 'ws://localhost';
 export const WS_PORT = Number(env.VITE_WS_PORT) || 3000;
+
+/**
+ * `VITE_PINNED_WORLD=on`: a build that plays one world only, the first line of its own
+ * `VITE_SERVER_LIST_URL`. Saved profiles, the seeded local one, the list cache of an unpinned
+ * build and every URL override (`?cs=`, `?ws=`, `?list=`, `?version=`, `?server=`, `?gs=`) are
+ * ignored, so no link on the served domain can send a login somewhere else (readme.md).
+ */
+export const PINNED_WORLD = /^(on|1|true|yes)$/i.test(String(env.VITE_PINNED_WORLD ?? '').trim());

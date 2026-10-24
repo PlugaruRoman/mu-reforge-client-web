@@ -144,6 +144,12 @@ export interface MapLayer {
   /** Object type → particle emissions. Read by `controllers/fx/effectParticles.ts`. */
   readonly emissions?: Partial<Record<number, readonly Emission[]>>;
 
+  /**
+   * Object type → the model file under `Object<n>/`, for a type whose model is not
+   * `Object<type + 1>.glb` (a map that loads named models into free slots). Read by `MapTileObject`.
+   */
+  readonly objectModels?: Readonly<Record<number, string>>;
+
   // ---- the map's own rows, one field per controller -----------------------
   // Each controller owns its field's type and reads it through `maps.rowFor`
   // at run time, never at module load. Omit a field for "nothing here".
@@ -185,6 +191,16 @@ export interface MapLayer {
   /** Map changed: drop anything belonging to the world just left. */
   reset?(): void;
 }
+
+/**
+ * What one game version changes in a shared entry for one world, because its own `World<n>` /
+ * `Object<n>` folders differ (`VersionData.maps`). The entry's identity and lifecycle stay.
+ * Merged over the entry by `maps.layerFor`: a plain-object row (`terrain`, `blendMeshes`,
+ * `terrain.rest`) adds to the entry's, keys of its own winning; an array or a value replaces.
+ */
+export type MapOverride = Partial<
+  Omit<MapLayer, 'name' | 'worlds' | 'assetWorld' | 'create' | 'reset'>
+>;
 
 /**
  * A row that differs between the worlds one entry serves (the Empire

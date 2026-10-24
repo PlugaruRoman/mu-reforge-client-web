@@ -54,6 +54,7 @@ const en = {
   'cmd.battlesoccer': 'Request a battle soccer match',
   'cmd.language': 'Change the server message language',
   'cmd.offlevel': 'Offline levelling',
+  'cmd.offstore': 'Offline store',
   'cmd.pkclear': 'Clear the PK state',
   'cmd.openware': 'Open the warehouse',
   'cmd.npc': 'Open an NPC store',

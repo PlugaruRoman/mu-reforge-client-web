@@ -11,6 +11,8 @@ in the `Economy` store ([../economy/readme.md](../economy/readme.md)); this fold
   the `lahap` window, the inventory and `economy_prompts` windows (bundling) and `npc_shop/net.ts`.
 - `mixRecipes.ts`: `checkMix(recipes, tray)` (the recipe the tray makes, the closest one, its rate and zen),
   `isMixSource`, `sourceStatus`, `recipeNameLines`, `recipeTextLines`. Used by `Economy` and the window.
+- `setMixAdjuster(adjuster)`: a server's own recipes, item flags and recipe names over `Mix.bmd`
+  (`MixAdjuster`), set by `reforge_mix` on Mu Reforge.
 
 ## How it works
 - The window opens from `NpcWindowResponse(ChaosMachine)` or `(ChaosCardCombination)` and its tray arrives as
@@ -64,7 +66,7 @@ in the `Economy` store ([../economy/readme.md](../economy/readme.md)); this fold
 
 ## Depends on / used by
 - uses: `economy/economy.ts`, `hero`, `session`, `social`, `controllers/item_rules/itemSerializer.ts`, `controllers/assets` (`mixRecipes`, `globalText`).
-- used by: `src/app/logic.ts`, `npc_shop/net.ts` (`JewelMix`). The windows are `versions/shared/ui/windows/chaos_machine/` and `lahap/`.
+- used by: `src/app/logic.ts`, `npc_shop/net.ts` (`JewelMix`), `reforge_mix` (`setMixAdjuster`). The windows are `versions/shared/ui/windows/chaos_machine/` and `lahap/`.
 
 ## Change it
 - handle a new mix packet: add an `EventBus.on(...)` here, keep state in `Economy`.

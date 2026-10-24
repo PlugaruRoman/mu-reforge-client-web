@@ -2,6 +2,7 @@ import { runInAction } from 'mobx';
 import { EventBus } from '@/core/eventBus';
 import { setNameTint } from '@/controllers/interface/nameTags';
 import { Session } from '../session';
+import { Hero } from '../hero';
 import { Economy } from '../economy/economy';
 import { setServerChatCommands, type ChatCommand } from '../chat/chatCommands';
 import { ChatCommandListRequestPacket } from '@versions/reforge/packets/ClientToServerPackets';
@@ -45,8 +46,11 @@ export function chatCommandOf(p: AvailableChatCommandPacket): ChatCommand {
   };
 }
 
-/** The chat commands asked for once a login (`ChatCommandCatalog::RequestOnce`). */
-let commandsAsked = false;
+/**
+ * The character the chat commands were asked for (`ChatCommandCatalog::RequestOnce`): asked again for
+ * another character, since a game master and a player are offered different lists.
+ */
+let commandsFor: string | null = null;
 const commands = new Map<number, ChatCommand>();
 
 /** D8 04, EA, D5, D0 01/02/04, EC and F5 01 (Network/Reforge/PacketRoutes.cpp, WSclient.cpp). */
@@ -99,13 +103,15 @@ export function installNet(): void {
     setServerChatCommands([...commands.entries()].sort((a, b) => a[0] - b[0]).map(([, c]) => c));
   });
   EventBus.on('CharacterInformationExtended', () => {
-    if (commandsAsked) return;
-    commandsAsked = true;
+    if (commandsFor === Hero.name) return;
+    commandsFor = Hero.name;
+    commands.clear();
+    setServerChatCommands([]);
     Session.sendToGS(ChatCommandListRequestPacket.createPacket().buffer);
   });
 
   EventBus.on('wsClosed', () => {
-    commandsAsked = false;
+    commandsFor = null;
     commands.clear();
     setServerChatCommands([]);
     runInAction(() => {

@@ -1,7 +1,7 @@
 import { makeAutoObservable, runInAction } from 'mobx';
 import { LocalStorage } from '../../core/localStorage';
 import { versionByTag } from '@/version';
-import { WS_HOST, WS_PORT } from './defaults';
+import { PINNED_WORLD, WS_HOST, WS_PORT } from './defaults';
 import {
   isUsableHost,
   listedAddressId,
@@ -21,6 +21,9 @@ import {
  * Untrusted text: a line that does not parse is dropped. Line format and rules: readme.md. */
 
 const CACHE_KEY = 'mu_serverlist';
+
+/** A pinned build's own cache: a list an unpinned visit (`?list=`) cached is never read by it. */
+const PINNED_CACHE_KEY = 'mu_serverlist_pinned';
 
 const DEFAULT_LIST_URL =
   'https://raw.githubusercontent.com/Ignies/OpenMu-Client-Babylon/main/serverlist.md';
@@ -116,10 +119,11 @@ const MAX_CHANNELS = 16;
 
 type ServerListState = 'idle' | 'loading' | 'ok' | 'error';
 
-/** `?list=<url>` points the client at another list; `?list=off` skips it. */
-function listUrl(): string | null {
+/** `?list=<url>` points the client at another list; `?list=off` skips it. A pinned build reads only its own. */
+export function listUrl(): string | null {
   const fromEnv = import.meta.env.VITE_SERVER_LIST_URL as string | undefined;
 
+  if (PINNED_WORLD) return fromEnv || null;
   if (typeof location === 'undefined') return fromEnv || DEFAULT_LIST_URL;
 
   const param = new URLSearchParams(location.search).get('list');
@@ -352,7 +356,8 @@ export const ServerList = new ServerListStore();
  */
 export async function refreshServerList(): Promise<void> {
   // The cached copy first, so the picker is populated on the frame it opens.
-  const cached = LocalStorage.load(CACHE_KEY);
+  const cacheKey = PINNED_WORLD ? PINNED_CACHE_KEY : CACHE_KEY;
+  const cached = LocalStorage.load(cacheKey);
 
   if (cached) ServerConfig.setListed(parseServerList(cached));
 
@@ -371,7 +376,7 @@ export async function refreshServerList(): Promise<void> {
     const entries = parseServerList(text);
 
     ServerConfig.setListed(entries);
-    LocalStorage.save(CACHE_KEY, text);
+    LocalStorage.save(cacheKey, text);
     ServerList.set('ok');
   } catch (e) {
     // Offline, blocked, moved, rewritten as something that is not a list: the

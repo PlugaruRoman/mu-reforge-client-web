@@ -13,6 +13,8 @@ const { matchChatCommands } = await import('../chat/chatCommands');
 const { Economy } = await import('../economy/economy');
 const { installNet, readPartyMemberBuffs } = await import('./net');
 const { ReforgeHud, fitUtf8, pvpFlagColour } = await import('./state');
+const { Session } = await import('../session');
+const { Hero } = await import('../hero');
 
 installNet();
 
@@ -66,5 +68,24 @@ describe('the Mu Reforge HUD frames', () => {
     expect(ReforgeHud.isGuest).toBe(true);
     expect([...fitUtf8('aé', 2)]).toEqual([0x61]);
     expect([...fitUtf8('abc', 2)]).toEqual([0x61, 0x62]);
+  });
+});
+
+// F5 01: a game master and a player are offered different lists, so a character switch asks again.
+describe('the chat command list', () => {
+  it('is asked for once per character, not once per connection', () => {
+    const send = vi.spyOn(Session, 'sendToGS').mockImplementation(() => undefined);
+    try {
+      const info = new DataView(new ArrayBuffer(4));
+      Hero.name = 'Knight';
+      EventBus.emit('CharacterInformationExtended', info);
+      EventBus.emit('CharacterInformationExtended', info);
+      expect(send).toHaveBeenCalledTimes(1);
+      Hero.name = 'GameMaster';
+      EventBus.emit('CharacterInformationExtended', info);
+      expect(send).toHaveBeenCalledTimes(2);
+    } finally {
+      send.mockRestore();
+    }
   });
 });

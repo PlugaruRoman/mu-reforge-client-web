@@ -7,7 +7,8 @@ import { Social, INVITE_RANGE_TILES } from '../social/social';
 import { Economy } from '../economy/economy';
 import { Messenger } from '../friends/messenger';
 import type { Entity } from '../../ecs/world';
-import type { CommandKind } from './chatCommands';
+import { runHandOverCommand, type CommandKind } from './chatCommands';
+import { sendChatLine } from './sendLine';
 import { GuildRelationshipTypeEnum } from '@versions/shared/packets/ClientToServerPackets';
 import { GuildMemberRoleEnum } from '@versions/shared/packets/ServerToClientPackets';
 import {
@@ -208,6 +209,11 @@ export const Commands = new (class _Commands {
 
   /** A `/command` line or a window entry, on the player under the cursor. */
   run(kind: CommandKind, entity: Entity | null | undefined): void {
+    // Typed `/offlevel` / `/offstore`: no target, the hand-over's own path (offline_modes), or as typed.
+    if (kind === 'offlevel' || kind === 'offstore') {
+      if (!runHandOverCommand(kind)) sendChatLine(`/${kind}`);
+      return;
+    }
     // Not a `RunCommand` entry: an attack order is the click the attack
     // system already understands, so it keeps the reach of a swing instead
     // of the two tiles the social commands share.

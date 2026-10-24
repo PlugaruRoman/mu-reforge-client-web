@@ -12,4 +12,5 @@ export default {
     'اکاؤنٹ اب بھی منسلک ہے: پرانا سیشن بند کر کے دوبارہ کوشش ہو رہی ہے...',
   'login.tokenRefused': 'آپ کا محفوظ لاگ ان ختم ہو گیا۔ اپنا پاس ورڈ درج کریں۔',
   'login.tokenUnanswered': 'سرور نے محفوظ لاگ ان کا جواب نہیں دیا۔ اپنا پاس ورڈ درج کریں۔',
+  'resume.serverListGaveUp': 'سرور جواب نہیں دے رہا۔ دوبارہ کوشش کرنے کے لیے صفحہ دوبارہ لوڈ کریں۔',
 } satisfies Partial<Record<keyof typeof en, string>>;

@@ -5,6 +5,7 @@ import { BlendState } from '@versions/shared/objects/enum';
 import { SNOW_GROUND_MAPS } from '../weather/snowCover';
 import { isEffectOnlyObject } from '../render/effectOnlyObjects';
 import { ParticleEmitter, emissionsFor } from '../fx/effectParticles';
+import { maps } from '../maps';
 
 export class MapTileObject extends ModelObject {
   static Batchable = true;
@@ -35,9 +36,7 @@ export class MapTileObject extends ModelObject {
     }
 
     const dir = this.objectDir;
-    const modelPath = `${dir}Object${(this.Type + 1)
-      .toString()
-      .padStart(2, '0')}.glb`;
+    const modelPath = `${dir}${maps.objectModelFor(this.WorldIndex, this.Type)}`;
 
     // Icarus 4/5 used to be remapped to `Object11/cloud.glb` here. That was a
     // misreading: Object01..Object06 are six byte-identical copies of one

@@ -56,6 +56,7 @@ export default {
   'cmd.battlesoccer': 'Humiling ng laban sa battle soccer',
   'cmd.language': 'Palitan ang wika ng mga mensahe ng server',
   'cmd.offlevel': 'Pag-level habang offline',
+  'cmd.offstore': 'Offline na tindahan',
   'cmd.pkclear': 'Burahin ang estado ng PK',
   'cmd.openware': 'Buksan ang bodega',
   'cmd.npc': 'Buksan ang tindahan ng NPC',

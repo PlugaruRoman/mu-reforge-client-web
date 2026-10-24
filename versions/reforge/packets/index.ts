@@ -19,6 +19,7 @@ import { ITEM_COLLECTION_PACKETS } from './itemCollections';
 import { SYSTEM_PACKETS } from './systemPackets';
 import { ACCOUNT_SYSTEM_PACKETS } from './accountSystems';
 import { CASH_SHOP_PACKETS } from './cashShop';
+import { QUEST_BOARD_PACKETS } from './questBoard';
 
 /**
  * The classic packets a ClientVersion(106, 3) never gets: the `[MinimumClient(106, 3)]` plug-in
@@ -74,7 +75,7 @@ const keep = (p: { Name: string }) =>
  * (S GameServer/RemoteView/ItemCollections/ItemCollectionViewPlugIn.cs, FA 01 / FA 02, `./itemCollections.ts`), which the
  * band module would read as a performer's Start / Stop; `band` is in `modulesOff` (../index.ts).
  */
-export const ServerToClientPackets = [...generated.filter(keep), ChangeMapServerInfoPacket, PingRelayPacket, ShowHealthStatusPacket, ...EVENT_PACKETS, ...SYSTEM_PACKETS, ...ACCOUNT_SYSTEM_PACKETS, ...ITEM_COLLECTION_PACKETS, MarketStoreCurrenciesPacket, ...CASH_SHOP_PACKETS];
+export const ServerToClientPackets = [...generated.filter(keep), ChangeMapServerInfoPacket, PingRelayPacket, ShowHealthStatusPacket, ...EVENT_PACKETS, ...SYSTEM_PACKETS, ...ACCOUNT_SYSTEM_PACKETS, ...ITEM_COLLECTION_PACKETS, MarketStoreCurrenciesPacket, ...CASH_SHOP_PACKETS, ...QUEST_BOARD_PACKETS];
 export const ClientToServerPackets = generatedRequests.filter(keep);
 export { ChangeMapServerInfoPacket };
 export { ConnectServerPackets } from './ConnectServerPackets';

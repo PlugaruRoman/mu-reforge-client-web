@@ -11,4 +11,5 @@ export default {
   'login.closingOldSession': 'La cuenta sigue conectada: cerrando la sesión anterior y reintentando...',
   'login.tokenRefused': 'Tu inicio de sesión guardado ha caducado. Escribe tu contraseña.',
   'login.tokenUnanswered': 'El servidor no respondió al inicio de sesión guardado. Escribe tu contraseña.',
+  'resume.serverListGaveUp': 'El servidor no responde. Recarga la página para volver a intentarlo.',
 } satisfies Partial<Record<keyof typeof en, string>>;

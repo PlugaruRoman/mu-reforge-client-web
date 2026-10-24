@@ -34,7 +34,15 @@ ENV PORT=3000 \
     PING=off \
     PRESENCE=off \
     PRESENCE_HOST=127.0.0.1 \
+    PROXY_PROTOCOL=off \
+    TRUSTED_PROXIES=127.0.0.1,::1,172.16.0.0/12 \
     BUN_RUNTIME_TRANSPILER_CACHE_PATH=0
+
+# TRUSTED_PROXIES: nginx on the host reaches the container through the docker bridge gateway
+# (172.16.0.0/12 by default), so its X-Real-IP is believed from there; without it every web player
+# would be "172.x.0.1" to the per-address cap (MAX_SOCKETS_PER_IP) and the logs. Nothing else can
+# reach port 3000 (compose publishes it on the host's 127.0.0.1 only). PROXY_PROTOCOL stays off
+# until the game servers accept PROXY v2 from this box (proxy/readme.md).
 
 USER bun
 EXPOSE 3000

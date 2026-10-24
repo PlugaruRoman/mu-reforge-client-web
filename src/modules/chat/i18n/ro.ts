@@ -58,6 +58,7 @@ export default {
   'cmd.battlesoccer': 'Cere un meci de Battle Soccer',
   'cmd.language': 'Schimbă limba mesajelor serverului',
   'cmd.offlevel': 'Creștere de nivel offline',
+  'cmd.offstore': 'Magazin offline',
   'cmd.pkclear': 'Curăță starea de PK',
   'cmd.openware': 'Deschide depozitul',
   'cmd.npc': 'Deschide un magazin NPC',

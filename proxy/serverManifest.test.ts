@@ -29,6 +29,20 @@ describe('the proxy server.json', () => {
     expect(parseServerManifest(serverManifest({ MU_MODULES_OFF: 'events' }))?.modulesOff).toEqual(['events']);
   });
 
+  it('never offers login tokens, whatever the environment says', () => {
+    expect(serverManifest({}).loginTokens).toBe(false);
+    expect(serverManifest({ MU_LOGIN_TOKENS: 'on', LOGIN_TOKENS: 'on' }).loginTokens).toBe(false);
+    expect(parseServerManifest(serverManifest({}))?.loginTokens).toBe(false);
+  });
+
+  it('keeps band and marketplace off with the Mu Reforge proxy.env', () => {
+    // deploy/reforge/proxy.env.example: BAND=off (C1 FA is our Item Collections), MU_MODULES_OFF=marketplace
+    // (Babylon escrow's C1 E7 01 is our GuardDetectionReport).
+    const manifest = parseServerManifest(serverManifest({ BAND: 'off', MU_MODULES_OFF: 'marketplace' }));
+    expect(manifest?.modulesOff).toEqual(['band', 'marketplace']);
+    expect(manifest?.loginTokens).toBe(false);
+  });
+
   it('is a document the client accepts, readable from any origin', async () => {
     const res = serverManifestResponse({ MU_HELD_HIT_REQUEST: 'on' });
     expect(res.headers.get('Access-Control-Allow-Origin')).toBe('*');

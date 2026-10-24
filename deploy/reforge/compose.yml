@@ -1,15 +1,15 @@
-# Mu Reforge web client on the WEB box (84.247.161.247), next to the website and another
-# tenant. Lives in /opt/mureforge-webclient/ with .env, proxy.env and serverlist.md beside it.
+# Mu Reforge web client on its own VPS (WEB_VPS_IP). Lives in /opt/mureforge-webclient/ with
+# .env, proxy.env and serverlist.md beside it (runbook.md, W9).
 #
 # Both containers publish on 127.0.0.1 ONLY: the host nginx (nginx/host/*.conf) is the public
-# door and holds the TLS certificate, the per-address limits and the Origin check. Ports 3000 and
-# 3001 are deliberately not used - the website's pm2 apps live there.
+# door and holds the TLS certificate, the security headers, the per-address limits and the
+# Origin check. Docker's published ports bypass ufw, so a 0.0.0.0 publish here would be open to
+# the internet whatever ufw says - keep the 127.0.0.1 prefix.
 #
 # Images are built in CI and pulled here, never built on this box:
 #   docker compose pull && docker compose up -d
 #
-# The project name keeps every container, network and volume clear of the names other stacks use
-# (`database`, `openmu-startup`, `nginx-*` on the game boxes; whatever the other tenant runs here).
+# Sizes assume a 4 vCPU / 8 GB box (Contabo Cloud VPS 10); .env can override them.
 name: mureforge-webclient
 
 services:
@@ -30,7 +30,22 @@ services:
       - /tmp
     security_opt:
       - no-new-privileges:true
-    mem_limit: 256m
+    # nginx's master starts as root, binds :80, chowns its temp dirs and drops to the nginx user
+    # for the workers: exactly these four, nothing else.
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+      - NET_BIND_SERVICE
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    pids_limit: 128
+    cpus: ${WEB_CPUS:-1.5}
+    mem_limit: ${WEB_MEM:-512m}
     logging:
       driver: json-file
       options:
@@ -57,7 +72,12 @@ services:
       nofile:
         soft: 65536
         hard: 65536
-    mem_limit: 1g
+    # Bun's threads plus headroom; a fork bomb or a runaway spawn stops here.
+    pids_limit: 256
+    cpus: ${PROXY_CPUS:-2}
+    # A memory kill drops EVERY web player at once; the proxy's own per-socket backpressure
+    # limits (proxy.Dockerfile defaults) are what keep it far below this.
+    mem_limit: ${PROXY_MEM:-1g}
     # Bun exits on SIGTERM and the kernel closes every TCP socket: the game server sees an
     # ordinary disconnect and saves each player through its logout path. 30 s is plenty.
     stop_grace_period: 30s

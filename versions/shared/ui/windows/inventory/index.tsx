@@ -33,6 +33,7 @@ import {
   canRegisterItemHotkey,
 } from '@/modules/inventory/itemHotkeys';
 import { isUpgradeJewel } from '@/modules/inventory/jewelUpgrade';
+import { isRightClickConsumable } from '@/modules/inventory/itemUse';
 import { InventorySort } from '@/modules/inventory/inventorySort';
 import { QuickItemActions } from '@/modules/inventory/quickItemActions';
 import { StorageKind } from '@/modules/inventory/itemStorage';
@@ -163,15 +164,6 @@ function targetSquareAt(
   const y = offsetY - ((h - 1) * SQUARE) / 2;
 
   return { column: Math.floor(x / SQUARE), row: Math.floor(y / SQUARE) };
-}
-
-const POTION_GROUP = 14;
-
-function isConsumable(item: Item): boolean {
-  if (item.group !== POTION_GROUP) return false;
-
-  const n = item.num;
-  return (n >= 0 && n <= 10) || (n >= 35 && n <= 40);
 }
 
 const EquipmentSlot = observer(
@@ -520,7 +512,8 @@ export const Inventory = observer(() => {
     // qualifies, otherwise the reason is said.
     if (Bag.learnSkillItem(entry.slot)) return;
 
-    if (isConsumable(entry.item)) {
+    // Potions, buff scrolls, our Magic Backpack... (`TryConsumeItem`, modules/inventory/itemUse.ts).
+    if (isRightClickConsumable(entry.item)) {
       Bag.consumeItemRequest(entry.slot);
       return;
     }

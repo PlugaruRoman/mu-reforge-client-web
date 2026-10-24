@@ -11,12 +11,16 @@
 # The VITE_* values are baked into the JS at build time (vite replaces import.meta.env.*), so
 # changing one needs a new image - restarting the container changes nothing.
 
-FROM oven/bun:1.4.2 AS build
+# Dependencies alone, as their own stage: CI builds and caches this target separately
+# (reforge-images.yml, "Cache dependencies"), so the GB-sized Data/ and dist/ layers below are
+# never written to the build cache.
+FROM oven/bun:1.4.2 AS deps
 WORKDIR /app
 
 COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile
 
+FROM deps AS build
 COPY . .
 
 # Defaults for a fresh profile and the published list. The serverlist.md the client reads is the
@@ -30,13 +34,18 @@ ARG VITE_REGISTER_URL=https://mureforge.com/register
 # vite.config.ts names the build after it (build.json, the asset worker's cache key).
 ARG GITHUB_SHA=
 
+# Pins the page to the one world in VITE_SERVER_LIST_URL (src/modules/servers/defaults.ts): no
+# "Local (OpenMU)" profile seeded from VITE_CS_HOST, no saved profiles, and ?cs= ?ws= ?list=
+# ?version= ?server= ?gs= are ignored - a link can never point a player's password elsewhere.
+ARG VITE_PINNED_WORLD=on
+
 # A developer's .env.local (ws://localhost) must never reach a production bundle: vite reads
 # .env* files from the root, and the dockerignore is the first guard, this the second.
 RUN rm -f .env .env.local .env.production .env.production.local \
  && VITE_WS_HOST="$VITE_WS_HOST" VITE_WS_PORT="$VITE_WS_PORT" \
     VITE_CS_HOST="$VITE_CS_HOST" VITE_CS_PORT="$VITE_CS_PORT" \
     VITE_SERVER_LIST_URL="$VITE_SERVER_LIST_URL" VITE_REGISTER_URL="$VITE_REGISTER_URL" \
-    GITHUB_SHA="$GITHUB_SHA" bun run build
+    VITE_PINNED_WORLD="$VITE_PINNED_WORLD" GITHUB_SHA="$GITHUB_SHA" bun run build
 
 FROM nginx:1.28-alpine
 COPY deploy/reforge/nginx/web-container.conf /etc/nginx/conf.d/default.conf

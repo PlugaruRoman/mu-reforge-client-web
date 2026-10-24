@@ -11,4 +11,5 @@ export default {
   'login.closingOldSession': 'Account ancora connesso: chiusura della vecchia sessione e nuovo tentativo...',
   'login.tokenRefused': 'L’accesso salvato è scaduto. Inserisci la password.',
   'login.tokenUnanswered': 'Il server non ha risposto all’accesso salvato. Inserisci la password.',
+  'resume.serverListGaveUp': 'Il server non risponde. Ricarica la pagina per riprovare.',
 } satisfies Partial<Record<keyof typeof en, string>>;
