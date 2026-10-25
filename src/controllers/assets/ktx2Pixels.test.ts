@@ -25,8 +25,20 @@ Object.assign(globalThis, { require: createRequire(import.meta.url), __dirname: 
 const transcoder = () =>
   instantiateTranscoder(
     readFileSync(join(transcoderDir, 'basis_transcoder.js'), 'utf8'),
-    new Uint8Array(readFileSync(join(transcoderDir, 'basis_transcoder.wasm'))).buffer
+    new Uint8Array(readFileSync(join(transcoderDir, 'basis_transcoder.wasm'))).buffer,
+    // Node imports no blob: URL; a data: URL runs the same module source (strict, module scope).
+    async source =>
+      ((await import(/* @vite-ignore */ `data:text/javascript;base64,${Buffer.from(source).toString('base64')}`)) as { default: unknown })
+        .default
   );
+
+// The production CSP has no 'unsafe-eval' (web.mureforge.com.conf script-src): the transcoder is imported, never evaluated.
+describe('instantiateTranscoder', () => {
+  it('runs the transcoder without eval', () => {
+    const source = readFileSync(join(dirname(fileURLToPath(import.meta.url)), 'ktx2Pixels.ts'), 'utf8');
+    expect(source).not.toMatch(/new Function|\beval\(/);
+  });
+});
 
 describe('isKtx2', () => {
   it('knows a KTX2 file by its identifier', () => {

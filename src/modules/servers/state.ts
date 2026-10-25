@@ -28,7 +28,8 @@ export const Servers = new (class {
       ConnectionInfoRequestPacket.createPacket();
     connectionInfoRequestPacket.ServerId = serverId;
 
-    Session.sendToCS(connectionInfoRequestPacket.buffer);
+    // After a server restart no connect server may be open: the click dials it and waits for its Hello.
+    Session.sendToCSWhenOpen(connectionInfoRequestPacket.buffer);
   }
 
   constructor() {

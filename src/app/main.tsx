@@ -9,7 +9,7 @@
  * imported only after it is assigned.
  */
 import { ServerConfig } from '../modules/servers/serverConfig';
-import { loadGameVersion, versionIdForTag } from '../version';
+import { bootVersionId, loadGameVersion } from '../version';
 // Imported for its one side effect: the `mu-mobile` root class has to be on
 // the document before the first paint, or a phone flashes the desktop rules.
 import '../controllers/interface/mobile';
@@ -21,7 +21,7 @@ import { watchInstallState } from '../modules/options/pwaInstall';
 watchInstallState();
 
 async function bootstrap() {
-  await loadGameVersion(versionIdForTag(ServerConfig.active.version));
+  await loadGameVersion(bootVersionId(ServerConfig.active.version));
   await import('./boot');
 }
 

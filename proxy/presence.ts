@@ -42,7 +42,12 @@ import { SESSION_NONCE_RE } from "../src/controllers/net/sessionNonce";
  * for that route, it is the whole authentication.
  */
 
-const PRESENCE_ENABLED = (process.env.PRESENCE ?? "on") !== "off";
+/**
+ * `PRESENCE=off`: no presence server, and the relay builds no `ConnectionPresence` either - no
+ * login sniffing, no per-frame copies, no decryption queues (up to 2 x PRESENCE_SNIFF_LIMIT per
+ * socket) for a feature nobody can ask.
+ */
+export const PRESENCE_ENABLED = (process.env.PRESENCE ?? "on") !== "off";
 /** Where the loopback server binds; exported so the relay can refuse to dial it. */
 export const PRESENCE_PORT = Number(process.env.PRESENCE_PORT ?? 3001);
 export const PRESENCE_HOST = process.env.PRESENCE_HOST ?? "127.0.0.1";

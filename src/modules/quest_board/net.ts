@@ -50,13 +50,13 @@ export function closeQuestBoard(): void {
 
 /** Registers the listeners; the module's `install` calls it. */
 export function installNet(): void {
-  // DF 01 opens the board (UI/QuestBoard/QuestBoardUpdates.cpp `BoardReceived`), also after an accept or claim.
+  // DF 01 opens the board (UI/QuestBoard/QuestBoardUpdates.cpp `BoardReceived`), also after an accept or claim
+  // (S QuestBoardAccept/ClaimHandlerPlugIn), which leaves the active quests (DF 05) stale: each asks for them again.
   EventBus.on('QuestBoardList', view => {
     const board = parseQuestBoard(view);
     if (!board) return;
     setBoard(board);
-    if (MuWindows.isOpen(QUEST_BOARD_WINDOW)) return;
-    runInAction(() => MuWindows.setOpen(QUEST_BOARD_WINDOW, true));
+    if (!MuWindows.isOpen(QUEST_BOARD_WINDOW)) runInAction(() => MuWindows.setOpen(QUEST_BOARD_WINDOW, true));
     send(buildActiveRequest());
   });
   EventBus.on('QuestBoardActiveList', view => {

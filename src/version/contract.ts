@@ -68,6 +68,15 @@ export interface VersionProtocol {
    * server-written links are read, since a `token` can show an item nobody owns.
    */
   readonly chatItemLinks?: 'token' | 'slot';
+  /**
+   * The login packet. `short` (omitted): `LoginShortPassword`, 50 bytes, a 10-byte password - what
+   * the classic Season 6 client sends. `long`: `LoginLongPassword`, 60 bytes, a 20-byte password -
+   * what Mu Reforge's own client sends. OpenMU tells the two apart by length (`< 42` is short), so a
+   * 50-byte short login is read with the long layout there: its client version lands on garbage,
+   * the server falls back to its default version, and an Extended (106.3) session is switched back
+   * to the classic plug-ins.
+   */
+  readonly loginPacket?: 'short' | 'long';
 }
 
 export interface VersionData {

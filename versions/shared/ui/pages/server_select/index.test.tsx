@@ -22,4 +22,20 @@ describe('the server list', () => {
     const html = renderToStaticMarkup(<ServersPage />);
     for (const file of ['server_menu_b_all.OZT', 'server_credit_b_all.OZT', 'deco.OZT']) expect(html, file).toContain(`data-file="${file}"`);
   });
+
+  // After a server restart the list keeps re-dialling and says so, with a way to dial at once.
+  it('shows the reconnecting state with Retry now', async () => {
+    const { Session } = await import('@/modules/session');
+    const { runInAction } = await import('mobx');
+    const { t } = await import('@/i18n');
+    runInAction(() => (Session.csReconnecting = true));
+    try {
+      const html = renderToStaticMarkup(<ServersPage />);
+      expect(html).toContain(t('connect.reconnecting'));
+      expect(html).toContain('servers-retry');
+    } finally {
+      runInAction(() => (Session.csReconnecting = false));
+    }
+    expect(renderToStaticMarkup(<ServersPage />)).not.toContain('servers-retry');
+  });
 });

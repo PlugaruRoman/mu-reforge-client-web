@@ -11,5 +11,7 @@ export default {
   'login.closingOldSession': 'La cuenta sigue conectada: cerrando la sesión anterior y reintentando...',
   'login.tokenRefused': 'Tu inicio de sesión guardado ha caducado. Escribe tu contraseña.',
   'login.tokenUnanswered': 'El servidor no respondió al inicio de sesión guardado. Escribe tu contraseña.',
-  'resume.serverListGaveUp': 'El servidor no responde. Recarga la página para volver a intentarlo.',
+  'connect.reconnecting': 'Reconectando con el servidor...',
+  'connect.retryNow': 'Reintentar ahora',
+  'connect.noWorld': 'No se pudo cargar la lista de servidores. Reintentando...',
 } satisfies Partial<Record<keyof typeof en, string>>;

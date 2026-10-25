@@ -11,5 +11,7 @@ export default {
   'login.closingOldSession': 'บัญชียังเชื่อมต่ออยู่: กำลังปิดเซสชันเก่าและลองใหม่...',
   'login.tokenRefused': 'การเข้าสู่ระบบที่บันทึกไว้หมดอายุแล้ว กรอกรหัสผ่าน',
   'login.tokenUnanswered': 'เซิร์ฟเวอร์ไม่ตอบการเข้าสู่ระบบที่บันทึกไว้ กรอกรหัสผ่าน',
-  'resume.serverListGaveUp': 'เซิร์ฟเวอร์ไม่ตอบสนอง โหลดหน้าใหม่เพื่อลองอีกครั้ง',
+  'connect.reconnecting': 'กำลังเชื่อมต่อเซิร์ฟเวอร์ใหม่...',
+  'connect.retryNow': 'ลองใหม่ตอนนี้',
+  'connect.noWorld': 'โหลดรายชื่อเซิร์ฟเวอร์ไม่ได้ กำลังลองใหม่...',
 } satisfies Partial<Record<keyof typeof en, string>>;

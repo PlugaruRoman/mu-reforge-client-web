@@ -1,6 +1,8 @@
 import { readFileSync } from 'node:fs';
-import { describe, expect, it } from 'vitest';
-import { parseServerLine, parseServerList } from './serverList';
+import { describe, expect, it, vi } from 'vitest';
+import { listRetryDelay, parseServerLine, parseServerList, refreshServerList } from './serverList';
+import { ServerConfig } from './serverConfig';
+import { runInAction } from 'mobx';
 
 describe('parseServerLine', () => {
   it('reads a published world with a proxy of its own', () => {
@@ -194,3 +196,48 @@ describe('serverlist.md', () => {
     }
   });
 });
+
+// A first visit whose list fetch fails has no world at all: the fetch is tried again rather than left.
+describe('the list fetch failing with nowhere to play', () => {
+  it('waits 5 s doubling to 5 min, a random half taken off', () => {
+    expect(listRetryDelay(0, () => 0)).toBe(2500);
+    expect(listRetryDelay(0, () => 1)).toBe(5000);
+    expect(listRetryDelay(20, () => 1)).toBe(300_000);
+  });
+
+  it('is fetched again until it arrives', async () => {
+    vi.useFakeTimers();
+    const fetch = vi.fn().mockRejectedValue(new Error('offline'));
+    vi.stubGlobal('fetch', fetch);
+    const empty = noWorlds(ServerConfig);
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      await refreshServerList();
+      expect(fetch).toHaveBeenCalledTimes(1);
+      await vi.advanceTimersByTimeAsync(5000);
+      expect(fetch).toHaveBeenCalledTimes(2);
+      await vi.advanceTimersByTimeAsync(10_000);
+      expect(fetch).toHaveBeenCalledTimes(3);
+      // A world to play (a saved one, the cache): no more retries.
+      empty.restore();
+      await vi.advanceTimersByTimeAsync(20_000);
+      expect(fetch).toHaveBeenCalledTimes(4);
+      await vi.advanceTimersByTimeAsync(600_000);
+      expect(fetch).toHaveBeenCalledTimes(4);
+    } finally {
+      vi.useRealTimers();
+      vi.unstubAllGlobals();
+      empty.restore();
+      warn.mockRestore();
+    }
+  });
+});
+
+/** No saved world and no listed one (`ServerConfig.isEmpty`), until `restore`. */
+function noWorlds(config: { profiles: unknown[]; isEmpty: boolean; setListed(entries: never[]): void }) {
+  const saved = config.profiles;
+  runInAction(() => (config.profiles = []));
+  config.setListed([]);
+  expect(config.isEmpty).toBe(true);
+  return { restore: () => runInAction(() => (config.profiles = saved)) };
+}

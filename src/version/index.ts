@@ -93,14 +93,63 @@ export function versionUi(): VersionUi | null {
 }
 
 /**
+ * The tab's pending switch: the version `ensureActiveVersion` reloads into. Boot
+ * cannot rely on the persisted selection for it - a published world's row only
+ * arrives with the list, after the version is already loaded, so `active` would
+ * still name the first saved profile and the reload would come back to the same
+ * version, forever.
+ */
+const BOOT_VERSION_KEY = 'mu_boot_version';
+
+/** The build's own version (`VITE_PINNED_VERSION`, a list tag): a pinned deployment boots straight into it. */
+const PINNED_VERSION: string = import.meta.env?.VITE_PINNED_VERSION ?? '';
+
+function sessionGet(key: string): string | null {
+  try {
+    return sessionStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function sessionSet(key: string, value: string): void {
+  try {
+    sessionStorage.setItem(key, value);
+  } catch {
+    // Storage blocked: the reload guard below still stops a loop.
+  }
+}
+
+/**
+ * The version the page boots into: a switch this tab asked for, then the build's
+ * pinned version, then the persisted selection's tag (`activeTag`).
+ */
+export function bootVersionId(activeTag: string | undefined): string {
+  const pending = sessionGet(BOOT_VERSION_KEY);
+
+  if (pending && versionByTag(pending)) return versionIdForTag(pending);
+  if (PINNED_VERSION && versionByTag(PINNED_VERSION)) return versionIdForTag(PINNED_VERSION);
+
+  return versionIdForTag(activeTag);
+}
+
+/**
  * Connect-time guard: true when the active world is played by the loaded
- * version. Otherwise reloads into it - the selection is already persisted,
- * and boot resolves the version from the same tag through `versionIdForTag`,
- * so the reload cannot loop.
+ * version. Otherwise it records the wanted version for the next boot
+ * (`bootVersionId`) and reloads into it. A second miss for the same tag in this
+ * tab does not reload again: it reports false and logs, so a broken setup ends
+ * on the server list instead of reloading forever.
  */
 export function ensureActiveVersion(tag: string | undefined): boolean {
   if (versionIdForTag(tag) === gameVersion.id) return true;
 
+  const wanted = versionByTag(tag ?? '')?.listTag ?? '';
+  if (sessionGet(BOOT_VERSION_KEY) === wanted && wanted) {
+    console.error(`version switch to ${wanted} did not take; not reloading again`);
+    return false;
+  }
+
+  sessionSet(BOOT_VERSION_KEY, wanted);
   location.reload();
 
   return false;

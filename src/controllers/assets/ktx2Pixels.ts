@@ -50,17 +50,28 @@ export function isKtx2(bytes: ArrayBuffer): boolean {
   return MAGIC.every((b, i) => head[i] === b);
 }
 
+type TranscoderFactory = (options: { wasmBinary: ArrayBuffer }) => Promise<Transcoder>;
+
+/** A module's source run from a blob URL, its default export back: no eval, so a CSP without 'unsafe-eval' allows it. */
+async function importBlob(source: string): Promise<unknown> {
+  const url = URL.createObjectURL(new Blob([source], { type: 'text/javascript' }));
+  try {
+    return ((await import(/* @vite-ignore */ url)) as { default?: unknown }).default;
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
 /**
  * The transcoder is a classic Emscripten script. A module worker cannot
- * `importScripts` it, so it is evaluated from its source instead.
+ * `importScripts` it, so its source is imported as a module that exports `BASIS`.
  */
 export async function instantiateTranscoder(
   code: string,
-  wasmBinary: ArrayBuffer
+  wasmBinary: ArrayBuffer,
+  importSource: (source: string) => Promise<unknown> = importBlob
 ): Promise<Transcoder> {
-  const factory = new Function(`${code}\nreturn BASIS;`)() as (options: {
-    wasmBinary: ArrayBuffer;
-  }) => Promise<Transcoder>;
+  const factory = (await importSource(`${code}\nexport default BASIS;`)) as TranscoderFactory;
   const transcoder = await factory({ wasmBinary });
   transcoder.initializeBasis();
   return transcoder;

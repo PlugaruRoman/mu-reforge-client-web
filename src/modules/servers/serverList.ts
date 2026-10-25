@@ -350,6 +350,23 @@ class ServerListStore {
 export const ServerList = new ServerListStore();
 
 /**
+ * A failed fetch with nowhere else to play (`ServerConfig.isEmpty`: a first visit, no cache) is tried
+ * again: 5 s doubling to 5 min, a random half taken off so an outage does not end in one burst.
+ */
+const LIST_RETRY_MS = 5000;
+const LIST_RETRY_MAX_MS = 300_000;
+const LIST_RETRY_STEPS = 6;
+
+let listRetries = 0;
+let listRetryTimer: ReturnType<typeof setTimeout> | null = null;
+
+/** The wait before list retry `attempt` (0-based). */
+export function listRetryDelay(attempt: number, random: () => number = Math.random): number {
+  const base = Math.min(LIST_RETRY_MAX_MS, LIST_RETRY_MS * 2 ** attempt);
+  return Math.round(base * (0.5 + random() * 0.5));
+}
+
+/**
  * Fetches the list and hands it to `ServerConfig`. Never throws and never
  * blocks anything: an unreachable list leaves the player with their saved
  * servers, which is exactly where they were before it existed.
@@ -365,6 +382,8 @@ export async function refreshServerList(): Promise<void> {
 
   if (!url) return;
 
+  if (listRetryTimer) clearTimeout(listRetryTimer);
+  listRetryTimer = null;
   ServerList.set('loading');
 
   try {
@@ -378,11 +397,16 @@ export async function refreshServerList(): Promise<void> {
     ServerConfig.setListed(entries);
     LocalStorage.save(cacheKey, text);
     ServerList.set('ok');
+    listRetries = 0;
   } catch (e) {
     // Offline, blocked, moved, rewritten as something that is not a list: the
     // saved servers still work, so this is a note in the picker, not an error
     // anyone has to act on.
     console.warn(`server list (${url}) not read:`, e);
     ServerList.set('error', e instanceof Error ? e.message : String(e));
+    if (ServerConfig.isEmpty) {
+      listRetryTimer = setTimeout(() => void refreshServerList(), listRetryDelay(listRetries));
+      listRetries = Math.min(listRetries + 1, LIST_RETRY_STEPS);
+    }
   }
 }

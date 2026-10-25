@@ -11,5 +11,7 @@ export default {
   'login.closingOldSession': 'Konto noch verbunden: alte Sitzung wird geschlossen, neuer Versuch...',
   'login.tokenRefused': 'Deine gespeicherte Anmeldung ist abgelaufen. Gib dein Passwort ein.',
   'login.tokenUnanswered': 'Der Server hat auf die gespeicherte Anmeldung nicht geantwortet. Gib dein Passwort ein.',
-  'resume.serverListGaveUp': 'Der Server antwortet nicht. Lade die Seite neu, um es erneut zu versuchen.',
+  'connect.reconnecting': 'Verbinde erneut mit dem Server...',
+  'connect.retryNow': 'Jetzt erneut versuchen',
+  'connect.noWorld': 'Die Serverliste konnte nicht geladen werden. Neuer Versuch...',
 } satisfies Partial<Record<keyof typeof en, string>>;

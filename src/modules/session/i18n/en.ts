@@ -13,8 +13,11 @@ const en = {
   'login.tokenRefused': 'Your saved login has expired. Enter your password.',
   /** A token login the server never answered (no plugin behind a server.json that offers tokens): the form asks for the password. */
   'login.tokenUnanswered': 'The server did not answer the saved login. Enter your password.',
-  /** The connect server stayed unreachable through every re-dial (`Session.redialConnectServer`). */
-  'resume.serverListGaveUp': 'The server is not answering. Reload the page to try again.',
+  /** The connect server is being dialled again (`Session.redialConnectServer`); never given up while the page shows. */
+  'connect.reconnecting': 'Reconnecting to the server...',
+  'connect.retryNow': 'Retry now',
+  /** No world to dial: nothing saved and the published list could not be read; its fetch retries. */
+  'connect.noWorld': 'The server list could not be loaded. Retrying...',
 };
 
 export default en;

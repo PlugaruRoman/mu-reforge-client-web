@@ -12,6 +12,7 @@ import {
 import { MsgBox } from '@/controllers/interface';
 import { isOn } from '@/controllers/fidelity';
 import {
+  LoginLongPasswordPacket,
   LoginShortPasswordPacket,
   LoginTokenRequestPacket,
   ServerChangeAuthenticationPacket,
@@ -20,7 +21,8 @@ import {
 import { ensureActiveVersion, gameVersion } from '@/version';
 import { Ecs } from '@/ecs/current';
 import { AppState, UIState } from '@/controllers/interface/uiState';
-import { MAX_PASSWORD_LENGTH, MAX_USERNAME_LENGTH, ServerAccounts, tokenFromText, tokenToText } from '../servers/serverAccounts';
+import { maxPasswordLength } from './loginPacket';
+import { MAX_USERNAME_LENGTH, ServerAccounts, tokenFromText, tokenToText } from '../servers/serverAccounts';
 import { connectServerAddress, ServerConfig, wsAddress } from '../servers/serverConfig';
 import { serverOffersLoginTokens } from '../servers/serverManifest';
 import { DirectLogin } from '../servers/directLogin';
@@ -50,12 +52,16 @@ const SERVER_CHANGE_NAME_LENGTH = 12;
 
 /**
  * Re-dialling a lost connect server: 2 s doubling to 30 s, a random half of each taken off so a
- * server restart is not met by every open page in the same second, and 6 tries before the server
- * list stays put with a message (`redialConnectServer`).
+ * server restart is not met by every open page in the same second, then every 30 s for as long as
+ * the page is visible (`redialConnectServer`). A restart takes minutes; giving up left a page reload.
  */
 const CS_REDIAL_MS = 2000;
 const CS_REDIAL_MAX_MS = 30_000;
-const CS_REDIAL_TRIES = 6;
+/** Past this step the wait is the cap anyway; the counter stops growing. */
+const CS_REDIAL_STEPS = 5;
+
+/** The page is in a background tab or minimised: re-dials wait for it to show (`pageVisibilityChanged`). */
+const pageHidden = () => typeof document !== 'undefined' && document.hidden === true;
 
 /** The wait before re-dial `attempt` (0-based): half to all of 2 s * 2^attempt, capped at 30 s. */
 export function csRedialDelay(attempt: number, random: () => number = Math.random): number {
@@ -197,9 +203,22 @@ export const Session = new (class {
     }
     if (socket === this.csSocket) {
       this.csSocket = undefined;
-      if (AppState.uiState === UIState.Servers || this.awaitingDirectChannel) this.redialConnectServer();
+      if (!this.needsConnectServer) return;
+      if (!this.csReconnecting) addNotification(t('notify.serverListLost'), 'error');
+      this.redialConnectServer();
     }
   }
+
+  /** The server list, a direct login waiting for its channel, or a channel click waiting to be sent. */
+  private get needsConnectServer(): boolean {
+    return AppState.uiState === UIState.Servers || this.awaitingDirectChannel || !!this.csPending;
+  }
+
+  /** The connect server is being dialled again (`redialConnectServer`): the server list says so and offers Retry now. */
+  csReconnecting = false;
+
+  /** A request for the connect server made while it was away (a channel click): sent on its Hello. */
+  private csPending: DataView | null = null;
 
   /** Re-dials of the connect server since it last answered (`onConnectServerReached`). */
   private csRedials = 0;
@@ -209,30 +228,48 @@ export const Session = new (class {
   /**
    * The connect server went away while the server list needed it: dial again after
    * `csRedialDelay`, never at once (the proxy closes the socket the moment the TCP connect
-   * fails, which made this a tight loop while the server was down). After `CS_REDIAL_TRIES` the
-   * list stays as it is and says so.
+   * fails, which made this a tight loop while the server was down). It never gives up; a hidden
+   * page waits until it shows again (`retryConnectServerNow`).
    */
   private redialConnectServer(): void {
-    if (this.csRedialTimer) return;
-    if (this.csRedials >= CS_REDIAL_TRIES) {
-      this.csRedials = 0;
-      runInAction(() => {
-        this.loginProcessing = false;
-      });
-      addNotification(t('resume.serverListGaveUp'), 'error');
-      return;
-    }
-    if (this.csRedials === 0) addNotification(t('notify.serverListLost'), 'error');
-    const wait = csRedialDelay(this.csRedials++);
+    runInAction(() => {
+      this.csReconnecting = true;
+    });
+    if (this.csRedialTimer || pageHidden()) return;
+    const wait = csRedialDelay(this.csRedials);
+    this.csRedials = Math.min(this.csRedials + 1, CS_REDIAL_STEPS);
     this.csRedialTimer = setTimeout(() => {
       this.csRedialTimer = null;
-      this.playOnline();
+      if (this.needsConnectServer) this.playOnline();
+      else runInAction(() => (this.csReconnecting = false));
     }, wait);
   }
 
-  /** The connect server said hello: the next loss starts the re-dials over. */
+  /** Retry now, the browser back online, the page shown again: a re-dial waiting out its backoff goes at once. */
+  retryConnectServerNow(): void {
+    if (!this.csReconnecting || this.csSocket) return;
+    this.connectToConnectServer();
+  }
+
+  /** The connect server said hello: the next loss starts the re-dials over, and a held request goes out. */
   onConnectServerReached(): void {
     this.csRedials = 0;
+    runInAction(() => {
+      this.csReconnecting = false;
+    });
+    const pending = this.csPending;
+    this.csPending = null;
+    if (pending) this.sendToCS(pending);
+  }
+
+  /** A channel click: sent now, or held for the Hello of a connect server dialled for it (none open after a restart). */
+  sendToCSWhenOpen(buffer: DataView): void {
+    if (this.csSocket?.readyState === WebSocket.OPEN) {
+      this.csSocket.send(buffer);
+      return;
+    }
+    this.csPending = buffer;
+    if (!this.csSocket) this.connectToConnectServer();
   }
 
   /** Direct login: on the login with no game server yet, so the connect server's list picks one. */
@@ -394,6 +431,14 @@ export const Session = new (class {
     // Dialled now (a click, a lost game server): a re-dial still waiting is not needed.
     if (this.csRedialTimer) clearTimeout(this.csRedialTimer);
     this.csRedialTimer = null;
+
+    // Nowhere to dial yet: no world saved and the published list unread (a first visit with the
+    // fetch failing). `NO_WORLD` is no address to dial; the list fetch retries itself (`refreshServerList`).
+    if (ServerConfig.isEmpty) {
+      if (!this.csReconnecting) addNotification(t('connect.noWorld'), 'error');
+      this.redialConnectServer();
+      return;
+    }
 
     // A world that needs another carried version is entered by reloading
     // into it; the selection is already persisted.
@@ -608,19 +653,24 @@ export const Session = new (class {
 
   private sendLogin(username: string, password: string) {
     const usernameBytes = stringToBytes(username, MAX_USERNAME_LENGTH);
-    const passwordBytes = stringToBytes(password, MAX_PASSWORD_LENGTH);
+    const passwordBytes = stringToBytes(password, maxPasswordLength());
 
     Xor3Byte(usernameBytes);
     Xor3Byte(passwordBytes);
 
-    const loginShortPasswordPacket = LoginShortPasswordPacket.createPacket();
-    loginShortPasswordPacket.setUsername(usernameBytes, usernameBytes.length);
-    loginShortPasswordPacket.setPassword(passwordBytes, passwordBytes.length);
-    loginShortPasswordPacket.setClientVersion(gameVersion.clientVersionBytes);
-    loginShortPasswordPacket.setClientSerial(gameVersion.serialBytes);
+    // The layout follows the version (`protocol.loginPacket`): the server reads the client version
+    // from where its length says it is, and the version picks every packet layout that follows.
+    const packet =
+      gameVersion.protocol.loginPacket === 'long'
+        ? LoginLongPasswordPacket.createPacket()
+        : LoginShortPasswordPacket.createPacket();
+    packet.setUsername(usernameBytes, usernameBytes.length);
+    packet.setPassword(passwordBytes, passwordBytes.length);
+    packet.setClientVersion(gameVersion.clientVersionBytes);
+    packet.setClientSerial(gameVersion.serialBytes);
 
     console.log(`send login`);
-    this.sendToGS(loginShortPasswordPacket.buffer, true);
+    this.sendToGS(packet.buffer, true);
   }
 
   /** The account name Xor3-encoded as in the login, the token, the client version. */
@@ -660,6 +710,7 @@ export const Session = new (class {
       username: observable,
       password: observable,
       connectionLost: observable,
+      csReconnecting: observable,
       loginError: observable,
       loginProcessing: observable,
       rememberLogin: observable,

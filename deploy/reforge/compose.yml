@@ -75,9 +75,21 @@ services:
     # Bun's threads plus headroom; a fork bomb or a runaway spawn stops here.
     pids_limit: 256
     cpus: ${PROXY_CPUS:-2}
-    # A memory kill drops EVERY web player at once; the proxy's own per-socket backpressure
-    # limits (proxy.Dockerfile defaults) are what keep it far below this.
-    mem_limit: ${PROXY_MEM:-1g}
+    # A memory kill drops EVERY web player at once, so this must hold the WORST case, not the
+    # usual one (the old 1g was OOM at about 450 sockets with full buffers). Worst case with the
+    # defaults of proxy/relayLimits.ts:
+    #   application buffers per relay socket  WS_BACKPRESSURE_LIMIT 512 KiB + TCP_QUEUE_LIMIT
+    #                                         256 KiB + PRE_OPEN_LIMIT 16 KiB      = 784 KiB
+    #   kernel socket buffers (cgroup v2 charges them here), 2 sockets per relay
+    #   (websocket in, TCP out), ~256 KiB each when both are backed up            ~ 512 KiB
+    #   per relay                                                                  ~ 1.3 MiB
+    #   x MAX_SOCKETS_TOTAL 2000 (the proxy refuses the 2001st, nginx's total
+    #   is the same 2000)                                                          ~ 2.5 GiB
+    #   + Bun's heap and runtime                                                   ~ 0.3 GiB
+    #                                                                              ~ 2.8 GiB  -> 3g
+    # Raising MAX_SOCKETS_TOTAL or a buffer limit means redoing this sum (and the 8 GB box has to
+    # keep room for nginx, the web container and the page cache).
+    mem_limit: ${PROXY_MEM:-3g}
     # Bun exits on SIGTERM and the kernel closes every TCP socket: the game server sees an
     # ordinary disconnect and saves each player through its logout path. 30 s is plenty.
     stop_grace_period: 30s
@@ -86,3 +98,15 @@ services:
       options:
         max-size: "50m"
         max-file: "5"
+
+# Pinned, so the proxy can trust X-Real-IP from exactly one peer: host nginx reaches the published
+# 127.0.0.1 ports through this network's gateway, 172.31.250.1 (proxy.Dockerfile TRUSTED_PROXIES),
+# and the web container (172.31.250.x) is not believed. If `docker compose up` says the pool
+# overlaps another network, pick another /24, set its gateway here AND TRUSTED_PROXIES in
+# proxy.env to that gateway (runbook.md, W6).
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 172.31.250.0/24
+          gateway: 172.31.250.1

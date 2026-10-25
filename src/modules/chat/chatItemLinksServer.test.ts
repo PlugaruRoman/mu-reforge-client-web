@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { loadGameVersion } from '@/version';
-import { itemLinkToken, labelsToWire, scanItemLinks, setItemLinkBag, stripItemLinks, wireToLabels } from './chatItemLinks';
+import { itemLinkToken, labelsToWire, ownLineOf, scanItemLinks, setItemLinkBag, stripItemLinks, wireToLabels } from './chatItemLinks';
 import type { Item } from '../../ecs/world';
 
 /**
@@ -41,6 +41,21 @@ describe("our server's chat item links (106.3)", () => {
       expect(wire).toBe('look \x010D\x02');
       // The history keys read it back against the bag.
       expect(wireToLabels(wire).links.get(wireToLabels(wire).text.slice(5))).toBe(token);
+    } finally {
+      setItemLinkBag(() => []);
+    }
+  });
+
+  // A whisper is not echoed back expanded: the sender's own line shows the item's name, not the raw slot token.
+  it("logs the sender's own slot link as the item's name", () => {
+    const sword: Item = { group: 0, num: 0, lvl: 7 };
+    const items: (Item | null)[] = new Array(20).fill(null);
+    items[13] = sword;
+    setItemLinkBag(() => items);
+    try {
+      const line = ownLineOf('look \x010D\x02 cheap');
+      expect([line.includes('\x01'), line.includes('\x02')]).toEqual([false, false]);
+      expect(line).toMatch(/^look \[.+\] cheap$/);
     } finally {
       setItemLinkBag(() => []);
     }

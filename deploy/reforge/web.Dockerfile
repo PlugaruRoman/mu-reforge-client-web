@@ -38,6 +38,9 @@ ARG GITHUB_SHA=
 # "Local (OpenMU)" profile seeded from VITE_CS_HOST, no saved profiles, and ?cs= ?ws= ?list=
 # ?version= ?server= ?gs= are ignored - a link can never point a player's password elsewhere.
 ARG VITE_PINNED_WORLD=on
+# The version the page boots into (src/version/index.ts bootVersionId): the world's own, so a
+# fresh visitor never boots Season 6 first and reloads into REFORGE.
+ARG VITE_PINNED_VERSION=REFORGE
 
 # A developer's .env.local (ws://localhost) must never reach a production bundle: vite reads
 # .env* files from the root, and the dockerignore is the first guard, this the second.
@@ -45,7 +48,7 @@ RUN rm -f .env .env.local .env.production .env.production.local \
  && VITE_WS_HOST="$VITE_WS_HOST" VITE_WS_PORT="$VITE_WS_PORT" \
     VITE_CS_HOST="$VITE_CS_HOST" VITE_CS_PORT="$VITE_CS_PORT" \
     VITE_SERVER_LIST_URL="$VITE_SERVER_LIST_URL" VITE_REGISTER_URL="$VITE_REGISTER_URL" \
-    VITE_PINNED_WORLD="$VITE_PINNED_WORLD" GITHUB_SHA="$GITHUB_SHA" bun run build
+    VITE_PINNED_WORLD="$VITE_PINNED_WORLD" VITE_PINNED_VERSION="$VITE_PINNED_VERSION" GITHUB_SHA="$GITHUB_SHA" bun run build
 
 FROM nginx:1.28-alpine
 COPY deploy/reforge/nginx/web-container.conf /etc/nginx/conf.d/default.conf

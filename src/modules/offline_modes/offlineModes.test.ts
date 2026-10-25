@@ -7,6 +7,7 @@ const { calls, shop } = vi.hoisted(() => ({
 
 vi.mock('../chat/sendLine', () => ({ sendChatLine: (line: string) => calls.push(`chat ${line}`) }));
 vi.mock('../mu_helper/state', () => ({ saveMuHelperConfig: () => calls.push('save helper') }));
+vi.mock('../hero', () => ({ Hero: { name: 'Sorcerer' } }));
 vi.mock('../session/sessionResume', () => ({ SessionResume: { forget: () => calls.push('forget resume') } }));
 vi.mock('@/controllers/interface', () => ({ MuWindows: { setOpen: (id: string, open: boolean) => calls.push(`${id} ${open}`) } }));
 vi.mock('../economy/economy', () => ({
@@ -22,6 +23,7 @@ const { runHandOverCommand } = await import('../chat/chatCommands');
 
 beforeEach(() => {
   calls.length = 0;
+  shop.myShopName = 'My store';
   shop.myShopSelling = false;
   shop.shopHasUnpricedItems = false;
 });
@@ -57,5 +59,14 @@ describe('the offline hand-overs', () => {
     expect(OfflineModes.confirmStore).not.toBeNull();
     OfflineModes.offStore();
     expect(calls).toEqual(['forget resume', 'chat /offstore', 'close store', 'inventory false']);
+  });
+
+  it('names a store the typed /offstore opens before it ever had a title after the hero', () => {
+    offlineModule.install();
+    shop.myShopName = '';
+    runHandOverCommand('offstore');
+    expect(OfflineModes.confirmStore).toBe('Sorcerer');
+    OfflineModes.offStore();
+    expect(calls[0]).toBe('open store Sorcerer');
   });
 });

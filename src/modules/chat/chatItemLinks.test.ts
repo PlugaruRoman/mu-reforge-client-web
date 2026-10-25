@@ -7,6 +7,7 @@ import {
   itemLinkLabel,
   itemLinkToken,
   labelsToWire,
+  ownLineOf,
   scanItemLinks,
   stripItemLinks,
   uniqueLinkLabel,
@@ -130,6 +131,11 @@ describe('labels in the chat box', () => {
     const back = wireToLabels(`wts ${token}`);
     expect(back.text).toBe('wts [Excellent Kris +7]');
     expect(back.links.get('[Excellent Kris +7]')).toBe(token);
+  });
+
+  it("keeps a {base64} link in the sender's own line: it is already readable", () => {
+    const token = itemLinkToken(KRIS);
+    expect(ownLineOf(`wts ${token}`)).toBe(`wts ${token}`);
   });
 });
 

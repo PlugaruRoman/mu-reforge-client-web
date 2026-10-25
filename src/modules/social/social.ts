@@ -48,7 +48,7 @@ import {
   splitChatLineAtoms,
   stripEmojiCodes,
 } from '../chat/chatEmojis';
-import { itemLinkLabel, scanItemLinks, stripItemLinks } from '../chat/chatItemLinks';
+import { itemLinkLabel, ownLineOf, scanItemLinks, stripItemLinks } from '../chat/chatItemLinks';
 import { EMOJI_CATALOG } from '../chat/emojis';
 import { clipChatText, toChatWire } from '@/controllers/net/protocols';
 import { chatTextWidth } from '../chat/chatTextWidth';
@@ -674,8 +674,8 @@ export const Social = new (class _Social {
       packet.setReceiverName(whisperTo);
       packet.setMessage(wire);
       Session.sendToGS(packet.buffer);
-      // The original logs an outgoing whisper under the hero's name.
-      this.addChatLine(heroName, text, ChatLineType.Whisper);
+      // The original logs an outgoing whisper under the hero's name; a slot link as its item's name.
+      this.addChatLine(heroName, ownLineOf(text), ChatLineType.Whisper);
       this.remember(this.whisperHistory, whisperTo);
       return true;
     }

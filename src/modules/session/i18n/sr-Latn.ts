@@ -11,5 +11,7 @@ export default {
   'login.closingOldSession': 'Nalog je još povezan: zatvaram staru sesiju i pokušavam ponovo...',
   'login.tokenRefused': 'Tvoja sačuvana prijava je istekla. Unesi lozinku.',
   'login.tokenUnanswered': 'Server nije odgovorio na sačuvanu prijavu. Unesi lozinku.',
-  'resume.serverListGaveUp': 'Server ne odgovara. Ponovo učitajte stranicu da biste pokušali ponovo.',
+  'connect.reconnecting': 'Ponovno povezivanje sa serverom...',
+  'connect.retryNow': 'Pokušaj sada',
+  'connect.noWorld': 'Lista servera nije mogla da se učita. Ponovni pokušaj...',
 } satisfies Partial<Record<keyof typeof en, string>>;

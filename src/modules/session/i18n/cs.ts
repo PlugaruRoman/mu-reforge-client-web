@@ -11,5 +11,7 @@ export default {
   'login.closingOldSession': 'Účet je stále připojen: ukončuji starou relaci a zkouším to znovu...',
   'login.tokenRefused': 'Tvoje uložené přihlášení vypršelo. Zadej heslo.',
   'login.tokenUnanswered': 'Server na uložené přihlášení neodpověděl. Zadej heslo.',
-  'resume.serverListGaveUp': 'Server neodpovídá. Obnovte stránku a zkuste to znovu.',
+  'connect.reconnecting': 'Znovu se připojuji k serveru...',
+  'connect.retryNow': 'Zkusit znovu',
+  'connect.noWorld': 'Seznam serverů se nepodařilo načíst. Zkouším znovu...',
 } satisfies Partial<Record<keyof typeof en, string>>;

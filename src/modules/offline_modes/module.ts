@@ -1,6 +1,7 @@
 import { defineModule } from '../module';
 import { setHandOverCommand } from '../chat/chatCommands';
 import { Economy } from '../economy/economy';
+import { Hero } from '../hero';
 import { OfflineModes } from './state';
 
 // Reforge only (versions/shared/reforgeOnlyModules.ts): our server's OFF EXP and OFF store hand-overs (/offlevel,
@@ -10,6 +11,7 @@ export default defineModule({
   id: 'offline_modes',
   install() {
     setHandOverCommand('offlevel', () => OfflineModes.offLevel());
-    setHandOverCommand('offstore', () => OfflineModes.askOffStore(Economy.myShopName));
+    // Typed before the stall ever had a title: the hero's name, where the button path has the window's field.
+    setHandOverCommand('offstore', () => OfflineModes.askOffStore(Economy.myShopName || Hero.name));
   },
 });

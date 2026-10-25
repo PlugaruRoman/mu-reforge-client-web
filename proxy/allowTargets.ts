@@ -59,6 +59,11 @@ export function allowTargetsFromEnv(
       ? { error: "ALLOW_TARGETS is unset (NODE_ENV=production): refusing to start an open relay" }
       : { rules: [] };
   }
+  // deploy/reforge/proxy.env.example ships placeholders for the ports that must be read from the
+  // production database; a copied example must refuse to start, not start without the game step.
+  if (/changeme/i.test(raw)) {
+    return { error: "ALLOW_TARGETS still holds a CHANGEME placeholder: fill in the real ports (runbook.md, S2/S7)" };
+  }
   const rules = parseAllowTargets(raw);
   if (!rules.length) {
     return { error: `ALLOW_TARGETS is set but names no target (${JSON.stringify(raw)}): refusing to start an open relay` };

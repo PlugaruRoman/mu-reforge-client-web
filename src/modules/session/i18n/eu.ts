@@ -12,5 +12,7 @@ export default {
     'Kontua oraindik konektatuta dago: saio zaharra ixten eta berriro saiatzen...',
   'login.tokenRefused': 'Gordetako saioa iraungi da. Idatzi zure pasahitza.',
   'login.tokenUnanswered': 'Zerbitzariak ez dio gordetako saioari erantzun. Idatzi zure pasahitza.',
-  'resume.serverListGaveUp': 'Zerbitzariak ez du erantzuten. Kargatu berriro orria berriro saiatzeko.',
+  'connect.reconnecting': 'Zerbitzariarekin berriro konektatzen...',
+  'connect.retryNow': 'Saiatu orain',
+  'connect.noWorld': 'Ezin izan da zerbitzari-zerrenda kargatu. Berriro saiatzen...',
 } satisfies Partial<Record<keyof typeof en, string>>;

@@ -36,6 +36,12 @@ export function installNet(): void {
     Servers.updateServerListRequest();
   });
 
+  // The page shown again, the browser back online: a connect server being re-dialled is dialled at once.
+  EventBus.on('pageVisibilityChanged', visible => {
+    if (visible) Session.retryConnectServerNow();
+  });
+  if (typeof window !== 'undefined') window.addEventListener('online', () => Session.retryConnectServerNow());
+
   EventBus.on('GameServerEntered', bytes => {
     const p = new GameServerEnteredPacket(bytes);
 

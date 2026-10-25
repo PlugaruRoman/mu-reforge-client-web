@@ -5,9 +5,9 @@ import { playUiSound, uiClick } from '@/controllers/sound/sfx';
 import './style.less';
 import { observer } from 'mobx-react-lite';
 import { Servers } from '@/modules/servers';
-import { Session } from '@/modules/session';
+import { maxPasswordLength, Session } from '@/modules/session';
 import { MsgBox } from '@/controllers/interface';
-import { MAX_PASSWORD_LENGTH, MAX_USERNAME_LENGTH } from '@/modules/servers/serverAccounts';
+import { MAX_USERNAME_LENGTH } from '@/modules/servers/serverAccounts';
 import { registerApiUrl, registerUrl } from '@/modules/servers/serverServices';
 import { MuSpriteFrame } from '@/controllers/interface/components/mu_sprite';
 import { MuText, TEXT_COLOR } from '@/controllers/interface/components/mu_text';
@@ -219,7 +219,7 @@ export const LoginPage = observer(() => {
               onChange={e => {
                 Session.password = e.target.value;
               }}
-              maxLength={MAX_PASSWORD_LENGTH}
+              maxLength={maxPasswordLength()}
               style={{ paddingLeft: TEXT_INSET_X, paddingTop: TEXT_INSET_Y }}
             />
           </MuSpriteFrame>

@@ -135,6 +135,17 @@ describe('allowTargetsFromEnv', () => {
     expect('error' in allowTargetsFromEnv(':44406')).toBe(true);
   });
 
+  it('refuses the CHANGEME placeholders of proxy.env.example, wherever they are', () => {
+    for (const raw of [
+      'play.mureforge.com:44406,169.58.146.212:CHANGEME',
+      'play.mureforge.com:44406,CHANGEME_MOLTEN_OS_PORT_1',
+      'play.mureforge.com:44406,169.58.146.212:changeme',
+    ]) {
+      const result = allowTargetsFromEnv(raw, true);
+      expect('error' in result && result.error, raw).toMatch(/CHANGEME/);
+    }
+  });
+
   it('keeps exact matching for a valid list', () => {
     const result = allowTargetsFromEnv('play.mureforge.com:44406, 169.58.146.212:55902');
     expect('rules' in result).toBe(true);

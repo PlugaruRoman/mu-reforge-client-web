@@ -209,6 +209,14 @@ export function wireToLabels(wire: string): { text: string; links: Map<string, s
   return { text: text + wire.slice(at), links };
 }
 
+/**
+ * A sent line as the sender's own log shows it when nothing echoes it back expanded (a whisper): under
+ * `slot` the server only expands the copy it forwards, so the slot tokens show as their names.
+ */
+export function ownLineOf(wire: string): string {
+  return slotLinks() ? wireToLabels(wire).text : wire;
+}
+
 /** A sent line's slot links (`slot`), read back against the hero's inventory for the history keys. */
 function scanSlotLinks(text: string): ItemLinkHit[] {
   const hits: ItemLinkHit[] = [];

@@ -4,7 +4,6 @@ import { useMemo, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { Servers } from '@/modules/servers';
 import { Session } from '@/modules/session';
-import { ConnectionInfoRequestPacket } from '@versions/shared/packets/ConnectServerPackets';
 import {
   ServerConfig,
   type PublishedGameServer,
@@ -95,10 +94,7 @@ export const ServersPage = observer(() => {
       // A named channel replaces the "Ch. 2" the login line falls back to.
       channelName: channel?.name,
     };
-    const packet = ConnectionInfoRequestPacket.createPacket();
-    packet.ServerId = serverId;
-
-    Session.sendToCS(packet.buffer);
+    Servers.getConnectionInfoRequest(serverId);
   };
 
 const leftGroups = groups.slice(0, LEFT_GROUP_MAX);
@@ -157,8 +153,15 @@ const leftGroups = groups.slice(0, LEFT_GROUP_MAX);
   return (
     <div className="servers-page">
       <div className="server-sel-win" style={{ width: WIN_WIDTH, height: WIN_HEIGHT }}>
-        {Session.connectionLost && (
-          <div className="servers-notice">{t('servers.connectionLost')}</div>
+        {Session.csReconnecting ? (
+          <div className="servers-notice">
+            {t('connect.reconnecting')}{' '}
+            <button type="button" className="servers-retry" onClick={() => Session.retryConnectServerNow()}>
+              {t('connect.retryNow')}
+            </button>
+          </div>
+        ) : (
+          Session.connectionLost && <div className="servers-notice">{t('servers.connectionLost')}</div>
         )}
         {groups.length === 0 ? (
           <div className="servers-loading">{t('servers.loading')}</div>

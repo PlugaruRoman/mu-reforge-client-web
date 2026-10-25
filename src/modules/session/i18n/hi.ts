@@ -12,5 +12,7 @@ export default {
     'अकाउंट अभी भी कनेक्टेड है: पुराना सेशन बंद करके फिर से कोशिश कर रहे हैं...',
   'login.tokenRefused': 'आपका सहेजा हुआ लॉगिन पुराना हो गया है। अपना पासवर्ड डालें।',
   'login.tokenUnanswered': 'सर्वर ने सहेजे हुए लॉगिन का जवाब नहीं दिया। अपना पासवर्ड डालें।',
-  'resume.serverListGaveUp': 'सर्वर जवाब नहीं दे रहा है। फिर से कोशिश करने के लिए पेज रीलोड करें।',
+  'connect.reconnecting': 'सर्वर से फिर से जुड़ रहे हैं...',
+  'connect.retryNow': 'अभी फिर कोशिश करें',
+  'connect.noWorld': 'सर्वर सूची लोड नहीं हो सकी। फिर से कोशिश की जा रही है...',
 } satisfies Partial<Record<keyof typeof en, string>>;

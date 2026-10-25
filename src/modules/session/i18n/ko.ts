@@ -11,5 +11,7 @@ export default {
   'login.closingOldSession': '계정이 아직 접속 중입니다. 이전 세션을 닫고 다시 시도하는 중...',
   'login.tokenRefused': '저장된 로그인이 만료되었습니다. 비밀번호를 입력하세요.',
   'login.tokenUnanswered': '서버가 저장된 로그인에 응답하지 않았습니다. 비밀번호를 입력하세요.',
-  'resume.serverListGaveUp': '서버가 응답하지 않습니다. 페이지를 새로 고쳐 다시 시도하세요.',
+  'connect.reconnecting': '서버에 다시 연결하는 중...',
+  'connect.retryNow': '지금 다시 시도',
+  'connect.noWorld': '서버 목록을 불러오지 못했습니다. 다시 시도하는 중...',
 } satisfies Partial<Record<keyof typeof en, string>>;

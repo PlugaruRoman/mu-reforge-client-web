@@ -86,7 +86,8 @@ describe('the quest board (C2 DF)', () => {
     EventBus.emit('QuestBoardList', board(1, [DONE, { ...ACTIVE, current: 300 }, LOCKED]));
     acceptQuest();
     claimQuest();
-    expect(sent()).toEqual([[0xc1, 0x04, 0xdf, 0x03]]);
+    // Every DF 01 (here the refresh after an accept) asks for the active quests again (DF 04, answered by DF 05).
+    expect(sent()).toEqual([[0xc1, 0x04, 0xdf, 0x04], [0xc1, 0x04, 0xdf, 0x03]]);
 
     EventBus.emit('QuestBoardActiveList', board(5, [ACTIVE]));
     expect(S.QuestBoard.active.map(q => q.name)).toEqual(['Budge Dragons']);

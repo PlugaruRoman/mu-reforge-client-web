@@ -11,5 +11,7 @@ export default {
   'login.closingOldSession': 'Compte encore connecté : fermeture de l’ancienne session et nouvel essai...',
   'login.tokenRefused': 'Votre connexion enregistrée a expiré. Saisissez votre mot de passe.',
   'login.tokenUnanswered': 'Le serveur n’a pas répondu à la connexion enregistrée. Saisissez votre mot de passe.',
-  'resume.serverListGaveUp': 'Le serveur ne répond pas. Rechargez la page pour réessayer.',
+  'connect.reconnecting': 'Reconnexion au serveur...',
+  'connect.retryNow': 'Réessayer maintenant',
+  'connect.noWorld': 'Impossible de charger la liste des serveurs. Nouvel essai...',
 } satisfies Partial<Record<keyof typeof en, string>>;

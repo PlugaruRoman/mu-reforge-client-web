@@ -49,6 +49,9 @@ export const gameVersion: GameVersion = {
     // Our server expands `\x01` slot `\x02` from the sender's inventory and drops any other token
     // (S GameServer/MessageHandler/ChatItemLinkExpander.cs), as our C++ client sends it.
     chatItemLinks: 'slot',
+    // Our client's 60-byte login (20-byte password): a 50-byte short login is read with the long
+    // layout by the server, which then misses the 20404 version (contract.ts loginPacket).
+    loginPacket: 'long',
   },
   // `marketplace` sends Babylon's escrow request, C1 E7 01, which our server reads as its
   // anti-cheat GuardDetectionReport (S GameServer/MessageHandler/AntiCheat/GuardDetectionReportHandlerPlugIn.cs).

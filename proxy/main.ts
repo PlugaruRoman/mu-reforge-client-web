@@ -1,6 +1,6 @@
 import type { Server, ServerWebSocket, Socket } from "bun";
 import { CLEAR, currentWeather, weatherForced, weatherPacket, weatherSlotSeconds, type WeatherState } from "./weather";
-import { ConnectionPresence, PRESENCE_HOST, PRESENCE_PORT, startPresenceServer } from "./presence";
+import { ConnectionPresence, PRESENCE_ENABLED, PRESENCE_HOST, PRESENCE_PORT, startPresenceServer } from "./presence";
 import { allowTargetsFromEnv, targetAllowed, type ReservedTarget } from "./allowTargets";
 import { SESSION_NONCE_RE } from "../src/controllers/net/sessionNonce";
 import { ADMIN_STREAM_PATH, type RefusalReason } from "../src/controllers/net/protocols/adminProtocol";
@@ -23,6 +23,7 @@ import {
   relayLimitsFromEnv,
   resolveClientAddress,
   TokenBucket,
+  upgradeHoldingSlot,
 } from "./relayLimits";
 import { RelayPipe, type TcpEnd } from "./relayPipe";
 import { proxyProtocolFromEnv, proxyV2Header, type ProxyProtocolMode } from "./proxyProtocol";
@@ -99,7 +100,7 @@ const TRUSTED_PROXIES = required(() => parseTrustedProxies(process.env.TRUSTED_P
  */
 const PROXY_PROTOCOL: ProxyProtocolMode = required(() => proxyProtocolFromEnv(process.env.PROXY_PROTOCOL));
 
-const ipSockets = new IpSocketCounter(LIMITS.maxSocketsPerIp);
+const ipSockets = new IpSocketCounter(LIMITS.maxSocketsPerIp, LIMITS.maxSocketsTotal);
 
 /**
  * Where the presence server listens - the same variables and defaults
@@ -175,7 +176,9 @@ const LOG_PACKETS = (process.env.LOG_PACKETS ?? "on") !== "off";
 console.log(
   `limits: payload ${LIMITS.maxPayloadLength} B, ws backpressure ${LIMITS.backpressureLimit} B, idle ${LIMITS.idleTimeout} s, ` +
     `tcp queue ${LIMITS.tcpQueueLimit} B, pre-open ${LIMITS.preOpenLimit} B, connect ${LIMITS.connectTimeoutSeconds} s, ` +
-    `${LIMITS.messageRate || "unlimited"} frames/s (burst ${LIMITS.messageBurst}), ${LIMITS.maxSocketsPerIp || "unlimited"} sockets/ip; ` +
+    `${LIMITS.messageRate || "unlimited"} frames/s (burst ${LIMITS.messageBurst}), ` +
+    `${LIMITS.byteRate || "unlimited"} B/s (burst ${LIMITS.byteBurst}), ` +
+    `${LIMITS.maxSocketsPerIp || "unlimited"} sockets/ip, ${LIMITS.maxSocketsTotal || "unlimited"} sockets total; ` +
     `proxy protocol ${PROXY_PROTOCOL}`
 );
 
@@ -191,10 +194,13 @@ type RelayData = {
   pipe: RelayPipe | null;
   /** Frames this browser may still send (CLIENT_MSG_RATE / CLIENT_MSG_BURST). */
   bucket: TokenBucket;
+  /** Bytes this browser may still send (CLIENT_BYTE_RATE / CLIENT_BYTE_BURST). */
+  byteBucket: TokenBucket;
   connectTimer: ReturnType<typeof setTimeout> | null;
   /** Why the proxy itself closed the websocket, for the close log line. */
   closeNote: string | null;
-  presence: ConnectionPresence;
+  /** The login sniffer; null with `PRESENCE=off`, so nothing is copied or decrypted for it. */
+  presence: ConnectionPresence | null;
   track: TrackedSession | null;
   /** This socket as the band relay knows it; set in `open`, null without tracking. */
   band: BandPeer | null;
@@ -454,38 +460,50 @@ Bun.serve<WebSocketData>({
     // Who this is, for the per-address cap, the logs and the PROXY header. Counted before the
     // upgrade and released in `close` (or right below when the upgrade fails).
     const client = resolveClientAddress(TRUSTED_PROXIES, server.requestIP(req), req.headers.get("x-real-ip"));
-    if (!ipSockets.acquire(client.ip)) {
+    const refusal = ipSockets.tryAcquire(client.ip);
+    if (refusal === "ip") {
       console.warn(`refused ip=${client.ip}: ${ipSockets.count(client.ip)} sockets open (MAX_SOCKETS_PER_IP)`);
       return new Response("too many connections", { status: 429 });
     }
-
-    const presence = new ConnectionPresence(session, targetPort);
-    const track = tracker ? tracker.open(session, targetPort) : null;
-
-    const data: RelayData = {
-      kind: "relay",
-      targetHost,
-      targetPort,
-      clientIp: client.ip,
-      clientPort: client.port,
-      pipe: null,
-      bucket: new TokenBucket(LIMITS.messageRate, LIMITS.messageBurst),
-      connectTimer: null,
-      closeNote: null,
-      presence,
-      track,
-      band: null,
-      ping: null,
-    };
-
-    // upgrade the request to a WebSocket
-    if (server.upgrade(req, { data })) {
-      return; // do not return a Response
+    if (refusal === "total") {
+      console.warn(`refused ip=${client.ip}: ${ipSockets.total} sockets open in total (MAX_SOCKETS_TOTAL)`);
+      return new Response("relay full, try again later", { status: 503 });
     }
 
-    ipSockets.release(client.ip);
-    presence.close();
-    if (track) tracker?.close(track);
+    // From here the slot is counted. Only a successful upgrade hands it to `close`; any other way
+    // out - a failed upgrade, or a throw in the presence or tracker constructors - gives it back
+    // here, or the address (and the total) would leak a slot for the life of the process.
+    let presence: ConnectionPresence | null = null;
+    let track: TrackedSession | null = null;
+    const upgraded = upgradeHoldingSlot(ipSockets, client.ip, () => {
+      presence = PRESENCE_ENABLED ? new ConnectionPresence(session, targetPort) : null;
+      track = tracker ? tracker.open(session, targetPort) : null;
+
+      const data: RelayData = {
+        kind: "relay",
+        targetHost,
+        targetPort,
+        clientIp: client.ip,
+        clientPort: client.port,
+        pipe: null,
+        bucket: new TokenBucket(LIMITS.messageRate, LIMITS.messageBurst),
+        byteBucket: new TokenBucket(LIMITS.byteRate, LIMITS.byteBurst),
+        connectTimer: null,
+        closeNote: null,
+        presence,
+        track,
+        band: null,
+        ping: null,
+      };
+
+      // upgrade the request to a WebSocket
+      return server.upgrade(req, { data });
+    }, () => {
+      (presence as ConnectionPresence | null)?.close();
+      const opened = track as TrackedSession | null;
+      if (opened) tracker?.close(opened);
+    });
+    if (upgraded) return; // do not return a Response
     return new Response("Upgrade failed :(", { status: 500 });
   },
   websocket: {
@@ -582,10 +600,13 @@ Bun.serve<WebSocketData>({
 
             // The server's side of the login: the sniffer names a socket only
             // once the game server has said yes, never off the client's own
-            // claim. Same copy discipline as the other direction.
-            const copy = new Uint8Array(bytes);
-            const confirmed = relay.data.presence.feedFromServer(copy);
+            // claim. Same copy discipline as the other direction - and no copy
+            // at all when neither sniffer is on (the production setting).
+            const presence = relay.data.presence;
             const track = relay.data.track;
+            if (!presence && !track) return;
+            const copy = new Uint8Array(bytes);
+            const confirmed = presence ? presence.feedFromServer(copy) : null;
             if (track) {
               if (confirmed) track.setAccount(confirmed);
               track.feedServer(copy);
@@ -658,6 +679,16 @@ Bun.serve<WebSocketData>({
         return;
       }
 
+      // Frames alone let a socket push CLIENT_MSG_RATE x WS_MAX_PAYLOAD a second into the game
+      // server (which decrypts a C3/C4 before its own flood guard counts it); bytes are the cost.
+      const size = typeof message === "string" ? Buffer.byteLength(message) : message.byteLength;
+      if (!relay.data.byteBucket.take(size)) {
+        console.warn(`rate limit ip=${relay.data.clientIp}: over ${LIMITS.byteRate} bytes/s, closing`);
+        relay.data.closeNote = "byte rate limit";
+        relay.close(CLOSE_POLICY, "too much data");
+        return;
+      }
+
       // A band frame is the proxy's while `BAND` is on (relayed, or swallowed
       // without the tracker); with `BAND=off` C1 FA goes to the game server
       // (Mu Reforge's Item Collections, clientFrames.ts). A ping frame is always
@@ -690,9 +721,10 @@ Bun.serve<WebSocketData>({
 
       // After the write, and on its own copy: the sniffer decrypts in place
       // and must never touch what goes to the game server.
-      if (typeof forwarded !== "string") {
+      // No copy at all when neither sniffer is on (the production setting).
+      if (typeof forwarded !== "string" && (relay.data.presence || relay.data.track)) {
         const copy = new Uint8Array(forwarded);
-        relay.data.presence.feed(copy);
+        relay.data.presence?.feed(copy);
         relay.data.track?.feedClient(copy);
       }
     },
@@ -706,21 +738,25 @@ Bun.serve<WebSocketData>({
       }
 
       const relay = ws as ServerWebSocket<RelayData>;
+      const pipe = relay.data.pipe;
+      // The pipe and the slot first, each released whatever the sniffers below throw: a TCP socket
+      // left open or a slot never given back would outlive this websocket for good.
+      try {
+        if (relay.data.connectTimer) clearTimeout(relay.data.connectTimer);
+        relay.data.connectTimer = null;
+        // Ends the TCP socket, or marks the pipe closed so a socket still connecting is ended on open.
+        pipe?.clientClosed();
+      } finally {
+        ipSockets.release(relay.data.clientIp);
+      }
+
       clients.delete(relay);
-      relay.data.presence.close();
+      relay.data.presence?.close();
       // Before the tracker closes the session: the gone / leave notices
       // still need its map and scope.
       if (relay.data.band) band?.detach(relay.data.band);
       if (relay.data.ping) ping?.detach(relay.data.ping);
       if (relay.data.track) tracker?.close(relay.data.track);
-
-      if (relay.data.connectTimer) clearTimeout(relay.data.connectTimer);
-      relay.data.connectTimer = null;
-
-      const pipe = relay.data.pipe;
-      // Ends the TCP socket, or marks the pipe closed so a socket still connecting is ended on open.
-      pipe?.clientClosed();
-      ipSockets.release(relay.data.clientIp);
 
       const reason = relay.data.closeNote ?? pipe?.reason ?? "client closed";
       console.log(

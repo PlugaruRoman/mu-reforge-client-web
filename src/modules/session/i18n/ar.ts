@@ -11,5 +11,7 @@ export default {
   'login.closingOldSession': 'الحساب ما زال متصلا: جار إغلاق الجلسة القديمة والمحاولة مجددا...',
   'login.tokenRefused': 'انتهت صلاحية تسجيل الدخول المحفوظ. أدخل كلمة المرور.',
   'login.tokenUnanswered': 'لم يستجب الخادم لتسجيل الدخول المحفوظ. أدخل كلمة المرور.',
-  'resume.serverListGaveUp': 'الخادم لا يستجيب. أعد تحميل الصفحة للمحاولة مرة أخرى.',
+  'connect.reconnecting': 'جارٍ إعادة الاتصال بالخادم...',
+  'connect.retryNow': 'أعد المحاولة الآن',
+  'connect.noWorld': 'تعذّر تحميل قائمة الخوادم. جارٍ إعادة المحاولة...',
 } satisfies Partial<Record<keyof typeof en, string>>;

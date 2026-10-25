@@ -11,5 +11,7 @@ export default {
   'login.closingOldSession': 'Contul este încă conectat: se închide sesiunea veche și se reîncearcă...',
   'login.tokenRefused': 'Autentificarea salvată a expirat. Introdu parola.',
   'login.tokenUnanswered': 'Serverul nu a răspuns la autentificarea salvată. Introdu parola.',
-  'resume.serverListGaveUp': 'Serverul nu răspunde. Reîncarcă pagina pentru a încerca din nou.',
+  'connect.reconnecting': 'Reconectare la server...',
+  'connect.retryNow': 'Reîncearcă acum',
+  'connect.noWorld': 'Lista de servere nu a putut fi încărcată. Se reîncearcă...',
 } satisfies Partial<Record<keyof typeof en, string>>;

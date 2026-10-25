@@ -11,5 +11,7 @@ export default {
   'login.closingOldSession': 'Акаунтът още е в играта: затваряне на старата сесия и нов опит...',
   'login.tokenRefused': 'Запазеният вход е изтекъл. Въведи паролата си.',
   'login.tokenUnanswered': 'Сървърът не отговори на запазения вход. Въведи паролата си.',
-  'resume.serverListGaveUp': 'Сървърът не отговаря. Презаредете страницата, за да опитате отново.',
+  'connect.reconnecting': 'Повторно свързване със сървъра...',
+  'connect.retryNow': 'Опитай сега',
+  'connect.noWorld': 'Списъкът със сървъри не може да се зареди. Нов опит...',
 } satisfies Partial<Record<keyof typeof en, string>>;

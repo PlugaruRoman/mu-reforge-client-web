@@ -116,6 +116,15 @@ proxy   --tcp----> 169.58.207.145:<OS port>           Inferno game servers (ids 
 2. The wave-4 game server release (connect server exempt-address list, PROXY protocol v2 with
    `TrustedProxies`) is live on **both** realms, deployed by `DEPLOY-FLOW.md` section 2. A closed
    beta may start before it; the public link waits for it (S3.4 explains what is missing without it).
+
+> **Gate for the public link** (a closed beta with known testers may run without it):
+> 1. **PROXY v2 is live** (S11 done on both realms, W11 shows your home address, not `WEB_VPS_IP`);
+> 2. **the `WEB_VPS_IP` exemptions are removed** from Abuse Protection -> Login Ip Exempt Addresses
+>    and Maximum Connections Per IP on both realms (S11 step 5). Until then one attacker behind the
+>    proxy gets 120x the login-guess budget of a direct client and can lock any account by name;
+> 3. Cloudflare in front of `web.` and `ws.` ("Cloudflare", below) - recommended, not required.
+>
+> Nobody posts the link before 1 and 2 are checked off.
 3. A real account to test with (prod has no test accounts) - your own, on a character that may be
    online for a minute.
 4. Commands go **one block at a time**: paste a block, wait for its output, then the next. On the
@@ -211,6 +220,26 @@ ufw status verbose
 Docker's published ports bypass ufw (they are NAT rules in front of `INPUT`); that is why
 `compose.yml` publishes on `127.0.0.1` only. Never publish a container on `0.0.0.0` here.
 
+**Per-source caps on 443.** nginx's `limit_conn`/`limit_req` count a request only once its headers
+are in; idle TCP connections and slow TLS handshakes are capped only by the kernel. Two rules in
+ufw's own `before.rules` (so `ufw reload` keeps them): at most 256 open connections per source
+address on 443 (30 websockets + an HTTP/2 page load + headroom), and at most 60 new ones a second
+(burst 120). A browser opens a handful; only a flood comes near either:
+
+```bash
+cp /etc/ufw/before.rules /etc/ufw/before.rules.bak-$(date +%F)
+grep -q 'mureforge-443' /etc/ufw/before.rules || sed -i '/^# End required lines/a\
+# mureforge-443: per-source caps on new HTTPS connections (runbook.md, P4)\
+-A ufw-before-input -p tcp --dport 443 --syn -m connlimit --connlimit-above 256 --connlimit-mask 32 -m comment --comment mureforge-443 -j REJECT --reject-with tcp-reset\
+-A ufw-before-input -p tcp --dport 443 --syn -m hashlimit --hashlimit-name mureforge-443 --hashlimit-mode srcip --hashlimit-above 60/sec --hashlimit-burst 120 -m comment --comment mureforge-443 -j DROP' /etc/ufw/before.rules
+ufw reload
+iptables -S ufw-before-input | grep mureforge-443
+```
+
+Expected: the two rules. Rollback: `cp /etc/ufw/before.rules.bak-<date> /etc/ufw/before.rules && ufw reload`.
+**With Cloudflare in front** ("Cloudflare", below) every browser arrives from a few Cloudflare
+addresses, and these per-source caps would throttle Cloudflare itself: remove them in that step.
+
 ### P5. Base packages, time, swap, unattended upgrades, fail2ban
 
 ```bash
@@ -300,18 +329,29 @@ docker version --format '{{.Server.Version}}'; docker compose version
 
 ### P7. nginx: connections and the default site
 
-Ubuntu's nginx allows 768 connections per worker. The relay alone may hold 3000 websockets, each
-two connections (client + upstream), plus the static site:
+Ubuntu's nginx allows 768 connections per worker. The relay alone may hold 2000 websockets, each
+two connections (client + upstream), plus the static site. The listen backlog of 4096
+(`mureforge-webclient-http.conf`) only takes effect when the kernel allows that much
+(`net.core.somaxconn`; SYN cookies stay on, Ubuntu's default):
 
 ```bash
 sed -i 's/^\(\s*worker_connections\s\+\)[0-9]\+;/\116384;/' /etc/nginx/nginx.conf
 grep -q '^worker_rlimit_nofile' /etc/nginx/nginx.conf || sed -i '/^worker_processes/a worker_rlimit_nofile 65536;' /etc/nginx/nginx.conf
-grep -nE 'worker_(processes|connections|rlimit_nofile)|server_tokens' /etc/nginx/nginx.conf
+grep -nE 'worker_(processes|connections|rlimit_nofile)|server_tokens|keepalive_timeout' /etc/nginx/nginx.conf
+cat > /etc/sysctl.d/91-mureforge-net.conf <<'EOF'
+net.core.somaxconn = 4096
+net.ipv4.tcp_max_syn_backlog = 4096
+net.ipv4.tcp_syncookies = 1
+EOF
+sysctl --system >/dev/null; sysctl net.core.somaxconn net.ipv4.tcp_syncookies
 rm -f /etc/nginx/sites-enabled/default
 nginx -v; nginx -t
 ```
 
-Expected: `worker_connections 16384;`, `worker_rlimit_nofile 65536;`, nginx 1.24 (24.04's).
+Expected: `worker_connections 16384;`, `worker_rlimit_nofile 65536;`, nginx 1.24 (24.04's),
+`net.core.somaxconn = 4096`, `net.ipv4.tcp_syncookies = 1`. Our vhosts set `keepalive_timeout`,
+`client_header_timeout` and friends per server, so a `keepalive_timeout 65;` in `nginx.conf` may
+stay (the server value wins).
 Removing `default` matters: it is a `default_server` on `[::]:80` and `:80`; our own catch-all
 (W7) replaces it. `systemctl reload nginx` comes with W7.
 
@@ -350,6 +390,23 @@ JOIN config."GameServerDefinition" g ON g."Id" = e."GameServerDefinitionId"
 JOIN config."GameClientDefinition" c ON c."Id" = e."ClientId"
 ORDER BY g."ServerID", e."NetworkPort";
 
+-- The same, filtered to the client the web client speaks (Season 106 = "Season 6 Episode 3 Open
+-- Source Client", version 20404) and ready to paste: the published port is the alternative one
+-- when it is set. One line, three ports - these replace Molten's CHANGEME in proxy.env (W4).
+SELECT string_agg(
+         (CASE WHEN e."AlternativePublishedPort" > 0 THEN e."AlternativePublishedPort"
+               ELSE e."NetworkPort" END)::text, ',' ORDER BY g."ServerID") AS os_ports,
+       count(*) AS servers
+FROM config."GameServerEndpoint" e
+JOIN config."GameServerDefinition" g ON g."Id" = e."GameServerDefinitionId"
+JOIN config."GameClientDefinition" c ON c."Id" = e."ClientId"
+WHERE c."Season" = 106 AND c."Episode" = 3;
+
+-- The chat server's port (friend chat rooms; the web client always dials 55980).
+SELECT ce."NetworkPort", c."Description" AS client
+FROM config."ChatServerEndpoint" ce
+LEFT JOIN config."GameClientDefinition" c ON c."Id" = ce."ClientId";
+
 -- Connect servers: the Open Source one listens on 44406.
 SELECT "ServerId", "Description", "ClientListenerPort",
        "CheckMaxConnectionsPerAddress", "MaxConnectionsPerAddress", "MaxConnections"
@@ -368,8 +425,11 @@ fail2ban-client get authelia ignoreip
 ```
 
 Write down:
-- the three `NetworkPort`s of the rows whose client is **Season 6 Episode 3 Open Source Client**
-  (if `AlternativePublishedPort` is non-zero, that is the published one) - Molten's OS ports;
+- the `os_ports` line (`servers` = 3) - Molten's OS ports. It must agree with the rows of the
+  first query whose client is **Season 6 Episode 3 Open Source Client**. The server assigns ports
+  in no fixed order, so never take them from an older note or the example file;
+- the chat server's `NetworkPort`: `55980` (any other value: stop - the web client cannot reach
+  it, `chatRoomProtocol.ts` hard-codes 55980);
 - the `curl` line is Inferno's list as Molten sees it: its OS endpoints are Inferno's OS ports
   (cross-checked in S7);
 - `MaxConnectionsPerAddress` of the 44406 row (default 30) - it stays as it is;
@@ -419,8 +479,13 @@ Write down:
    still apply to web players. Leave the other values at their defaults; the packet limit
    (`PacketsPerSecond` 150 / `PacketBurst` 600) is an estimate - after the release, grep the game
    log for `more than` + `packets` (closed connections) during MU Helper / area-skill play before
-   tightening anything. Once S11 is live the exemption can go: the IP limit then counts real
-   player addresses.
+   tightening anything. Once S11 is live the exemption **must** go (S11 step 5): the IP limit
+   then counts real player addresses.
+7. The wave-4 server release also caps **connections per address that have not logged in yet**
+   (the slot-exhaustion fix; exact plug-in / setting name in
+   `mu-reforge-server/deploy/prod/WEB-CLIENT.md`). Until S11 every web player is `WEB_VPS_IP`, so
+   add `WEB_VPS_IP` to that cap's exempt addresses, or the web players logging in at the same
+   moment share one small budget. Removed again in S11 step 5.
 
 ### S4. Molten: verify the panel wrote it
 
@@ -480,8 +545,8 @@ Requires=docker.service
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=/bin/sh -c 'iptables -C DOCKER-USER -s $WEB_VPS_IP -p tcp -m multiport --dports 44406,55901:55906 -j RETURN 2>/dev/null || iptables -I DOCKER-USER 1 -s $WEB_VPS_IP -p tcp -m multiport --dports 44406,55901:55906 -j RETURN'
-ExecStop=/bin/sh -c 'iptables -D DOCKER-USER -s $WEB_VPS_IP -p tcp -m multiport --dports 44406,55901:55906 -j RETURN 2>/dev/null || true'
+ExecStart=/bin/sh -c 'iptables -C DOCKER-USER -s $WEB_VPS_IP -p tcp -m multiport --dports 44406,55901:55906,55980 -j RETURN 2>/dev/null || iptables -I DOCKER-USER 1 -s $WEB_VPS_IP -p tcp -m multiport --dports 44406,55901:55906,55980 -j RETURN'
+ExecStop=/bin/sh -c 'iptables -D DOCKER-USER -s $WEB_VPS_IP -p tcp -m multiport --dports 44406,55901:55906,55980 -j RETURN 2>/dev/null || true'
 
 [Install]
 WantedBy=multi-user.target
@@ -493,6 +558,88 @@ iptables -S DOCKER-USER | head -5
 `RETURN` hands the packet back to Docker's own chains (the normal path), skipping only what comes
 after it in `DOCKER-USER`. A fail2ban ban inserted later lands **above** it, which is why S5 is not
 optional. The kill switch's `DROP` is inserted at position 1 and always wins.
+
+The ports include the chat server (55980): friend chat rooms of web players open their own socket
+to it, from `WEB_VPS_IP` like everything else.
+
+### S6b. Optional hardening: per-source caps on the game ports (both realms)
+
+Not web-specific, and not needed for the web client to work - but the cheapest attack on the
+game today: before login nothing limits sockets per address, so **one address opening 1000 TCP
+sockets fills a game server** ("The server is full" for everybody) and repeats after the 5-minute
+pre-login timeout. These rules cap every source at **30 concurrent connections** and **30 new
+connections a minute (burst 60)** over all game ports together; `WEB_VPS_IP` and the WireGuard
+peers are exempt first, because every web player arrives as `WEB_VPS_IP` until S11.
+
+> **Warning - shared addresses.** An internet cafe, a university or a mobile carrier's CGNAT puts
+> many players behind ONE address. A desktop player holds 2-3 sockets (connect server, game
+> server, chat), so 30 is about 10 players per address; the 11th gets a connection error that
+> looks like a dead server. Before switching it on, check the game log for addresses with many
+> concurrent players; if a known cafe or carrier shows up, raise 30 (or exempt it with another
+> `RETURN` line) - never just hope. Watch `/cheat-violations` and the player reports the first
+> days, and roll back at the first sign.
+
+Check first that the game container publishes each port on the same number (`DOCKER-USER` sees
+the packet after Docker's DNAT, so it matches the container port):
+
+```bash
+docker port openmu-startup | sort
+```
+
+Every line must read `<p>/tcp -> 0.0.0.0:<p>` (same number both sides). If one does not, stop
+and adapt the port list. Then the unit (same pattern as S6; `ExecStart` is idempotent):
+
+```bash
+cat > /usr/local/sbin/mureforge-game-limits.sh <<EOF
+#!/bin/sh
+# Per-source caps on the game ports (runbook S6b). Rebuilt from scratch on every start.
+P=44405,44406,55901:55906,55980
+iptables -D DOCKER-USER -p tcp -m multiport --dports \$P -j MU-GAME-LIMIT 2>/dev/null
+iptables -F MU-GAME-LIMIT 2>/dev/null || iptables -N MU-GAME-LIMIT
+iptables -A MU-GAME-LIMIT -s $WEB_VPS_IP -j RETURN
+iptables -A MU-GAME-LIMIT -s 10.8.0.0/24 -j RETURN
+iptables -A MU-GAME-LIMIT -s 169.58.146.212 -j RETURN
+iptables -A MU-GAME-LIMIT -s 169.58.207.145 -j RETURN
+iptables -A MU-GAME-LIMIT -p tcp --syn -m connlimit --connlimit-above 30 --connlimit-mask 32 -j REJECT --reject-with tcp-reset
+iptables -A MU-GAME-LIMIT -p tcp --syn -m hashlimit --hashlimit-name mu-game-new --hashlimit-mode srcip --hashlimit-above 30/min --hashlimit-burst 60 -j DROP
+iptables -A MU-GAME-LIMIT -j RETURN
+iptables -I DOCKER-USER 1 -p tcp -m multiport --dports \$P -j MU-GAME-LIMIT
+EOF
+chmod 755 /usr/local/sbin/mureforge-game-limits.sh
+cat /usr/local/sbin/mureforge-game-limits.sh
+```
+
+Read the script back: the first `RETURN` line must carry the real web VPS address, not an empty
+`-s`. Then:
+
+```bash
+cat > /etc/systemd/system/mureforge-game-limits.service <<'EOF'
+[Unit]
+Description=Per-source caps on the MU game ports (DOCKER-USER -> MU-GAME-LIMIT)
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/sbin/mureforge-game-limits.sh
+ExecStop=/bin/sh -c 'iptables -D DOCKER-USER -p tcp -m multiport --dports 44405,44406,55901:55906,55980 -j MU-GAME-LIMIT 2>/dev/null; iptables -F MU-GAME-LIMIT 2>/dev/null; iptables -X MU-GAME-LIMIT 2>/dev/null; true'
+
+[Install]
+WantedBy=multi-user.target
+EOF
+systemctl daemon-reload && systemctl enable --now mureforge-game-limits.service
+iptables -S DOCKER-USER | head -5; iptables -S MU-GAME-LIMIT
+```
+
+Expected: the jump to `MU-GAME-LIMIT` at the top of `DOCKER-USER` (a later fail2ban ban or the
+kill switch's `DROP` inserted at 1 still comes first), and the chain with the four `RETURN`s
+(web VPS, WireGuard, both realm addresses), the
+`connlimit` and the `hashlimit` rule. Players already connected are not touched (the rules match
+only new SYNs). Log in once with the desktop client right after.
+
+**Rollback** (immediate, no restart of anything): `systemctl disable --now mureforge-game-limits.service`,
+then `iptables -S DOCKER-USER | grep -c MU-GAME-LIMIT` must print `0`.
 
 ### S7. Inferno: preflight, ports and plug-ins (read-only)
 
@@ -529,19 +676,21 @@ iptables -S DOCKER-USER
 fail2ban-client get authelia ignoreip
 ```
 
-Inferno's OS ports = the Open Source rows (ids 20-22). They must agree with what Molten's `curl`
-showed in S2.
+Run S2's `os_ports` and chat server queries here too (same SQL). Inferno's OS ports = that
+`os_ports` line (ids 20-22); they replace Inferno's CHANGEME in proxy.env (W4) and must agree with
+what Molten's `curl` showed in S2. The chat server must be `55980` here as well.
 
 ### S8. Inferno: admin panel
 
-`https://panel-x7q2m.inferno.mureforge.com` - S3.1, S3.2, S3.3 and S3.6 exactly as on Molten.
+`https://panel-x7q2m.inferno.mureforge.com` - S3.1, S3.2, S3.3, S3.6 and S3.7 exactly as on Molten.
 Skip S3.4: web players reach Inferno's game servers through **Molten's** connect server. (Only if
 Inferno's connect server is ever added as a fall-back world line in `serverlist.md`: add
 `WEB_VPS_IP` to its exempt list too and `169.58.207.145:44406` to `ALLOW_TARGETS`.)
 
 ### S9. Inferno: verify, fail2ban, DOCKER-USER
 
-S4's SQL (the plug-in half), then S5 verbatim on this box, then S6 only if S7 showed throttles.
+S4's SQL (the plug-in half), then S5 verbatim on this box, then S6 only if S7 showed throttles,
+and S6b if it was done on Molten (both realms the same way).
 
 ### S10. Both realms: what changes with PROXY protocol (later, S11)
 
@@ -575,10 +724,22 @@ players again, and bans or investigations by IP become possible. **Order, strict
    counts web players by their own addresses; its `WEB_VPS_IP` exemption can go. Keep `WEB_VPS_IP`
    in Require Launcher's Exempt Addresses and in the connect server exemption until a week runs
    clean - they cost nothing and are the fallback for step "Rollback of the switch".
+5. **Remove the per-address exemptions that let one attacker hide behind the proxy** - on both
+   panels, the same day as step 4 (this is the public-link gate, "Before you start"):
+   - **Abuse Protection -> Login Ip Exempt Addresses**: remove `WEB_VPS_IP`. The failed-login limit
+     per address then counts each web player's own address (without this, one address behind the
+     proxy gets 120x the guessing budget and can lock any account by name);
+   - **Maximum Connections Per IP -> Exempt Ip Addresses** (if the plug-in is active): remove it;
+   - the **pre-login connection cap per address** (wave-4 server release; see
+     `mu-reforge-server/deploy/prod/WEB-CLIENT.md` for its exact name on the panel): remove
+     `WEB_VPS_IP` from its exempt list.
+   Log in through the web client once more; the game log must show no refusal for your address.
+   If PROXY v2 is ever rolled back, these exemptions must come back **before** the proxy switch
+   (otherwise the 31st failed web login locks every web player for 10 minutes).
 
-Rollback of the switch: `PROXY_PROTOCOL=off` + `docker compose up -d proxy`, and right after it
-Trusted Proxies empty on both panels (again one window: in between web logins fail). Exempt Web
-Sessions may stay on.
+Rollback of the switch: first put `WEB_VPS_IP` back into the exempt lists step 5 removed, then
+`PROXY_PROTOCOL=off` + `docker compose up -d proxy`, and right after it Trusted Proxies empty on
+both panels (again one window: in between web logins fail). Exempt Web Sessions may stay on.
 
 ---
 
@@ -656,14 +817,16 @@ With the values from S2/S7 and the CI run:
 
 ```bash
 nano .env        # WEB_IMAGE / PROXY_IMAGE = ...:sha-<the commit sha>
-nano proxy.env   # ALLOW_TARGETS = the real OS ports of Molten AND Inferno
+nano proxy.env   # ALLOW_TARGETS: each CHANGEME -> the os_ports S2 (Molten) and S7 (Inferno) printed
 grep -E '^(WEB_IMAGE|PROXY_IMAGE)=' .env
 grep -E '^(ALLOW_TARGETS|PROXY_PROTOCOL|LOG_PACKETS|TRACK|ADMIN_OPEN|ADMIN_DEMO|BAND|PING|PRESENCE)=' proxy.env
+grep -c CHANGEME proxy.env
 ```
 
 Expected: both images end in the same `sha-...`; `ALLOW_TARGETS` holds `play.mureforge.com:44406`,
-`169.58.146.212:44406` and three ports per realm IP; `PROXY_PROTOCOL=off` (S11 turns it on); every
-other switch reads `off`.
+`169.58.146.212:44406`, the three `os_ports` of each realm on its IP, and `:55980` on **both**
+realm IPs (the chat server); `PROXY_PROTOCOL=off` (S11 turns it on); every other switch reads
+`off`; the `CHANGEME` count is `0` - the proxy refuses to start while one is left.
 
 ### W5. Registry login
 
@@ -690,7 +853,19 @@ curl -s http://127.0.0.1:8730/server.json; echo
 ```
 
 Both containers `healthy` (give them 30 s). The proxy log shows `allowed targets: play.mureforge.com:44406, ...`,
-`track: off`, `band: off`, `ping: off` and **no** `ALLOW_TARGETS is unset` warning. `build.json` 200;
+`track: off`, `band: off`, `ping: off`, a `limits:` line ending in
+`30 sockets/ip, 2000 sockets total` and **no** `ALLOW_TARGETS is unset` warning. The pinned
+compose network (the proxy believes `X-Real-IP` only from its gateway):
+
+```bash
+docker network inspect mureforge-webclient_default -f '{{range .IPAM.Config}}{{.Subnet}} gw {{.Gateway}}{{end}}'
+docker inspect -f '{{.HostConfig.Memory}}' mureforge-webclient-proxy
+```
+
+Expected `172.31.250.0/24 gw 172.31.250.1` and `3221225472` (3g). If `up` failed with "Pool
+overlaps with other one on this address space", another network took that range: pick a free
+/24, put it and its `.1` gateway into `compose.yml`, and `TRUSTED_PROXIES=127.0.0.1,::1,<that .1>`
+into `proxy.env`. `build.json` 200;
 the sidecar 200 `application/octet-stream` (the Hero Cape's cloth: it proves `Data-reforge/` was
 copied whole and compressed); `server.json` a document with
 `"modulesOff":["band","marketplace"]`.
@@ -803,8 +978,17 @@ did not take (check S4). The same on Inferno after the Inferno login (`P` from I
 `openmu-startup`).
 
 Last, on the web VPS: `docker compose logs --since 10m proxy | grep -E "refused target|tcp connect error"`
-- empty is the good answer. A `refused target 169.58.x.x:559xx` means `ALLOW_TARGETS` lacks a
-port: fix `proxy.env` and `docker compose up -d proxy` (no players yet, so no announcement).
+- empty is the good answer. A `refused target 169.58.x.x:559xx` (or `:55980` - open a friend chat
+room once to test it) means `ALLOW_TARGETS` lacks a port: fix `proxy.env` and
+`docker compose up -d proxy` (no players yet, so no announcement). Then:
+
+```bash
+docker compose logs --since 10m proxy | grep 'client connected' | tail -3
+```
+
+Every line must show `ip=<your home address>`. `ip=172.31.250.1` means the proxy does not
+believe nginx's `X-Real-IP` (TRUSTED_PROXIES and the compose gateway disagree, W6): every web
+player then shares one address for `MAX_SOCKETS_PER_IP` and, after S11, for the game server.
 
 Then fill the address into `mu-reforge-server/deploy/prod/WEB-CLIENT.md` (its settings table)
 and commit it with the next server-repo change.
@@ -825,7 +1009,7 @@ alert to the admin's phone/e-mail:
 | certificate | either URL | expiry warning at 14 days |
 
 `server.json` is answered by Bun itself, so it fails when the proxy is down, not only nginx. It
-shares the relay's per-address request budget (120/min): one check a minute is far below it.
+shares the relay's per-address request budget (60/min): one check a minute is far below it.
 
 ### M2. On the box
 
@@ -842,11 +1026,117 @@ ls /var/run/reboot-required 2>/dev/null && echo "reboot pending - announce, then
 fail2ban-client status sshd | grep 'Currently banned'
 ```
 
-Many 429s from one address on `ws` = a cafe or CGNAT outgrowing 50 sockets (raise it) or a
-flood (leave it). The proxy's memory near `PROXY_MEM` means slow clients are piling up buffered
-data; the proxy's own backpressure limits (proxy.Dockerfile) should cut them first.
+Many 429s from one address on `ws` = a cafe or CGNAT outgrowing 30 sockets (raise
+`limit_conn mu_ws_conn` and `MAX_SOCKETS_PER_IP` together) or a flood (leave it). The proxy's
+memory near `PROXY_MEM` means slow clients are piling up buffered data; the proxy's own limits
+(proxy/relayLimits.ts, the sum in compose.yml) should cut them first. The proxy's own refusals:
+
+```bash
+docker compose logs --since 24h proxy | grep -cE 'rate limit ip='          # frame/byte buckets (1008)
+docker compose logs --since 24h proxy | grep -E 'rate limit ip=' | grep -oE 'ip=[^ :]+' | sort | uniq -c | sort -rn | head
+docker compose logs --since 24h proxy | grep -cE 'MAX_SOCKETS_(PER_IP|TOTAL)'
+```
+
+During the beta a `rate limit` line for a player who was only playing (MU Helper, area skills, a
+long letter) means a limit is too tight: raise `CLIENT_MSG_RATE`/`CLIENT_BYTE_RATE` in
+`proxy.env`, never turn it off.
 
 nginx logs rotate daily (Ubuntu's logrotate, 14 days); container logs by size (`compose.yml`).
+
+---
+
+## Cloudflare (recommended before the public link)
+
+Without it, the web VPS's own address takes every flood: Contabo's protection is basic, and a big
+one ends in a null-route of the box (only the web client goes down - the game and the website are
+other boxes). Cloudflare in front of **both** `web.` and `ws.` absorbs L3/L4/L7 floods, caches
+the ~450 MB of game data (bandwidth, risk R8) and hides the origin address. Both names must be
+proxied: a grey-cloud `ws.` would print the origin address for anyone to flood directly.
+Cloudflare proxies WebSockets on every plan.
+
+Costs: a websocket can be reset when Cloudflare maintains an edge (the player reconnects); one more
+party sees the (weakly encrypted) MU stream; and Cloudflare's terms on serving large non-HTML
+files have to be read for the plan before the cache rule is turned on.
+
+1. **Zone.** Proxying needs the zone's nameservers at Cloudflare. Recreate **every** record of the
+   Contabo zone first (apex, `www`, MX, `api`, `play`, `patch`, `auth`, `panel-*`, the wildcard)
+   as **DNS only** (grey) - the game ports, the patch server and the panels are not HTTP through
+   Cloudflare and must keep their real addresses - then `web` and `ws` as **Proxied** (orange) to
+   `WEB_VPS_IP`. Only then switch the nameservers at the registrar; check with
+   `dig +short play.mureforge.com @1.1.1.1` (still `169.58.146.212`) and
+   `dig +short ws.mureforge.com @1.1.1.1` (a Cloudflare address, no longer `WEB_VPS_IP`).
+2. **TLS: Full (strict).** SSL/TLS -> Overview -> **Full (strict)**; never Flexible (Cloudflare would
+   talk plain HTTP to the origin). The origin keeps a certificate Cloudflare validates: either the
+   Let's Encrypt one, renewed by DNS-01 (certbot's `dns-cloudflare` plugin with an API token for
+   this zone only) because HTTP-01 on port 80 stops working once step 4 closes it, **or** a
+   Cloudflare **Origin Certificate** (SSL/TLS -> Origin Server -> create for `web.mureforge.com`
+   and `ws.mureforge.com`, 15 years), saved as `/etc/ssl/mureforge-cf/origin.pem` and `origin.key`
+   (`chmod 600` the key), with the two `ssl_certificate*` lines of both vhosts pointed at them.
+   SSL/TLS -> Edge Certificates -> **Always Use HTTPS** on.
+3. **Real client address.** Behind Cloudflare `$remote_addr` is a Cloudflare edge - every
+   per-address limit (nginx zones, the proxy's `MAX_SOCKETS_PER_IP`, and with S11 the game
+   server) would key on a handful of edges. nginx takes the client from `CF-Connecting-IP`,
+   **believed only from Cloudflare's published ranges** (anyone else could send the header):
+
+   ```bash
+   { echo "# Cloudflare edges - generated $(date +%F) from cloudflare.com/ips; re-run when they change."
+     for ip in $(curl -fsS https://www.cloudflare.com/ips-v4) $(curl -fsS https://www.cloudflare.com/ips-v6); do
+       echo "set_real_ip_from $ip;"
+     done
+     echo "real_ip_header CF-Connecting-IP;"
+   } > /etc/nginx/conf.d/cloudflare-realip.conf
+   cat /etc/nginx/conf.d/cloudflare-realip.conf | head -3; grep -c set_real_ip_from /etc/nginx/conf.d/cloudflare-realip.conf
+   nginx -t && systemctl reload nginx
+   ```
+
+   The vhosts already set `X-Real-IP $remote_addr`, which now is the browser, so the proxy and
+   PROXY v2 need no change. Check: W11's `client connected ip=` line shows your home address.
+
+   **IPv6.** Cloudflare accepts IPv6 browsers even though the origin is IPv4 only, so
+   `CF-Connecting-IP` can be an IPv6 address - and one subscriber owns a whole /64 to rotate
+   through. Key the nginx zones on the /64: in both vhosts replace `$binary_remote_addr` in the
+   `limit_req_zone`/`limit_conn_zone` lines by `$mu_client_key`, defined once in
+   `/etc/nginx/conf.d/mureforge-clientkey.conf`:
+
+   ```nginx
+   # The first 64 bits of an IPv6 client, the whole address of an IPv4 one.
+   map $remote_addr $mu_client_key {
+       "~^(?<p64>[0-9a-f]{1,4}:[0-9a-f]{1,4}:[0-9a-f]{1,4}:[0-9a-f]{1,4}):" $p64;
+       default $remote_addr;
+   }
+   ```
+
+   (A prefix written with `::` inside its first four groups falls back to the whole address; the
+   per-source firewall of step 4 is Cloudflare's then.) The proxy's per-address cap and, after
+   S11, the game server's limits still count whole IPv6 addresses - the nginx zones are the
+   /64-aware layer.
+4. **Origin firewall: 443 from Cloudflare only.** Nobody else has a reason to reach the box, and a
+   flood aimed at the origin address then dies at ufw:
+
+   ```bash
+   for ip in $(curl -fsS https://www.cloudflare.com/ips-v4); do ufw allow proto tcp from "$ip" to any port 443 comment cloudflare; done
+   ufw delete allow 443/tcp
+   ufw delete allow 80/tcp
+   ufw status numbered | head -30
+   ```
+
+   Then remove P4's per-source caps on 443 (they would now throttle Cloudflare's edges):
+   restore `/etc/ufw/before.rules.bak-<date>` and `ufw reload`. Port 80 stays closed (Cloudflare
+   redirects to HTTPS itself; certificates come from step 2). Re-run this list (and step 3's)
+   when Cloudflare publishes new ranges - check `https://www.cloudflare.com/ips/` monthly.
+5. **Cache.** Rules -> Cache Rules: hostname `web.mureforge.com` and URI path starting with
+   `/Data`, `/game-assets`, `/packs` or `/items` -> eligible for cache, edge TTL "use cache-control
+   header" (the container sends `max-age=86400`; `index.html`, `sw.js`, `build.json` and
+   `serverlist.md` are `no-cache` and stay uncached). Nothing for `ws.`.
+6. **Verify:** W9 and W10 again (through Cloudflare now); a session left idle on the character
+   screen for five minutes must survive (the proxy's websocket pings keep Cloudflare's idle
+   timeout from closing it); W11 shows your own address.
+
+**Never delete the `web` or `ws` record during an attack.** The zone has a wildcard
+`*.mureforge.com` pointing at the **website** box: a deleted `ws` record does not make the name
+disappear, it moves the flood onto the website. To take a name off the internet, point its A
+record at a sink - `192.0.2.1` (TEST-NET, routed nowhere) - and leave it in place; to bring it
+back, point it at `WEB_VPS_IP` again (proxied).
 
 ---
 
@@ -897,6 +1187,8 @@ From mildest to hardest. None touches the game server process.
 1. **Stop the relay** (web VPS): `cd /opt/mureforge-webclient && docker compose stop proxy`. The
    page still loads, nobody can connect; web players in game are disconnected cleanly (TCP close,
    saved by the logout path). Undo: `docker compose start proxy`.
+   (Never by deleting the `web`/`ws` DNS records: the wildcard then sends that traffic to the
+   website box. Point them at the sink `192.0.2.1` instead - "Cloudflare", last paragraph.)
 2. **Take the site down** (web VPS):
    `rm /etc/nginx/sites-enabled/web.mureforge.com.conf /etc/nginx/sites-enabled/ws.mureforge.com.conf && nginx -t && systemctl reload nginx`,
    then level 1. Undo: re-create the two links (W8) and `docker compose start proxy`.
@@ -934,7 +1226,7 @@ From mildest to hardest. None touches the game server process.
   `wss://ws.mureforge.com` (a bot, a modified client behind a TCP-to-WSS shim) plays without
   launcher, without HWID, without Runtime Guard and without the per-machine limit. Mitigations
   here: `ALLOW_TARGETS`, the Origin check (weak: a script forges it), per-address
-  `limit_conn 50` / `limit_req 120r/m`, a 3000-socket ceiling, the proxy's own per-socket limits,
+  `limit_conn 30` / `limit_req 60r/m`, a 2000-socket ceiling, the proxy's own per-socket limits,
   and the server-side limits of wave 4. Watch `/cheat-violations` and the item audit for accounts
   that only ever log in through the web client. The real fix, later: a separate client definition
   (own version bytes, own connect and game ports) for the web client, so the exemption covers only
@@ -982,3 +1274,12 @@ From mildest to hardest. None touches the game server process.
 - 2026-10-24: the web client moves to a **dedicated VPS** (`WEB_VPS_IP`), off the website box;
   host nginx + certbot there; IPv4 only; connect server exempt list instead of 500 for everyone;
   PROXY protocol v2 with `TrustedProxies`, server release first, proxy switch second.
+- 2026-10-24 (DDoS review): proxy buffers cut to 784 KiB per socket worst case with a
+  2000-socket total cap (`MAX_SOCKETS_TOTAL`) and `PROXY_MEM` 3g sized for it; a byte bucket
+  (32 KiB/s, burst 256 KiB) next to the frame bucket (60/s, burst 200); `WS_MAX_PAYLOAD` 16 KiB
+  (largest real frame: a letter, ~1.5 KB); nginx `ws.` 30 sockets / 60 opens a minute per address,
+  2000 total, 10 s header/body timeouts, backlog 4096; `limit_rate 4m` on the game data; the
+  proxy trusts `X-Real-IP` only from the pinned compose gateway 172.31.250.1; `ALLOW_TARGETS`
+  ships as CHANGEME (the OS ports come from the database, plus 55980 on both realms). Public link
+  gated on PROXY v2 + the exemptions removed; Cloudflare recommended before it; per-source caps on
+  the game ports optional (S6b).

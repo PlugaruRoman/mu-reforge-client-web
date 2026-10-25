@@ -11,5 +11,7 @@ export default {
   'login.closingOldSession': '帳號仍在線上：正在關閉舊的連線並重試……',
   'login.tokenRefused': '已儲存的登入資訊已過期，請輸入密碼。',
   'login.tokenUnanswered': '伺服器沒有回應已儲存的登入資訊，請輸入密碼。',
-  'resume.serverListGaveUp': '伺服器沒有回應。請重新載入頁面再試一次。',
+  'connect.reconnecting': '正在重新連線到伺服器...',
+  'connect.retryNow': '立即重試',
+  'connect.noWorld': '無法載入伺服器列表。正在重試...',
 } satisfies Partial<Record<keyof typeof en, string>>;

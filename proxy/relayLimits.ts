@@ -19,9 +19,25 @@ export function envNumber(env: Env, name: string, fallback: number): number {
   return Number.isFinite(value) && value >= 0 ? value : fallback;
 }
 
-/** Every limit the relay applies, with its environment variable and default. */
+/**
+ * Every limit the relay applies, with its environment variable and default.
+ *
+ * Memory: the application buffers one relay socket can pin are at most
+ * `backpressureLimit + tcpQueueLimit + preOpenLimit` = 512 + 256 + 16 KiB = 784 KiB with the
+ * defaults (the pre-open buffer and the TCP queue are one queue at different times, so this
+ * overcounts a little), plus the kernel's socket buffers, which cgroup v2 charges to the
+ * container. `maxSocketsTotal` x that is the worst case the container's memory cap must hold;
+ * deploy/reforge/compose.yml (PROXY_MEM) shows the arithmetic.
+ */
 export interface RelayLimits {
-  /** `WS_MAX_PAYLOAD`: largest frame a browser may send, bytes. A C2 packet is at most 65535. */
+  /**
+   * `WS_MAX_PAYLOAD`: largest frame a browser may send, bytes. The web client sends one game packet
+   * per frame (Session.sendToGS), and its largest is a letter (LetterSendRequest, C4: 84 bytes +
+   * up to 1000 characters, src/modules/friends/messenger.ts) - about 1.5 KB after SimpleModulus
+   * grows it by 11/8, and under 6 KB even if every character took 3 bytes. Chat and whispers are
+   * under 100 bytes, fixed packets at most 261. 16 KiB keeps a wide margin; a C2/C4 can be 65535,
+   * which only a forged stream sends.
+   */
   maxPayloadLength: number;
   /** `WS_BACKPRESSURE_LIMIT`: bytes Bun may hold for one websocket that is not reading; then it is closed. */
   backpressureLimit: number;
@@ -37,21 +53,40 @@ export interface RelayLimits {
   messageRate: number;
   /** `CLIENT_MSG_BURST`: frames one browser may send at once above the rate. */
   messageBurst: number;
-  /** `MAX_SOCKETS_PER_IP`: concurrent relay websockets per client address (0 = no cap). Matches nginx's `limit_conn mu_ws_conn 50` (ws.mureforge.com.conf), so a café behind one address is not refused here first; it is the backstop for whatever reaches Bun without nginx. */
+  /**
+   * `CLIENT_BYTE_RATE`: sustained bytes per second from one browser (0 turns the bucket off). The
+   * frame bucket alone let one socket push rate x WS_MAX_PAYLOAD a second; a real client sends a
+   * few KB/s (walk, attack, skill and ping packets of 5-60 bytes), so 32 KiB/s is a backstop.
+   */
+  byteRate: number;
+  /** `CLIENT_BYTE_BURST`: bytes one browser may send at once above the rate; never below `maxPayloadLength`. */
+  byteBurst: number;
+  /** `MAX_SOCKETS_PER_IP`: concurrent relay websockets per client address (0 = no cap). Matches nginx's `limit_conn mu_ws_conn 30` (ws.mureforge.com.conf), so a café behind one address is not refused here first; it is the backstop for whatever reaches Bun without nginx. */
   maxSocketsPerIp: number;
+  /**
+   * `MAX_SOCKETS_TOTAL`: concurrent relay websockets of all addresses together (0 = no cap). The
+   * backstop to nginx's `limit_conn mu_ws_total 2000`: past it a new socket is refused with 503,
+   * so the memory worst case stays `maxSocketsTotal` x the per-socket buffers above.
+   */
+  maxSocketsTotal: number;
 }
 
 export function relayLimitsFromEnv(env: Env = process.env): RelayLimits {
+  const maxPayloadLength = envNumber(env, "WS_MAX_PAYLOAD", 16 * 1024);
   return {
-    maxPayloadLength: envNumber(env, "WS_MAX_PAYLOAD", 65536),
-    backpressureLimit: envNumber(env, "WS_BACKPRESSURE_LIMIT", 1024 * 1024),
+    maxPayloadLength,
+    backpressureLimit: envNumber(env, "WS_BACKPRESSURE_LIMIT", 512 * 1024),
     idleTimeout: Math.min(960, envNumber(env, "WS_IDLE_TIMEOUT", 120)),
-    tcpQueueLimit: envNumber(env, "TCP_QUEUE_LIMIT", 1024 * 1024),
-    preOpenLimit: envNumber(env, "PRE_OPEN_LIMIT", 64 * 1024),
+    tcpQueueLimit: envNumber(env, "TCP_QUEUE_LIMIT", 256 * 1024),
+    preOpenLimit: envNumber(env, "PRE_OPEN_LIMIT", 16 * 1024),
     connectTimeoutSeconds: envNumber(env, "TCP_CONNECT_TIMEOUT", 10),
-    messageRate: envNumber(env, "CLIENT_MSG_RATE", 100),
+    messageRate: envNumber(env, "CLIENT_MSG_RATE", 60),
     messageBurst: envNumber(env, "CLIENT_MSG_BURST", 200),
-    maxSocketsPerIp: envNumber(env, "MAX_SOCKETS_PER_IP", 50),
+    byteRate: envNumber(env, "CLIENT_BYTE_RATE", 32 * 1024),
+    // A burst below one maximal frame would refuse that frame forever, however slowly it came.
+    byteBurst: Math.max(maxPayloadLength, envNumber(env, "CLIENT_BYTE_BURST", 256 * 1024)),
+    maxSocketsPerIp: envNumber(env, "MAX_SOCKETS_PER_IP", 30),
+    maxSocketsTotal: envNumber(env, "MAX_SOCKETS_TOTAL", 2000),
   };
 }
 
@@ -61,8 +96,9 @@ export const CLOSE_TOO_BIG = 1009;
 export const CLOSE_TRY_LATER = 1013;
 
 /**
- * A token bucket: `burst` tokens, refilled at `rate` per second, one taken per frame. `take()`
- * false means the sender is over its budget. A rate of 0 never refuses.
+ * A token bucket: `burst` tokens, refilled at `rate` per second, `cost` taken per call (1 for the
+ * frame bucket, the frame's size for the byte bucket). `take()` false means the sender is over its
+ * budget, and nothing was taken. A rate of 0 never refuses.
  */
 export class TokenBucket {
   private tokens: number;
@@ -77,39 +113,91 @@ export class TokenBucket {
     this.last = now();
   }
 
-  take(): boolean {
+  take(cost = 1): boolean {
     if (this.rate <= 0) return true;
     const now = this.now();
     const capacity = Math.max(1, this.burst);
     this.tokens = Math.min(capacity, this.tokens + ((now - this.last) / 1000) * this.rate);
     this.last = now;
-    if (this.tokens < 1) return false;
-    this.tokens -= 1;
+    if (this.tokens < cost) return false;
+    this.tokens -= cost;
     return true;
   }
 }
 
-/** Concurrent sockets per client address. `acquire` false = over the cap, nothing counted. */
+/** Which cap refused a socket: the address's own, or the one for all addresses together. */
+export type SocketRefusal = "ip" | "total";
+
+/**
+ * Concurrent sockets per client address and in total. `tryAcquire` null = counted, otherwise the
+ * cap that refused it (nothing counted then). Every counted socket is released exactly once.
+ */
 export class IpSocketCounter {
   private readonly counts = new Map<string, number>();
+  private open = 0;
 
-  constructor(private readonly max: number) {}
+  constructor(
+    private readonly max: number,
+    private readonly maxTotal = 0
+  ) {}
+
+  tryAcquire(ip: string): SocketRefusal | null {
+    if (this.maxTotal > 0 && this.open >= this.maxTotal) return "total";
+    const current = this.counts.get(ip) ?? 0;
+    if (this.max > 0 && current >= this.max) return "ip";
+    this.counts.set(ip, current + 1);
+    this.open++;
+    return null;
+  }
 
   acquire(ip: string): boolean {
-    const current = this.counts.get(ip) ?? 0;
-    if (this.max > 0 && current >= this.max) return false;
-    this.counts.set(ip, current + 1);
-    return true;
+    return this.tryAcquire(ip) === null;
   }
 
   release(ip: string): void {
     const current = this.counts.get(ip) ?? 0;
-    if (current <= 1) this.counts.delete(ip);
+    // A release with nothing counted must not free a slot of the total for somebody else.
+    if (current <= 0) return;
+    if (current === 1) this.counts.delete(ip);
     else this.counts.set(ip, current - 1);
+    this.open--;
+  }
+
+  /** Sockets counted for all addresses together. */
+  get total(): number {
+    return this.open;
   }
 
   count(ip: string): number {
     return this.counts.get(ip) ?? 0;
+  }
+}
+
+/**
+ * The span between counting a socket (`tryAcquire`, already done for `ip`) and the websocket's own
+ * `close` taking over its release. `upgrade` builds the socket's state and upgrades; only `true`
+ * hands the slot on. `false` or a throw releases the slot and runs `undo` (for whatever `upgrade`
+ * had built) before the result or the error goes back - without this an exception in that span
+ * kept the address's count, and the total's, up for the life of the process.
+ */
+export function upgradeHoldingSlot(
+  counter: IpSocketCounter,
+  ip: string,
+  upgrade: () => boolean,
+  undo: () => void = () => {}
+): boolean {
+  let upgraded = false;
+  try {
+    upgraded = upgrade();
+    return upgraded;
+  } finally {
+    if (!upgraded) {
+      try {
+        undo();
+      } finally {
+        counter.release(ip);
+      }
+    }
   }
 }
 
