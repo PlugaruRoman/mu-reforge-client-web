@@ -97,6 +97,36 @@ describe('a page served from a LAN address', () => {
   });
 });
 
+describe('the local world of a build that names its client (VITE_CS_VERSION)', () => {
+  async function build(saved?: object) {
+    vi.resetModules();
+    vi.stubEnv('VITE_CS_VERSION', 'REFORGE');
+    const store = new Map<string, string>(saved ? [['mu_servers', JSON.stringify(saved)]] : []);
+    vi.stubGlobal('localStorage', { getItem: (k: string) => store.get(k) ?? null, setItem: (k: string, v: string) => store.set(k, v), removeItem: (k: string) => store.delete(k) });
+    vi.stubGlobal('location', { search: '', hostname: 'localhost', protocol: 'http:' });
+    return (await import('./serverConfig')).ServerConfig;
+  }
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+  });
+
+  it('seeds the local world with that client', async () => {
+    const config = await build();
+
+    expect(config.profiles.map(p => [p.id, p.version])).toEqual([['local', 'REFORGE']]);
+  });
+
+  it('tags a saved local world that named none, never a typed one', async () => {
+    const typed = { id: 's1', name: 'Mine', csHost: '10.0.0.5', csPort: 44405, wsUrl: 'ws://10.0.0.5:3000', gsAddress: 'auto' };
+    const config = await build({ profiles: [{ ...typed, id: 'local', name: 'Local (OpenMU)' }, typed], activeId: 'local' });
+
+    expect(config.profiles.map(p => [p.id, p.version])).toEqual([['local', 'REFORGE'], ['s1', undefined]]);
+    expect(config.active.version).toBe('REFORGE');
+  });
+});
+
 describe('a pinned build (VITE_PINNED_WORLD)', () => {
   const OURS = '[1:REFORGE:Mu Reforge:Molten x100:en](play.mureforge.com:44406@wss://ws.mureforge.com)';
   const EVIL = '[1:REFORGE:Evil:Phishing:en](evil.example.com:44406@wss://ws.evil.example.com)';

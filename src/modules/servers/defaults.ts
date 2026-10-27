@@ -13,6 +13,12 @@ export const WS_HOST = env.VITE_WS_HOST || 'ws://localhost';
 export const WS_PORT = Number(env.VITE_WS_PORT) || 3000;
 
 /**
+ * `VITE_CS_VERSION` (a list tag, e.g. `REFORGE`): the client the seeded local world is played with.
+ * Unset, it names none and the default version plays it (readme.md).
+ */
+export const CS_VERSION = String(env.VITE_CS_VERSION ?? '').trim();
+
+/**
  * `VITE_PINNED_WORLD=on`: a build that plays one world only, the first line of its own
  * `VITE_SERVER_LIST_URL`. Saved profiles, the seeded local one, the list cache of an unpinned
  * build and every URL override (`?cs=`, `?ws=`, `?list=`, `?version=`, `?server=`, `?gs=`) are

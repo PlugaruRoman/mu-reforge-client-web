@@ -97,6 +97,9 @@ connect server's own list (`Servers.serverList`) is filled by `session/net.ts`.
 - Three layers, highest first: the URL (`?cs=host:port`, `?ws=wss://host:port`, `?server=<name>`;
   an ephemeral profile, never saved), the saved profiles (localStorage, edited by the picker), and
   the build defaults (`VITE_CS_HOST/PORT`, `VITE_WS_HOST/PORT` via `defaults.ts`).
+- `VITE_CS_VERSION` (a list tag) is the client the seeded local world (`id: 'local'`) is played with;
+  a saved local world that names none takes it on load, a typed one never does. Unset, the local world
+  names no version and the default one (Season 6) plays it.
 - `wsUrl` is the proxy's own address; `csHost:csPort` is the connect server as seen from the
   proxy's network. They need not be the same machine.
 

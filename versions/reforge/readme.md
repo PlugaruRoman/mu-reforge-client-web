@@ -40,6 +40,10 @@ plug-ins: the `...Extended` packets and the 5-15 byte `ItemSerializerExtended` i
   (`src/controllers/item_rules/itemCodec.ts`) and moves items with `ItemMoveRequestExtended`
   (C3 07 24, no item bytes).
 - Connect through the Open Source client's connect server, 44406 (the GMO client's is 44405).
+- A local checkout plays our server through the seeded "Local (OpenMU)" world too: `.env.local` sets
+  `VITE_CS_VERSION=REFORGE` beside `VITE_CS_PORT=44406`. Without it that world names no version, so it
+  boots Season 6, which knows none of our numbers: every NPC and monster of ours (650, 763, 765-769,
+  603-612, 714-762) is drawn as the fallback Bull Fighter.
 - `modulesOff`: `marketplace` sends Babylon's escrow request on C1 E7 01, which our server reads
   as its anti-cheat `GuardDetectionReport`. The token login only runs for a world whose
   `server.json` offers it, and our server has none.
@@ -157,7 +161,8 @@ in our client.
   `REPLACED_BY_EXTENDED` and handle the Extended one in its module's `net.ts`.
 
 ## Tests
-- `monsters/monsters.test.ts`: the 78 rows, the 57 own-art GLBs exist, scales, NPCs, names.
+- `monsters/monsters.test.ts`: the 78 rows, the 57 own-art GLBs exist, every row resolves to its own body
+  (never the Bull Fighter fallback) and the stock bodies exist, scales, NPCs, names.
 - `data/data.test.ts`: the two lists match their trees, own files and borrowed ones resolve, every
   terrain file and tile slot of our worlds exists; Season 6's Lorencia / Noria tile lists unchanged,
   ours carry `ExtTile01` at 14 and cover every slot our `.map` paints, every fort model and Noria type

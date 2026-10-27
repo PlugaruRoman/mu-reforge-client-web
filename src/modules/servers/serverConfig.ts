@@ -1,6 +1,6 @@
 import { makeAutoObservable, runInAction } from 'mobx';
 import { LocalStorage } from '../../core/localStorage';
-import { CS_HOST, CS_PORT, PINNED_WORLD, WS_HOST, WS_PORT } from './defaults';
+import { CS_HOST, CS_PORT, CS_VERSION, PINNED_WORLD, WS_HOST, WS_PORT } from './defaults';
 import { versionByTag } from '../../version';
 
 /** Where the client connects: the saved server profiles, the selected one, and the proxy
@@ -260,6 +260,7 @@ function defaultProfile(): ServerProfile {
     // The build defaults describe one machine running OpenMU and the proxy,
     // where the returned address is that same box either way.
     gsAddress: 'auto',
+    ...(CS_VERSION && { version: CS_VERSION }),
   };
 }
 
@@ -378,7 +379,8 @@ function load(): StoredState {
     const base = defaultProfile();
     const profiles = (data.profiles ?? [])
       .filter((p): p is ServerProfile => !!p && typeof p === 'object')
-      .map(p => sanitizeProfile(p, { ...base, id: p.id || base.id }));
+      // Only the seeded world takes the build's version; a typed one names none.
+      .map(p => sanitizeProfile(p, (p.id || base.id) === base.id ? base : { ...base, id: p.id, version: undefined }));
 
     // Saving nothing is a state of its own on a client whose worlds come from
     // the published list, so an empty array is kept rather than re-seeded - and

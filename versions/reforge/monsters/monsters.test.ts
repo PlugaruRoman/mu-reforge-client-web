@@ -3,6 +3,7 @@ import { resolve } from 'path';
 import { describe, expect, it } from 'vitest';
 import { monsterRegistry } from '@/controllers/monsters';
 import { monsterModelFile } from '@/controllers/actors/monsterModelTable';
+import { isKnownObjectType, resolveModelFactory } from '@/controllers/actors/modelFactoryPerId';
 import { reforgeMonsters } from './all';
 
 const ROOT = resolve(__dirname, '../../..');
@@ -41,6 +42,17 @@ describe('reforge monsters', () => {
     const npcs = reforgeMonsters.filter(m => m.npc).map(m => m.Numb).sort((a, b) => a - b);
     expect(npcs).toEqual([650, 763, 765, 766, 767, 769]);
     expect(monsterRegistry.def(523)?.hidden).toBe(true);
+  });
+
+  it('resolves every number the scope packet brings to its own body, never the Bull Fighter fallback', () => {
+    const fallback = resolveModelFactory(-1);
+    const unresolved = reforgeMonsters.filter(m => !isKnownObjectType(m.Numb) || (!m.hidden && resolveModelFactory(m.Numb) === fallback));
+    expect(unresolved.map(m => m.Numb)).toEqual([]);
+    // The rows that reuse a stock body find it in Season 6's tree.
+    const stock = reforgeMonsters
+      .flatMap(m => (m.model && m.model.type < 217 ? [monsterModelFile(m.model.type)] : []))
+      .filter(file => !existsSync(resolve(ROOT, 'public/game-assets', file)));
+    expect(stock).toEqual([]);
   });
 
   it('names every type, with or without a language pack', () => {
