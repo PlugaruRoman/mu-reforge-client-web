@@ -142,7 +142,8 @@ export const Session = new (class {
     timer: ReturnType<typeof setTimeout> | null;
   } | null = null;
 
-  isOffline = location.href.includes('offline');
+  // The offline demo is its own page (/offline); a query or a hash naming 'offline' is not it.
+  isOffline = /\/offline\/?$/.test(location.pathname);
 
   playOnline() {
     // Direct login (`servers/directLogin.ts`): no server list; the login waits for the first channel.

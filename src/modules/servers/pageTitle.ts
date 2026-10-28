@@ -11,8 +11,11 @@ import { ServerConfig } from './serverConfig';
  * The one writer of `document.title`.
  */
 
-/** Also the installed app's name, in `public/manifest.webmanifest`. */
-const CLIENT_NAME = 'OpenMUCB';
+/**
+ * Also the installed app's name, in `public/manifest.webmanifest`. `VITE_APP_NAME` renames a build
+ * (`Mu Reforge`); vite.config.ts writes the same name into index.html and the manifest.
+ */
+const CLIENT_NAME = (import.meta.env.VITE_APP_NAME as string | undefined)?.trim() || 'OpenMUCB';
 
 /** A published name is capped at 60 chars; a typed one is not. */
 const MAX_SERVER_NAME = 60;

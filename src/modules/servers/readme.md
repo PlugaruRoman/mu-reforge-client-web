@@ -30,7 +30,8 @@ connect server's own list (`Servers.serverList`) is filled by `session/net.ts`.
 - `validateSignup(signup)` and the length limits (`registerRules.ts`); `isReservedName(name)`.
 - `liteAssetsAllowed()`, `liteAssetsReady()` (`liteAssets.ts`): the lighter-assets gate.
 - `watchPageTitle()` (`pageTitle.ts`, was `controllers/interface/`): the one writer of `document.title`,
-  the world's name from the character list on; `boot.tsx` starts it.
+  the world's name from the character list on, the build's `VITE_APP_NAME` (default `OpenMUCB`) before;
+  `boot.tsx` starts it.
 
 ## How it works
 - A profile is a proxy address (`wsUrl`) plus the connect server as the proxy reaches it
@@ -38,6 +39,8 @@ connect server's own list (`Servers.serverList`) is filled by `session/net.ts`.
   (`proxy/main.ts`), which dials `?host=&port=`.
 - `gameServerTarget` decides whether to trust the game server IP from `ConnectionInfo`: a public IP
   is believed only when the connect server we reached was public too; the loser is the fallback.
+  Port 0 (`TARGET_ALIAS_PORT`) means the proxy rewrote the address to an alias (`PROXY_TARGETS`,
+  `proxy/targetAliases.ts`): it is passed through untouched, with no fallback.
 - `refreshServerList` (called from `boot.tsx`) shows the cached copy first, then fetches
   `serverlist.md` and hands the worlds to `ServerConfig.setListed`.
 - Entering a world (`markPlayed`) fetches its `server.json` (`serverManifest.ts`); `serverSetting`
@@ -50,8 +53,10 @@ connect server's own list (`Servers.serverList`) is filled by `session/net.ts`.
 - `registerRules.ts` and `reservedNames.ts` are engine-free: `register/server/main.ts` and
   `register/src/registerPage.tsx` import them too.
 
-- Pinned build (`VITE_PINNED_WORLD=on`, `defaults.ts`): the first world of `VITE_SERVER_LIST_URL` is the
-  only one and is selected. Saved profiles, the seeded local profile, the unpinned list cache and every
+- Pinned build (`VITE_PINNED_WORLD=on`, `core/buildFlags.ts` `PINNED_BUILD`, re-exported by `defaults.ts`):
+  the first world of `VITE_SERVER_LIST_URL` is the only one and is selected. The preloader's Start enters it
+  (its server select, once the list has arrived), so the worlds card, the setup tab and Play Offline are never
+  shown, and `/offline` boots online. Saved profiles, the seeded local profile, the unpinned list cache and every
   URL override (`?cs=` `?ws=` `?list=` `?version=` `?server=` `?gs=`) are ignored, and nothing is saved
   or editable, so a link on the served domain cannot send a login to another proxy.
 - `gameVersion.serverSettingsOff` forces a `server.json` offer off for a version whose server cannot
@@ -112,8 +117,10 @@ connect server's own list (`Servers.serverList`) is filled by `session/net.ts`.
   `gameVersion.listTag` of a `versions/<id>` folder (`S6EP3`); a world asking for another is shown
   as not playable here. A version token is short, unspaced and has a digit, or is the tag of a version
   this client carries (`REFORGE`).
-- The target is `host:port` (the connect server as the world's proxy reaches it) or the world's
-  domain alone, which uses the convention in `serverServices.ts`.
+- The target is `host:port` (the connect server as the world's proxy reaches it), the world's
+  domain alone, which uses the convention in `serverServices.ts`, or `alias@wss://proxy`: a single
+  lowercase label the proxy resolves (`PROXY_TARGETS`), kept with port 0 so no address or port of
+  the world is ever published. An alias without a `ws(s)://` proxy is dropped.
 - Directly under its line a world may name its game servers (`- 0: Valhalla`, id = `ServerId >> 8`)
   and indented channels (`  - 1: Hard`, the low byte). The first line that is not a name ends the
   block, so examples in the prose never attach to a world.

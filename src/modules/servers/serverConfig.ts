@@ -94,6 +94,22 @@ const UNUSABLE_HOSTS = new Set(['', '0.0.0.0', '255.255.255.255', 'null']);
 /** Hostnames/IPs only - no scheme, path, credentials or spaces. */
 const HOST_RE = /^[A-Za-z0-9._-]+$/;
 
+/**
+ * The port that says "this host is a proxy alias" (proxy/targetAliases.ts). A proxy with
+ * `PROXY_TARGETS` knows its servers by name: the published list names the connect server
+ * `cs@wss://...` and the proxy rewrites `ConnectionInfo` to an alias with port 0, so the browser
+ * never holds a real address or port. The proxy ignores the port of an alias, and no real server
+ * is ever advertised on port 0.
+ */
+export const TARGET_ALIAS_PORT = 0;
+
+/** A proxy alias as the list and the rewritten packets carry it: one lowercase label, no dot. */
+const ALIAS_RE = /^[a-z][a-z0-9-]{0,14}$/;
+
+export function isTargetAlias(host: string): boolean {
+  return ALIAS_RE.test(host) && host !== 'localhost';
+}
+
 function clampPort(value: unknown, fallback: number): number {
   const port = Math.trunc(Number(value));
 
@@ -760,7 +776,12 @@ export function effective(profile: ServerProfile = ServerConfig.active): {
 
   return {
     csHost: normalizeHost(profile.csHost) || fallback.csHost,
-    csPort: clampPort(profile.csPort, fallback.csPort),
+    // A listed alias keeps its port 0 (TARGET_ALIAS_PORT): the default port would only be noise
+    // in the URL, the proxy resolves the name.
+    csPort:
+      profile.listed && profile.csPort === TARGET_ALIAS_PORT && isTargetAlias(profile.csHost)
+        ? TARGET_ALIAS_PORT
+        : clampPort(profile.csPort, fallback.csPort),
     wsUrl: normalizeWsUrl(profile.wsUrl) || fallback.wsUrl,
   };
 }
@@ -873,12 +894,23 @@ function isPublicAddress(host: string): boolean {
  * final: `fallback` is the address that lost, and the store tries it if the
  * winner does not answer. Whichever way the guess goes, both get a turn.
  */
-export function gameServerTarget(returned: string): {
+export function gameServerTarget(
+  returned: string,
+  port?: number
+): {
   host: string;
   fallback: string | null;
 } {
   const { csHost } = effective();
   const address = isUsableHost(returned) ? normalizeHost(returned) : '';
+
+  // A proxy alias (`PROXY_TARGETS`: the proxy rewrote the address to a name and the port to 0) is
+  // opaque: only the proxy knows where it goes, so there is nothing to weigh it against and no
+  // fallback - the connect-server alias would be the wrong server under any port. The policy is
+  // moot too: `csHost` with the alias port is the connect server again.
+  if (port === TARGET_ALIAS_PORT && address && isTargetAlias(address)) {
+    return { host: address, fallback: null };
+  }
 
   if (ServerConfig.active.gsAddress === 'csHost' || !address) {
     return { host: csHost, fallback: null };

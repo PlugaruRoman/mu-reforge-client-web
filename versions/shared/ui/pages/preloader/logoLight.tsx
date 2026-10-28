@@ -17,7 +17,7 @@ export const LogoLight = () => (
     <img
       className="ws-logo-art"
       src={LOGO_ART}
-      alt="OpenMU Babylon"
+      alt={(import.meta.env.VITE_APP_NAME as string | undefined) || 'OpenMU Babylon'}
       draggable={false}
     />
     <img className="ws-logo-bloom" src={GLOW_ART} alt="" draggable={false} />

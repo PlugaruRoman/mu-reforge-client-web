@@ -1,3 +1,5 @@
+import { PINNED_BUILD } from '@/core/buildFlags';
+
 // Connect-server and ws-proxy endpoints - the DEFAULTS only. They seed the
 // first server profile on a fresh install; from then on `serverConfig.ts`
 // owns where the client connects (saved profiles, edited in the start screen's
@@ -24,4 +26,4 @@ export const CS_VERSION = String(env.VITE_CS_VERSION ?? '').trim();
  * build and every URL override (`?cs=`, `?ws=`, `?list=`, `?version=`, `?server=`, `?gs=`) are
  * ignored, so no link on the served domain can send a login somewhere else (readme.md).
  */
-export const PINNED_WORLD = /^(on|1|true|yes)$/i.test(String(env.VITE_PINNED_WORLD ?? '').trim());
+export const PINNED_WORLD = PINNED_BUILD;

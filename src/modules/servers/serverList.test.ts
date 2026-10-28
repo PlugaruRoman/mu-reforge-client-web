@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it, vi } from 'vitest';
 import { listRetryDelay, parseServerLine, parseServerList, refreshServerList } from './serverList';
-import { ServerConfig } from './serverConfig';
+import { effective, ServerConfig } from './serverConfig';
 import { runInAction } from 'mobx';
 
 describe('parseServerLine', () => {
@@ -78,6 +78,30 @@ describe('parseServerLine', () => {
       parseServerLine('[S6EP3:Test:A world:en](1.2.3.4@ws://1.2.3.4)')
     ).toBeNull();
     expect(parseServerLine('[S6EP3:Test:A world:en](localhost)')).toBeNull();
+  });
+
+  // `PROXY_TARGETS` (proxy/targetAliases.ts): the proxy knows the connect
+  // server by name, so the world publishes no address and no port at all.
+  it('reads a connect server named by a proxy alias', () => {
+    const world = parseServerLine(
+      '[1:REFORGE:Mu Reforge:A world:en](cs@wss://ws.mureforge.com)'
+    );
+
+    expect(world).toMatchObject({
+      id: 'list:1',
+      csHost: 'cs',
+      csPort: 0,
+      wsUrl: 'wss://ws.mureforge.com',
+    });
+    expect(world?.domain).toBeUndefined();
+    if (world) expect(effective(world)).toMatchObject({ csHost: 'cs', csPort: 0 });
+  });
+
+  it('drops an alias with no proxy to resolve it, or one that is not a name', () => {
+    expect(parseServerLine('[Test:A world:en](cs)')).toBeNull();
+    expect(parseServerLine('[Test:A world:en](cs@https://ws.example.com)')).toBeNull();
+    expect(parseServerLine('[Test:A world:en](localhost@wss://ws.example.com)')).toBeNull();
+    expect(parseServerLine('[Test:A world:en](Cs_1@wss://ws.example.com)')).toBeNull();
   });
 
   it('drops a proxy that is not a bare ws address', () => {
@@ -194,6 +218,18 @@ describe('serverlist.md', () => {
         expect(`${world.name}/${server.name}`).not.toContain('Valhalla');
       }
     }
+  });
+});
+
+// Mu Reforge's own list (deploy/reforge/serverlist.md): published by proxy
+// alias, so it must parse to a world that carries no address at all.
+describe('deploy/reforge/serverlist.md', () => {
+  const published = parseServerList(readFileSync('deploy/reforge/serverlist.md', 'utf8'));
+
+  it('publishes the world by the proxy alias of its connect server', () => {
+    expect(published).toHaveLength(1);
+    expect(published[0]).toMatchObject({ id: 'list:1', csHost: 'cs', csPort: 0, wsUrl: 'wss://ws.mureforge.com' });
+    expect(JSON.stringify(published[0])).not.toMatch(/\d+\.\d+\.\d+\.\d+|4440\d|559\d\d/);
   });
 });
 

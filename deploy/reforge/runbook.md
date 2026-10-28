@@ -94,7 +94,12 @@ proxy   --tcp----> 169.58.207.145:<OS port>           Inferno game servers (ids 
 - **Proxy features off:** `LOG_PACKETS` (dumps logins), `TRACK` (journals every chat/whisper, GM
   stream), `ADMIN_OPEN`/`ADMIN_DEMO` (dev seams), `BAND` (C1 FA = our Item Collections), `PING`,
   `PRESENCE` (decrypts every login for a cash shop we do not run). The proxy image refuses to start
-  with an empty `ALLOW_TARGETS`.
+  with neither `PROXY_TARGETS` nor `ALLOW_TARGETS`.
+- **No address of ours in the browser:** the proxy knows every target by name (`PROXY_TARGETS`,
+  `cs=169.58.146.212:44406,molten-1=...`). The world list publishes `cs@wss://ws.mureforge.com`,
+  the browser dials `?host=<name>&port=0`, a raw `host:port` is refused (fail closed), and the
+  proxy rewrites the addresses the servers send (ConnectionInfo `C1 F4 03`, ChatRoomConnectionInfo
+  `C3 CA`) into those names before a byte reaches the browser (proxy/addressRewrite.ts).
 - **Connect server: an exemption, not a higher limit.** The 44406 connect server allows 30
   simultaneous sockets per address. All web players share `WEB_VPS_IP`, so it gets listed in the
   connect server's new exempt-address list (server release, wave 4) - `MaxConnectionsPerAddress`
@@ -685,7 +690,8 @@ what Molten's `curl` showed in S2. The chat server must be `55980` here as well.
 `https://panel-x7q2m.inferno.mureforge.com` - S3.1, S3.2, S3.3, S3.6 and S3.7 exactly as on Molten.
 Skip S3.4: web players reach Inferno's game servers through **Molten's** connect server. (Only if
 Inferno's connect server is ever added as a fall-back world line in `serverlist.md`: add
-`WEB_VPS_IP` to its exempt list too and `169.58.207.145:44406` to `ALLOW_TARGETS`.)
+`WEB_VPS_IP` to its exempt list too and a name for `169.58.207.145:44406` to `PROXY_TARGETS`, e.g.
+`cs-inferno=169.58.207.145:44406`, published as `cs-inferno@wss://ws.mureforge.com`.)
 
 ### S9. Inferno: verify, fail2ban, DOCKER-USER
 
@@ -817,16 +823,20 @@ With the values from S2/S7 and the CI run:
 
 ```bash
 nano .env        # WEB_IMAGE / PROXY_IMAGE = ...:sha-<the commit sha>
-nano proxy.env   # ALLOW_TARGETS: each CHANGEME -> the os_ports S2 (Molten) and S7 (Inferno) printed
+nano proxy.env   # PROXY_TARGETS: each CHANGEME -> the os_ports S2 (Molten) and S7 (Inferno) printed
 grep -E '^(WEB_IMAGE|PROXY_IMAGE)=' .env
-grep -E '^(ALLOW_TARGETS|PROXY_PROTOCOL|LOG_PACKETS|TRACK|ADMIN_OPEN|ADMIN_DEMO|BAND|PING|PRESENCE)=' proxy.env
+grep -E '^(PROXY_TARGETS|ALLOW_TARGETS|PROXY_PROTOCOL|LOG_PACKETS|TRACK|ADMIN_OPEN|ADMIN_DEMO|BAND|PING|PRESENCE)=' proxy.env
 grep -c CHANGEME proxy.env
 ```
 
-Expected: both images end in the same `sha-...`; `ALLOW_TARGETS` holds `play.mureforge.com:44406`,
-`169.58.146.212:44406`, the three `os_ports` of each realm on its IP, and `:55980` on **both**
-realm IPs (the chat server); `PROXY_PROTOCOL=off` (S11 turns it on); every other switch reads
-`off`; the `CHANGEME` count is `0` - the proxy refuses to start while one is left.
+Expected: both images end in the same `sha-...`; `PROXY_TARGETS` holds `cs=169.58.146.212:44406`,
+`molten-1..3=169.58.146.212:<os_ports>` and `inferno-1..3=169.58.207.145:<os_ports>` in the
+`ServerID` order the SQL printed, and `chat=169.58.146.212:55980` + `chat-inferno=169.58.207.145:55980`
+(the chat server of **both** realms). The IPs must be exactly the ones the connect server hands
+out (the rewrite looks the advertised `ip:port` up by its literal text). No `ALLOW_TARGETS` line
+(it is not consulted while `PROXY_TARGETS` is set); `PROXY_PROTOCOL=off` (S11 turns it on); every
+other switch reads `off`; the `CHANGEME` count is `0` - the proxy refuses to start while one is
+left, and on any malformed entry, duplicate name or duplicate address.
 
 ### W5. Registry login
 
@@ -852,9 +862,22 @@ curl -s -o /dev/null -w 'gz sidecar %{http_code} %{content_type}\n' http://127.0
 curl -s http://127.0.0.1:8730/server.json; echo
 ```
 
-Both containers `healthy` (give them 30 s). The proxy log shows `allowed targets: play.mureforge.com:44406, ...`,
+Both containers `healthy` (give them 30 s). The proxy log shows `target aliases: cs, molten-1, ... (raw host:port refused, addresses rewritten; chat port 55980)`,
 `track: off`, `band: off`, `ping: off`, a `limits:` line ending in
-`30 sockets/ip, 2000 sockets total` and **no** `ALLOW_TARGETS is unset` warning. The pinned
+`30 sockets/ip, 2000 sockets total` and **no** `ALLOW_TARGETS is unset` warning. A proof that the
+pin fails closed (a raw address must be refused even when it is a real target):
+
+```bash
+curl -s -o /dev/null -w 'raw %{http_code}\n' 'http://127.0.0.1:8730/?host=169.58.146.212&port=44406'
+curl -s -o /dev/null -w 'alias %{http_code}\n' 'http://127.0.0.1:8730/?host=cs&port=0'
+```
+
+Expected `raw 403` and `alias 500` (the alias is accepted; the plain HTTP request is then refused
+only because it is not a websocket handshake, "Upgrade failed"). The world list
+(`serverlist.md`) must already be the `cs@wss://ws.mureforge.com` line - the old
+`play.mureforge.com:44406@...` line is refused now.
+
+The pinned
 compose network (the proxy believes `X-Real-IP` only from its gateway):
 
 ```bash
@@ -977,10 +1000,13 @@ clearance`, `Maximum Connections per IP reached` or `refused` for `WEB_VPS_IP`; 
 did not take (check S4). The same on Inferno after the Inferno login (`P` from Inferno's
 `openmu-startup`).
 
-Last, on the web VPS: `docker compose logs --since 10m proxy | grep -E "refused target|tcp connect error"`
-- empty is the good answer. A `refused target 169.58.x.x:559xx` (or `:55980` - open a friend chat
-room once to test it) means `ALLOW_TARGETS` lacks a port: fix `proxy.env` and
-`docker compose up -d proxy` (no players yet, so no announcement). Then:
+Last, on the web VPS: `docker compose logs --since 10m proxy | grep -E "refused target|not in PROXY_TARGETS|rewrite|tcp connect error"`
+- empty is the good answer. A `rewrite ...: 169.58.x.x:559xx is not in PROXY_TARGETS` (or
+`:55980` - open a friend chat room once to test it) means `PROXY_TARGETS` lacks that address
+(the browser got `unlisted` and could not enter): add a name for it in `proxy.env` and
+`docker compose up -d proxy` (no players yet, so no announcement). In the browser's devtools
+(Network -> WS) every socket URL must read `?host=<name>&port=0` (chat: `?host=chat&port=55980`,
+the client's fixed constant) and no frame may carry `169.58.`. Then:
 
 ```bash
 docker compose logs --since 10m proxy | grep 'client connected' | tail -3
@@ -1156,8 +1182,9 @@ back, point it at `WEB_VPS_IP` again (proxied).
   `docker compose pull proxy && docker compose up -d proxy`.
 - **World list**: edit `/opt/mureforge-webclient/serverlist.md`; it is live at once (no-cache),
   clients pick it up on their next launch.
-- **A new game port / realm**: `ALLOW_TARGETS` first, then the realm's panel settings (S3, S5, and
-  TrustedProxies once S11 is done), then the world list.
+- **A new game port / realm**: a name for it in `PROXY_TARGETS` first (`docker compose up -d proxy`),
+  then the realm's panel settings (S3, S5, and TrustedProxies once S11 is done), then the world list.
+  A game server whose address has no name reaches the browser as `unlisted` and cannot be entered.
 - **nginx vhost change**: copy the file to `sites-available`, `nginx -t && systemctl reload nginx`.
   A reload keeps open websockets.
 - **OS**: unattended-upgrades applies security updates; a pending reboot is done by hand,
@@ -1261,6 +1288,12 @@ From mildest to hardest. None touches the game server process.
   can show stale or wrong values.
 
 ## Decisions log
+
+- 2026-10-28: **no server address or port in the browser.** The proxy resolves names
+  (`PROXY_TARGETS`, fail closed: raw `host:port` refused) and rewrites ConnectionInfo / chat room
+  info into them; `serverlist.md` publishes `cs@wss://ws.mureforge.com`. `ALLOW_TARGETS` stays
+  only as the rollback (old world line + `ALLOW_TARGETS`, `PROXY_TARGETS` commented out). Order:
+  web image that reads `alias@proxy` first, then `PROXY_TARGETS` + `serverlist.md` together.
 
 - 2026-10-21: hostnames `web.` + `ws.mureforge.com`; realms Molten **and** Inferno, both through
   Molten's connect server 44406 (Inferno is listed on Molten through `REMOTE_REALM_URLS`, so

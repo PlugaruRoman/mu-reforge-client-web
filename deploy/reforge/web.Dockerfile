@@ -36,19 +36,29 @@ ARG GITHUB_SHA=
 
 # Pins the page to the one world in VITE_SERVER_LIST_URL (src/modules/servers/defaults.ts): no
 # "Local (OpenMU)" profile seeded from VITE_CS_HOST, no saved profiles, and ?cs= ?ws= ?list=
-# ?version= ?server= ?gs= are ignored - a link can never point a player's password elsewhere.
+# ?version= ?server= ?gs= are ignored - a link can never point a player's password elsewhere. It is
+# also the production switch (src/core/buildFlags.ts): Start enters the world (no worlds card, setup
+# tab or Play Offline), /offline boots online, and no debug console helper or window.__* handle exists.
 ARG VITE_PINNED_WORLD=on
 # The version the page boots into (src/version/index.ts bootVersionId): the world's own, so a
-# fresh visitor never boots Season 6 first and reloads into REFORGE.
+# fresh visitor never boots Season 6 first and reloads into REFORGE. The build carries that version
+# only (versions/registry.ts): no Season 6 or 0.97d entry, picker tag or chunk.
 ARG VITE_PINNED_VERSION=REFORGE
+# The page title, home screen title and installed app name (vite.config.ts, pageTitle.ts).
+ARG VITE_APP_NAME="Mu Reforge"
 
+# A REFORGE build drops 0.97d's trees after the build: Mu Reforge plays on Season 6's and its own.
 # A developer's .env.local (ws://localhost) must never reach a production bundle: vite reads
 # .env* files from the root, and the dockerignore is the first guard, this the second.
 RUN rm -f .env .env.local .env.production .env.production.local \
  && VITE_WS_HOST="$VITE_WS_HOST" VITE_WS_PORT="$VITE_WS_PORT" \
     VITE_CS_HOST="$VITE_CS_HOST" VITE_CS_PORT="$VITE_CS_PORT" \
     VITE_SERVER_LIST_URL="$VITE_SERVER_LIST_URL" VITE_REGISTER_URL="$VITE_REGISTER_URL" \
-    VITE_PINNED_WORLD="$VITE_PINNED_WORLD" VITE_PINNED_VERSION="$VITE_PINNED_VERSION" GITHUB_SHA="$GITHUB_SHA" bun run build
+    VITE_PINNED_WORLD="$VITE_PINNED_WORLD" VITE_PINNED_VERSION="$VITE_PINNED_VERSION" \
+    VITE_APP_NAME="$VITE_APP_NAME" GITHUB_SHA="$GITHUB_SHA" bun run build \
+ && if [ "$VITE_PINNED_VERSION" = REFORGE ]; then \
+      rm -rf dist/Data-v097d dist/game-assets-v097d dist/packs-v097d dist/assets-index-v097d.json dist/bundles/v097d-*; \
+    fi
 
 FROM nginx:1.28-alpine
 COPY deploy/reforge/nginx/web-container.conf /etc/nginx/conf.d/default.conf

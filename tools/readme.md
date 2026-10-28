@@ -52,7 +52,8 @@ and how to run it.
 - `checks/credits.ts`: the protected credits (AGENTS.md, "Credits") are all there; `credits.test.ts` pins it.
 - `checks/distLogs.ts`: `bun tools/checks/distLogs.ts [dist]` after a build fails on any `console.log` /
   `console.debug` / `console.trace` call left in the bundle (vite.config.ts strips them, `esbuild.pure`;
-  warnings, errors and info stay). `checks/productionLogs.test.ts` checks the config itself, no build needed.
+  warnings, errors and info stay). `checks/productionLogs.test.ts` checks the config itself, no build needed,
+  and also that a build writes no source maps and puts `VITE_APP_NAME` into index.html.
 - `assetCase.ts`: the converted assets' file name case against the client's own tables (a
   version's own-file list, `versions/<id>/data/assets.ts`, names files and is not scanned).
 - `weatherStats.ts`: what the proxy's weather schedule does, measured.

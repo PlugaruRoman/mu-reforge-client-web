@@ -28,6 +28,8 @@ pathfinding. Nothing here knows about a skill, a window or a map.
 - `InventoryConstants` (`inventoryConstants.ts`): OpenMU's inventory slot numbers and grid sizes. Pure, so
   the item rules controller, every module and the cash shop server share it.
 - `devQuery`, `devQueryNumber`, `devVitalPercent` (`devSeams.ts`): URL seams, `null` outside dev.
+- `PINNED_BUILD`, `isOn` (`buildFlags.ts`): `VITE_PINNED_WORLD`, the single-world production build
+  (deploy/reforge/web.Dockerfile): no offline scene, no debug console helpers or `window.__*` handles.
 - `imageBytes.ts`: `isWebp`, `webpSize`, `imageMimeOf`: what an OZJ / OZT payload holds, a JPEG or TGA
   or the WebP of a lighter copy (`tools/liteAssets.ts`), so the sprite, effect, terrain and sign readers
   take either.
@@ -73,6 +75,7 @@ pathfinding. Nothing here knows about a skill, a window or a map.
 - keep new files here free of game imports (`tools/checks/rules.ts`).
 
 ## Tests
+- `buildFlags.test.ts`: `isOn` reads on / 1 / true / yes in any case as set, anything else as not.
 - `pathfinding.test.ts`: the Elbeland bridge pinch (a diagonal past two blocked tiles is walkable)
   and a closed tile is never walked onto.
 - `turnAngle.test.ts`: every direction byte turns into a yaw and back to itself.

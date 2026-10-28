@@ -1,6 +1,6 @@
 import { transform } from 'esbuild';
-import { describe, expect, it } from 'vitest';
-import type { UserConfig, UserConfigFnObject } from 'vite';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { Plugin, UserConfig, UserConfigFnObject } from 'vite';
 import viteConfig from '../../vite.config';
 import { strayDebugLogs } from './distLogs';
 
@@ -37,5 +37,29 @@ describe('production builds carry no debug logging', () => {
   it('the dist check finds a stray log, and not a mere reference to one', () => {
     expect(strayDebugLogs('a();console.log("x");console.debug(1)')).toEqual(['console.log(', 'console.debug(']);
     expect(strayDebugLogs('const l=console.log.bind(console);console.warn(1)')).toEqual([]);
+  });
+});
+
+describe('a production build', () => {
+  afterEach(() => vi.unstubAllEnvs());
+
+  const plugin = (name: string) =>
+    (configFor('build').plugins as Plugin[]).find(p => p?.name === name);
+
+  it('writes no source maps', () => {
+    expect(configFor('build').build?.sourcemap).toBe(false);
+  });
+
+  it('keeps the upstream name unless VITE_APP_NAME names another', () => {
+    vi.stubEnv('VITE_APP_NAME', '');
+    expect(plugin('mu-app-name')).toBeUndefined();
+  });
+
+  it('writes VITE_APP_NAME into index.html', () => {
+    vi.stubEnv('VITE_APP_NAME', 'Mu Reforge');
+    const html = plugin('mu-app-name')?.transformIndexHtml as (html: string) => string;
+    expect(html('<title>OpenMUCB</title><meta content="OpenMUCB" />')).toBe(
+      '<title>Mu Reforge</title><meta content="Mu Reforge" />'
+    );
   });
 });

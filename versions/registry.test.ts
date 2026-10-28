@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { VERSION_REGISTRY, DEFAULT_VERSION_ID } from './registry';
 import { gameVersion as season6 } from './season6';
 import { gameVersion as v097d } from './v097d';
@@ -27,6 +27,31 @@ describe('version registry', () => {
   it('gives every version a distinct list tag', () => {
     const tags = VERSION_REGISTRY.map(v => v.listTag.toLowerCase());
     expect(new Set(tags).size).toBe(tags.length);
+  });
+});
+
+describe('a pinned version (VITE_PINNED_VERSION)', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.resetModules();
+  });
+
+  async function registryPinnedTo(tag: string) {
+    vi.resetModules();
+    vi.stubEnv('VITE_PINNED_VERSION', tag);
+    return import('./registry');
+  }
+
+  it('carries only that version, and plays every world with it', async () => {
+    const pinned = await registryPinnedTo('REFORGE');
+    expect(pinned.VERSION_REGISTRY.map(v => v.id)).toEqual(['reforge']);
+    expect(pinned.DEFAULT_VERSION_ID).toBe('reforge');
+  });
+
+  it('carries every version for a tag it does not know', async () => {
+    const pinned = await registryPinnedTo('S99');
+    expect(pinned.VERSION_REGISTRY.map(v => v.id)).toEqual(['season6', 'v097d', 'reforge']);
+    expect(pinned.DEFAULT_VERSION_ID).toBe('season6');
   });
 });
 

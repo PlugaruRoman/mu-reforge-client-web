@@ -1,6 +1,6 @@
 /**
  * THE REGISTRY of game versions this client ships. One build carries every
- * entry; exactly one is active per page load, picked at runtime from the
+ * entry (a `VITE_PINNED_VERSION` build only its own, below); exactly one is active per page load, picked at runtime from the
  * server-list entry (src/version/index.ts `loadGameVersion`).
  *
  * Entry metadata (`id`, `label`, `listTag`) is eager so the server picker
@@ -50,29 +50,56 @@ export type VersionEntry = {
   readonly loadUi: () => Promise<VersionUi>;
 };
 
-export const DEFAULT_VERSION_ID: GameVersionId = 'season6';
+/**
+ * `VITE_PINNED_VERSION` (a list tag, exact case): a build that carries that version only. Each entry
+ * below is kept by comparing the tag as a literal, so a pinned build drops the other versions'
+ * dynamic imports, and with them their chunks; they stay here for upstream merges. Unset, or a tag
+ * nothing here carries, keeps every version.
+ */
+const PINNED: string = import.meta.env.VITE_PINNED_VERSION ?? '';
+const PIN_KNOWN = PINNED === 'S6EP3' || PINNED === 'V097D' || PINNED === 'REFORGE';
 
-export const VERSION_REGISTRY: readonly VersionEntry[] = [
-  {
-    id: 'season6',
-    label: 'Season 6 Episode 3',
-    listTag: 'S6EP3',
-    load: () => import('./season6'),
-    loadUi: () => import('./season6/ui'),
-  },
-  {
-    id: 'v097d',
-    label: 'MU 0.97d',
-    listTag: 'V097D',
-    load: () => import('./v097d'),
-    loadUi: () => import('./v097d/ui'),
-  },
-  {
-    id: 'reforge',
-    label: 'Mu Reforge',
-    listTag: 'REFORGE',
-    load: () => import('./reforge'),
-    // Season 6's screens and windows: only the wire differs.
-    loadUi: () => import('./season6/ui'),
-  },
-];
+const SEASON6: VersionEntry[] =
+  !PIN_KNOWN || PINNED === 'S6EP3'
+    ? [
+        {
+          id: 'season6',
+          label: 'Season 6 Episode 3',
+          listTag: 'S6EP3',
+          load: () => import('./season6'),
+          loadUi: () => import('./season6/ui'),
+        },
+      ]
+    : [];
+
+const V097D: VersionEntry[] =
+  !PIN_KNOWN || PINNED === 'V097D'
+    ? [
+        {
+          id: 'v097d',
+          label: 'MU 0.97d',
+          listTag: 'V097D',
+          load: () => import('./v097d'),
+          loadUi: () => import('./v097d/ui'),
+        },
+      ]
+    : [];
+
+const REFORGE: VersionEntry[] =
+  !PIN_KNOWN || PINNED === 'REFORGE'
+    ? [
+        {
+          id: 'reforge',
+          label: 'Mu Reforge',
+          listTag: 'REFORGE',
+          load: () => import('./reforge'),
+          // Season 6's screens and windows: only the wire differs.
+          loadUi: () => import('./season6/ui'),
+        },
+      ]
+    : [];
+
+export const VERSION_REGISTRY: readonly VersionEntry[] = [...SEASON6, ...V097D, ...REFORGE];
+
+/** What a world that names no version (or one not carried) is played with: Season 6, or the pinned version. */
+export const DEFAULT_VERSION_ID: GameVersionId = VERSION_REGISTRY.length === 1 ? VERSION_REGISTRY[0].id : 'season6';

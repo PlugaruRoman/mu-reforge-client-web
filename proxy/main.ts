@@ -2,6 +2,8 @@ import type { Server, ServerWebSocket, Socket } from "bun";
 import { CLEAR, currentWeather, weatherForced, weatherPacket, weatherSlotSeconds, type WeatherState } from "./weather";
 import { ConnectionPresence, PRESENCE_ENABLED, PRESENCE_HOST, PRESENCE_PORT, startPresenceServer } from "./presence";
 import { allowTargetsFromEnv, targetAllowed, type ReservedTarget } from "./allowTargets";
+import { proxyTargetsFromEnv, requestTarget, UNLISTED_ALIAS } from "./targetAliases";
+import { AddressRewriter } from "./addressRewrite";
 import { SESSION_NONCE_RE } from "../src/controllers/net/sessionNonce";
 import { ADMIN_STREAM_PATH, type RefusalReason } from "../src/controllers/net/protocols/adminProtocol";
 import { Tracker } from "./track/tracker";
@@ -63,7 +65,28 @@ const WEATHER_HEARTBEAT_MS = Number(process.env.WEATHER_HEARTBEAT ?? 20000);
  * bare-host rule turns the relay into a way to reach every loopback service on
  * the box, e.g. `ALLOW_TARGETS="127.0.0.1:44405,127.0.0.1:55901"`.
  */
-const ALLOW = allowTargetsFromEnv(process.env.ALLOW_TARGETS, process.env.NODE_ENV === "production");
+/**
+ * Target aliases (targetAliases.ts): `PROXY_TARGETS="cs=1.2.3.4:44406,molten-1=1.2.3.4:55901,..."`.
+ * Set, the browser names targets only by alias (`?target=` or `?host=`), a raw host:port is
+ * refused, `ALLOW_TARGETS` is not consulted, and the server's own addresses in the stream are
+ * rewritten to aliases (addressRewrite.ts) - the browser never sees an IP or port of ours.
+ * Unset: the upstream `?host=&port=` relay pinned by `ALLOW_TARGETS`.
+ */
+const ALIASES_PARSED = proxyTargetsFromEnv(process.env.PROXY_TARGETS);
+if ("error" in ALIASES_PARSED) {
+  console.error(ALIASES_PARSED.error);
+  process.exit(1);
+}
+const ALIASES = ALIASES_PARSED.table;
+
+/** The chat server's port: `ChatRoomConnectionInfo` carries none (the client's is fixed, 55980). */
+const CHAT_SERVER_PORT = Number(process.env.PROXY_CHAT_PORT ?? 55980);
+if (!(Number.isInteger(CHAT_SERVER_PORT) && CHAT_SERVER_PORT > 0 && CHAT_SERVER_PORT <= 65535)) {
+  console.error(`PROXY_CHAT_PORT is not a port (${process.env.PROXY_CHAT_PORT})`);
+  process.exit(1);
+}
+
+const ALLOW = allowTargetsFromEnv(process.env.ALLOW_TARGETS, process.env.NODE_ENV === "production" && !ALIASES);
 if ("error" in ALLOW) {
   console.error(ALLOW.error);
   process.exit(1);
@@ -160,7 +183,12 @@ const ADMIN_ORIGINS = (process.env.ADMIN_ORIGINS ?? "")
   .map(s => s.trim().toLowerCase())
   .filter(Boolean);
 
-if (!ALLOW_RULES.length) {
+if (ALIASES) {
+  console.log(
+    `target aliases: ${[...ALIASES.byAlias.keys()].join(", ")} (raw host:port refused, addresses rewritten; chat port ${CHAT_SERVER_PORT})`
+  );
+  if (ALLOW_RULES.length) console.log("ALLOW_TARGETS is not consulted while PROXY_TARGETS is set");
+} else if (!ALLOW_RULES.length) {
   console.warn(
     "ALLOW_TARGETS is unset: this proxy will dial ANY host:port a client names (bar the presence server). Fine on localhost, an open relay in public - set it to the game ports, e.g. ALLOW_TARGETS=127.0.0.1:44405,127.0.0.1:55901"
   );
@@ -186,6 +214,10 @@ type RelayData = {
   kind: "relay";
   targetHost: string;
   targetPort: number;
+  /** What the browser asked for: the alias with PROXY_TARGETS, else `host:port`. */
+  targetLabel: string;
+  /** Server addresses -> aliases in the server's bytes; null without PROXY_TARGETS. */
+  rewriter: AddressRewriter | null;
   /** The browser's address (X-Real-IP from a trusted proxy, else the socket peer); logged, never the packets. */
   clientIp: string;
   /** The browser's port when known (0 behind nginx), for the PROXY header. */
@@ -428,20 +460,19 @@ Bun.serve<WebSocketData>({
       return new Response("Upgrade failed :(", { status: 500 });
     }
 
-    const targetHost = searchParams.get("host")?.trim().toLowerCase() ?? "";
-    const targetPort = parseInt(searchParams.get("port") ?? "0");
-
     // Refuse here rather than in `open`: a bad target used to upgrade and then
     // fail inside Bun.connect, which the client sees as a socket that closed
     // for no reason.
-    if (!targetHost || !(targetPort > 0 && targetPort <= 65535)) {
-      return new Response("host and port query parameters are required", {
-        status: 400,
-      });
+    const target = requestTarget(searchParams, ALIASES);
+    if (!target.ok) {
+      if (target.log) console.warn(target.log);
+      return new Response(target.message, { status: target.status });
     }
+    const { host: targetHost, port: targetPort, label: targetLabel } = target;
 
-    if (!targetAllowed(ALLOW_RULES, targetHost, targetPort, RESERVED_TARGETS)) {
-      console.warn(`refused target ${targetHost}:${targetPort}`);
+    // With aliases the table is the allow list; the reserved sockets are refused either way.
+    if (!targetAllowed(ALIASES ? [] : ALLOW_RULES, targetHost, targetPort, RESERVED_TARGETS)) {
+      console.warn(`refused target ${targetLabel}`);
       return new Response("target not allowed", { status: 403 });
     }
 
@@ -483,6 +514,13 @@ Bun.serve<WebSocketData>({
         kind: "relay",
         targetHost,
         targetPort,
+        targetLabel,
+        rewriter: ALIASES
+          ? new AddressRewriter(ALIASES, CHAT_SERVER_PORT, note => {
+              if (note.kind === "chat-info-failed") console.warn(`rewrite ${targetLabel}: chat room info kept as sent (re-encryption check failed)`);
+              else if (note.to === UNLISTED_ALIAS) console.warn(`rewrite ${targetLabel}: ${note.from} is not in PROXY_TARGETS, sent as "${UNLISTED_ALIAS}"`);
+            })
+          : null,
         clientIp: client.ip,
         clientPort: client.port,
         pipe: null,
@@ -531,7 +569,7 @@ Bun.serve<WebSocketData>({
 
       const relay = ws as ServerWebSocket<RelayData>;
 
-      const who = `ip=${relay.data.clientIp} target=${relay.data.targetHost}:${relay.data.targetPort}`;
+      const who = `ip=${relay.data.clientIp} target=${relay.data.targetLabel}`;
       console.log(`client connected ${who}`);
 
       const pipe = new RelayPipe(
@@ -594,7 +632,11 @@ Bun.serve<WebSocketData>({
             if (LOG_PACKETS) console.log("data from tcp:", stringifyPacket(data));
 
             const forwarded = asBufferSource(data);
-            const bytes = typeof forwarded === "string" ? new TextEncoder().encode(forwarded) : forwarded;
+            const received = typeof forwarded === "string" ? new TextEncoder().encode(forwarded) : forwarded;
+            // Our addresses become aliases before the browser sees a byte (addressRewrite.ts); a
+            // frame that might carry one is held until it is whole, so this can be empty.
+            const bytes = relay.data.rewriter ? relay.data.rewriter.feed(received) : received;
+            if (!bytes.byteLength) return;
 
             if (!pipe.fromServer(bytes)) return;
 
@@ -760,7 +802,7 @@ Bun.serve<WebSocketData>({
 
       const reason = relay.data.closeNote ?? pipe?.reason ?? "client closed";
       console.log(
-        `client closed ip=${relay.data.clientIp} target=${relay.data.targetHost}:${relay.data.targetPort} code=${code} (${reason})`
+        `client closed ip=${relay.data.clientIp} target=${relay.data.targetLabel} code=${code} (${reason})`
       );
     },
   },

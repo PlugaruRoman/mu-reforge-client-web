@@ -9,7 +9,8 @@
 #
 # Every setting is an environment variable (proxy.env on the box, see proxy.env.example).
 # The defaults below are the SAFE ones, so a container started without its env file is still
-# not an open relay with packet dumps: it refuses to start without ALLOW_TARGETS (entry check).
+# not an open relay with packet dumps: it refuses to start without PROXY_TARGETS or ALLOW_TARGETS
+# (entry check).
 
 FROM oven/bun:1.4.2-slim
 WORKDIR /app
@@ -58,6 +59,8 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
   CMD bun -e "fetch('http://127.0.0.1:' + (process.env.PORT || 3000) + '/server.json').then(r => process.exit(r.ok ? 0 : 1), () => process.exit(1))"
 
-# An empty ALLOW_TARGETS makes proxy/main.ts dial ANY host:port a browser names. On a public
-# box that is an open relay, so the container refuses to start instead of only warning.
-CMD ["sh", "-c", "if [ -z \"$ALLOW_TARGETS\" ]; then echo 'ALLOW_TARGETS is empty - refusing to start an open relay' >&2; exit 1; fi; exec bun proxy/main.ts"]
+# With neither PROXY_TARGETS (aliases: the browser names a target, the proxy knows the address -
+# proxy/targetAliases.ts) nor ALLOW_TARGETS, proxy/main.ts would dial ANY host:port a browser
+# names. On a public box that is an open relay, so the container refuses to start instead of only
+# warning. PROXY_TARGETS wins when both are set (ALLOW_TARGETS is then not consulted).
+CMD ["sh", "-c", "if [ -z \"$PROXY_TARGETS\" ] && [ -z \"$ALLOW_TARGETS\" ]; then echo 'PROXY_TARGETS and ALLOW_TARGETS are empty - refusing to start an open relay' >&2; exit 1; fi; exec bun proxy/main.ts"]

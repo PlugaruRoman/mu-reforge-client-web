@@ -3,11 +3,13 @@ import { LocalStorage } from '../../core/localStorage';
 import { versionByTag } from '@/version';
 import { PINNED_WORLD, WS_HOST, WS_PORT } from './defaults';
 import {
+  isTargetAlias,
   isUsableHost,
   listedAddressId,
   normalizeHost,
   normalizeWsUrl,
   ServerConfig,
+  TARGET_ALIAS_PORT,
   type PublishedGameServer,
   type ServerProfile,
 } from './serverConfig';
@@ -194,17 +196,27 @@ export function parseServerLine(line: string): ServerProfile | null {
   if (!target) return null;
 
   const proxy = (target[3] ?? '').trim();
-  // No port is the short form: the field is the world's domain, and the
-  // convention fills in the rest of it.
-  const domain = target[2] ? '' : normalizeHost(target[1]).toLowerCase();
+  // `alias@proxy`: one label and no port, at a proxy that knows the name
+  // (`PROXY_TARGETS`, proxy/targetAliases.ts) - the world publishes no address
+  // at all. A single label is never a domain, so the two forms cannot collide;
+  // without a proxy to resolve it the line means nothing and is dropped below.
+  const alias =
+    !target[2] && WS_RE.test(proxy) && isTargetAlias(target[1]) ? target[1] : '';
+  // No port otherwise is the short form: the field is the world's domain, and
+  // the convention fills in the rest of it.
+  const domain = target[2] || alias ? '' : normalizeHost(target[1]).toLowerCase();
 
   if (domain && !DOMAIN_RE.test(domain)) return null;
 
-  const host = domain ? CONVENTION_CS_HOST : normalizeHost(target[1]);
-  const port = domain ? CONVENTION_CS_PORT : Number(target[2]);
+  const host = alias || (domain ? CONVENTION_CS_HOST : normalizeHost(target[1]));
+  const port = alias
+    ? TARGET_ALIAS_PORT
+    : domain
+      ? CONVENTION_CS_PORT
+      : Number(target[2]);
 
   if (!name || !isUsableHost(host)) return null;
-  if (!Number.isInteger(port) || port < 1 || port > 65535) return null;
+  if (!alias && (!Number.isInteger(port) || port < 1 || port > 65535)) return null;
 
   return {
     // Stable across refreshes, so a selected server stays selected: the id the

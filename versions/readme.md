@@ -5,7 +5,7 @@ the server list picks one per page load. Overview: [docs/versions.md](../docs/ve
 
 ## Public API
 - `VERSION_REGISTRY`: every shipped version (`id`, `label`, `listTag`, `load`, `loadUi`).
-- `DEFAULT_VERSION_ID`: `'season6'`.
+- `DEFAULT_VERSION_ID`: `'season6'`, or the one version a pinned build carries.
 - `VersionModule`, `VersionPackets` (the union of the Season 6 and Mu Reforge packet sets), `VersionEntry`:
   the types a version folder fills.
 
@@ -17,6 +17,9 @@ the server list picks one per page load. Overview: [docs/versions.md](../docs/ve
 - A version's `index.ts` imports only the contract (`src/version/contract.ts`), generated packet
   files and its own data. Never app code.
 - `src/version/index.ts` (`loadGameVersion`) resolves the entry and holds the active version.
+- `VITE_PINNED_VERSION` (a list tag, exact case, e.g. `REFORGE` in deploy/reforge/web.Dockerfile): the
+  build carries that version only. Each entry is kept by a literal tag comparison, so vite drops the
+  other entries' dynamic imports and their chunks; a tag no entry has keeps them all.
 
 ```
 registry.ts   every version the client ships
@@ -38,4 +41,4 @@ _template/    copy to start a new version (compiles, never registered)
 
 ## Tests
 - `registry.test.ts`: the registry lists season6 (default), v097d and reforge, entry metadata matches each
-  body, list tags are distinct, and Season 6 keeps its login bytes, Xor keys and variant ranks.
+  body, list tags are distinct, a pinned version keeps only its entry (and an unknown tag keeps all), and Season 6 keeps its login bytes, Xor keys and variant ranks.

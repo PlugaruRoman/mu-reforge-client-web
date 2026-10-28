@@ -252,6 +252,11 @@ export const PreloaderPage = observer(({ onPlayOffline }: { onPlayOffline: () =>
     };
   }, [open]);
 
+  /**
+   * Start enters the world itself: a direct login (`servers/directLogin.ts`) opens its login, a
+   * pinned build (`VITE_PINNED_WORLD`) its server select. Neither has a worlds card to open.
+   */
+  const straight = DirectLogin.on || ServerConfig.pinnedBuild;
   const all = ServerConfig.all;
   const selected = ServerConfig.active;
 
@@ -283,7 +288,7 @@ export const PreloaderPage = observer(({ onPlayOffline }: { onPlayOffline: () =>
    * broken client rather than the wrong one. A world the probe saw down is refused too.
    */
   const enter = (id = selected.id) => {
-    if ((!open && !DirectLogin.on) || ServerConfig.isEmpty || leaving) return;
+    if ((!open && !straight) || ServerConfig.isEmpty || leaving) return;
 
     const world = ServerConfig.all.find(w => w.id === id);
     if (world && !playableHere(world)) return;
@@ -294,9 +299,9 @@ export const PreloaderPage = observer(({ onPlayOffline }: { onPlayOffline: () =>
     leave(() => Session.playOnline());
   };
 
-  /** The Start press: the worlds card, or this server's login (`servers/directLogin.ts`). */
+  /** The Start press: the worlds card, or straight into the one world (`straight`). */
   const start = () => {
-    if (DirectLogin.on) {
+    if (straight) {
       sound.tryUnlock();
       enter();
     } else {
@@ -408,6 +413,8 @@ export const PreloaderPage = observer(({ onPlayOffline }: { onPlayOffline: () =>
               type="button"
               className="ws-start anim-host"
               autoFocus
+              // A pinned build's world arrives with its list: until then there is nothing to enter.
+              disabled={straight && ServerConfig.isEmpty}
               onClick={uiClick(start)}
             >
               <Icon name="play" />
@@ -469,9 +476,11 @@ export const PreloaderPage = observer(({ onPlayOffline }: { onPlayOffline: () =>
                     >
                       {t('worlds.enter')}
                     </Button>
-                    <Button disabled={leaving} onClick={offline}>
-                      {t('preloader.playOffline')}
-                    </Button>
+                    {!ServerConfig.pinnedBuild && (
+                      <Button disabled={leaving} onClick={offline}>
+                        {t('preloader.playOffline')}
+                      </Button>
+                    )}
                   </div>
                 </div>
 

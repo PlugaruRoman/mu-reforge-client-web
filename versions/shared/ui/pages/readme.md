@@ -5,7 +5,9 @@ The full-screen pages: the pre-game screens and the world page that holds every 
 ## Public API
 - `PreloaderPage` (`preloader/`): the first screen, pick a world: world list, setup and download
   views, map tour; the login scene loads behind it. Reads `servers` and `Loading`; Play Offline calls
-  the `onPlayOffline` prop (`App.tsx` hands in `app/offline.ts`'s `playOffline`).
+  the `onPlayOffline` prop (`App.tsx` hands in `app/offline.ts`'s `playOffline`). A pinned build
+  (`ServerConfig.pinnedBuild`) and a direct login skip the worlds card: Start enters the one world, and
+  stays disabled until the list has named it.
 - `ServersPage` (`server_select/`): the server list and its description bar, and `CLoginMainWin`'s Menu
   (opens `CSysMenuWin`) and Credit (opens `windows/credits`, `CCreditWin`) buttons with the deco. Reads
   `Servers.serverList`, `Servers.selectedServer`, `Session.connectionLost` (`servers`, `session`).

@@ -16,7 +16,7 @@ import { Hero } from '@/modules/hero';
 import { Servers } from '@/modules/servers';
 import { Session } from './state';
 import { AppState, UIState } from '@/controllers/interface/uiState';
-import { gameServerTarget } from '../servers/serverConfig';
+import { gameServerTarget, TARGET_ALIAS_PORT } from '../servers/serverConfig';
 import { serverSetting } from '../servers/serverManifest';
 import { DirectLogin, directChannel } from '../servers/directLogin';
 import { ServerConfig } from '../servers/serverConfig';
@@ -108,10 +108,14 @@ export function installNet(): void {
     // host we just used (see its comment: an address only the internet can route
     // to is not believed from a server we reached locally) and hands back the
     // loser as the address to retry on.
-    const { host, fallback } = gameServerTarget(p.IpAddress);
+    // Behind a proxy with `PROXY_TARGETS` the address is already an alias with port 0
+    // (proxy/addressRewrite.ts) and is passed through as it is - the log then names the alias.
+    const { host, fallback } = gameServerTarget(p.IpAddress, p.Port);
 
     console.log(
-      `connection info: ${host}:${p.Port} (server said "${p.IpAddress}")`
+      p.Port === TARGET_ALIAS_PORT
+        ? `connection info: ${host}`
+        : `connection info: ${host}:${p.Port} (server said "${p.IpAddress}")`
     );
 
     Session.connectToGameServer(host, p.Port, fallback);

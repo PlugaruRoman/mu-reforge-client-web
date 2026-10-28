@@ -1,5 +1,6 @@
 import type { Scene } from '../babylon/exports';
 import { GameOptions } from '@/controllers/settings';
+import { PINNED_BUILD } from '@/core/buildFlags';
 import { t } from '@/i18n';
 import {
   MATERIAL_QUALITY_LABEL_KEYS,
@@ -20,6 +21,9 @@ import { liveTileArrays } from '../../terrain/tileTextureArray';
  * way - by measuring instead of reasoning.
  */
 export function installMaterialDebug(scene: Scene): void {
+  // A console helper for developers; a pinned production build has none.
+  if (PINNED_BUILD) return;
+
   (globalThis as Record<string, unknown>).muMat = () => {
     const tier = materialQuality();
 

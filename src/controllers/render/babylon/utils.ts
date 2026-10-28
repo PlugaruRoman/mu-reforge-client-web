@@ -1,9 +1,13 @@
 import { Engine, Scene } from './exports';
 import { devQuery } from '@/core/devSeams';
+import { PINNED_BUILD } from '@/core/buildFlags';
 import { installBitmapDecode } from './bitmapDecode';
 import { patientCompileWait } from './compileWait';
 
 export async function addInspectorForScene(scene: Scene) {
+  // A pinned production build loads no debug tool, and nothing from Babylon's CDN.
+  if (PINNED_BUILD) return;
+
   const switchDebugLayer = () => {
     //@ts-ignore
     if (scene.debugLayer.isVisible()) {

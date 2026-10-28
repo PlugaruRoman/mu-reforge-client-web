@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { matchesSearch, type ServerProfile } from './serverConfig';
+import { gameServerTarget, matchesSearch, type ServerProfile } from './serverConfig';
 
 const world = (patch: Partial<ServerProfile> = {}): ServerProfile => ({
   id: 'list:ignies.net',
@@ -191,5 +191,22 @@ describe('a pinned build (VITE_PINNED_WORLD)', () => {
     const { ServerConfig } = await import('./serverConfig');
 
     expect(ServerConfig.urlProfile?.wsUrl).toBe('wss://other.example.com');
+  });
+});
+
+// `PROXY_TARGETS` (proxy/addressRewrite.ts): the proxy hands the client an
+// alias with port 0 in place of the game server's address.
+describe('gameServerTarget with a proxy alias', () => {
+  it('passes the alias through untouched, with no fallback', () => {
+    expect(gameServerTarget('molten-1', 0)).toEqual({ host: 'molten-1', fallback: null });
+  });
+
+  it('weighs a real address as before', () => {
+    // A public address advertised by a server reached on loopback (the build
+    // default) is kept as the fallback, as it always was.
+    const real = gameServerTarget('169.58.146.212', 55901);
+    expect(real.host === '169.58.146.212' || real.fallback === '169.58.146.212').toBe(true);
+    // A single-label name with a real port is a LAN host, not an alias.
+    expect(gameServerTarget('mu-server', 55901).fallback).not.toBeNull();
   });
 });

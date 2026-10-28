@@ -56,7 +56,8 @@ import { installLoginMusic } from '../controllers/sound/loginMusic';
 import { setKeyProfile, setVersionKeyDefaults, type KeyBindings } from '../controllers/interface/keyBindings';
 import { installBrowserHotkeyGuard } from '../controllers/interface/browserHotkeys';
 import { SessionResume } from '../modules/session/sessionResume';
-import { reaction } from 'mobx';
+import { reaction, runInAction } from 'mobx';
+import { PINNED_BUILD } from '../core/buildFlags';
 import { watchStateWarnings } from '../modules/hero/stateWarnings';
 import { watchPageTitle } from '../modules/servers/pageTitle';
 import {
@@ -245,27 +246,31 @@ Ecs.world = world;
 // Render-budget overlay: Shift+Ctrl+Alt+P. Dormant until toggled.
 installPerfOverlay(scene);
 
-(window as any).__scene = scene;
-(window as any).__world = world;
-(window as any).__social = Social;
-(window as any).__commands = Commands;
-(window as any).__gmPanel = GmPanel;
-// Live instance for the CDP scenario scripts: a dynamic import('/src/economy.ts')
-// gets a second module copy (vite serves the live graph as `?t=`-stamped URLs)
-// whose state never changes.
-(window as any).__eco = Economy;
-// The module states the Store used to hold, for the same scripts (`__modules.Hero.money`).
-(window as any).__modules = { Hero, Session, Bag, Merchant };
-// The sound facade, for the headless verification scripts (`sound.unlocked`,
-// `sound.isPlaying(key)`, `sound.crackling`).
-(window as any).__sound = sound;
-// The weather facade, for the same reason. Fire, snow and rain are all things
-// a screenshot has to be able to *cause* before it can show them, and the only
-// other way in is to cast a real spell at a real monster.
-(window as any).__weather = weather;
-// Static-cascade cache counters: casters split, cache misses, held window
-// radius per cascade. What tells a shadow-pass number apart from a lucky one.
-(window as any).__csm = csmCacheStats;
+// Handles for the dev and verification scripts. A pinned production build hands no script its
+// session, commands or economy (a bot's first need).
+if (!PINNED_BUILD) {
+  (window as any).__scene = scene;
+  (window as any).__world = world;
+  (window as any).__social = Social;
+  (window as any).__commands = Commands;
+  (window as any).__gmPanel = GmPanel;
+  // Live instance for the CDP scenario scripts: a dynamic import('/src/economy.ts')
+  // gets a second module copy (vite serves the live graph as `?t=`-stamped URLs)
+  // whose state never changes.
+  (window as any).__eco = Economy;
+  // The module states the Store used to hold, for the same scripts (`__modules.Hero.money`).
+  (window as any).__modules = { Hero, Session, Bag, Merchant };
+  // The sound facade, for the headless verification scripts (`sound.unlocked`,
+  // `sound.isPlaying(key)`, `sound.crackling`).
+  (window as any).__sound = sound;
+  // The weather facade, for the same reason. Fire, snow and rain are all things
+  // a screenshot has to be able to *cause* before it can show them, and the only
+  // other way in is to cast a real spell at a real monster.
+  (window as any).__weather = weather;
+  // Static-cascade cache counters: casters split, cache misses, held window
+  // radius per cascade. What tells a shadow-pass number apart from a lucky one.
+  (window as any).__csm = csmCacheStats;
+}
 
 /**
  * Longest step any system is handed. Coming back from an alt-tab (or from a
@@ -429,6 +434,12 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   </React.StrictMode>
 );
 
-if (Session.isOffline) {
+// The offline test scene (`/offline`) is a developer's: a pinned build plays its world only, and a
+// URL that merely contains the word must not leave a player's session silently unsent.
+if (PINNED_BUILD) {
+  runInAction(() => {
+    Session.isOffline = false;
+  });
+} else if (Session.isOffline) {
   playOffline();
 }

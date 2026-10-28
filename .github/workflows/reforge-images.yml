@@ -147,10 +147,12 @@ jobs:
           # The register URL default stays here AND in web.Dockerfile: an empty repository
           # variable falls back through `||` to it.
           # VITE_PINNED_WORLD=on pins the page to the serverlist's world and ignores URL overrides
-          # (web.Dockerfile); only a repository variable set to `off` turns it off.
+          # (web.Dockerfile); only a repository variable set to `off` turns it off. It is also the
+          # production switch: no worlds card, setup, offline scene or debug handles.
           build-args: |
             VITE_PINNED_WORLD=${{ vars.REFORGE_PINNED_WORLD || 'on' }}
             VITE_PINNED_VERSION=${{ vars.REFORGE_PINNED_VERSION || 'REFORGE' }}
+            VITE_APP_NAME=${{ vars.REFORGE_APP_NAME || 'Mu Reforge' }}
             VITE_WS_HOST=${{ vars.REFORGE_WS_HOST || 'wss://ws.mureforge.com' }}
             VITE_WS_PORT=${{ vars.REFORGE_WS_PORT || '443' }}
             VITE_CS_HOST=${{ vars.REFORGE_CS_HOST || 'play.mureforge.com' }}
