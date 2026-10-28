@@ -1,6 +1,6 @@
 /**
- * Our server's hand-written frames read by the Olympiad, Fort Siege and party HUD modules
- * (`olympiad.ts`, `fortSiege.ts`, `partyMemberBuffs.ts`), listed in the packet set by `index.ts`.
+ * Our server's hand-written frames read by the Olympiad, Fort Siege and Reforge HUD modules
+ * (`olympiad.ts`, `fortSiege.ts`, `partyMemberBuffs.ts`, `requestsState.ts`), listed in the packet set by `index.ts`.
  */
 import { DeathRecordsPacket, OlympiadBoardPacket } from './olympiad';
 import {
@@ -12,6 +12,7 @@ import {
   FortWarpsPacket,
 } from './fortSiege';
 import { PartyMemberBuffsPacket } from './partyMemberBuffs';
+import { RequestsStatePacket } from './requestsState';
 
 export const SYSTEM_PACKETS = [
   OlympiadBoardPacket,
@@ -23,4 +24,5 @@ export const SYSTEM_PACKETS = [
   FortCaptureLinePacket,
   FortFightersPacket,
   PartyMemberBuffsPacket,
+  RequestsStatePacket,
 ] as const;

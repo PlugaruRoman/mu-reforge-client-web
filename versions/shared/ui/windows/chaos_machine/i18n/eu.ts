@@ -62,4 +62,7 @@ export default {
   'seed.sphere': 'Hazi-esferaren muntaketa',
   'seed.apply': 'Hazi-esferaren aplikazioa',
   'seed.destroy': 'Hazi-esferaren suntsiketa',
+  'chaos.refine': 'Findu',
+  'chaos.restore': 'Leheneratu',
+  'chaos.cherryBlossom': 'Gerezi loreen izpiritua',
 } satisfies Partial<Record<keyof typeof en, string>>;

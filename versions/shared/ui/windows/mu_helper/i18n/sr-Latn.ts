@@ -52,4 +52,5 @@ export default {
   'muHelper.itemFilters': 'Filteri (+Luck +Opt 12)',
   'muHelper.itemFilters.hint':
     'Reči koje počinju sa + filtriraju predmet: +Luck, +Skill, +Exc, +Anc, +Opt ili +Opt 12, +9 za nivo. Unosi mogu biti duži; ovaj pregledač čuva ceo tekst. Isključeno: kao original, deo imena.',
+  'muHelper.autoParty': 'Automatski prihvati - Grupa',
 } satisfies Partial<Record<keyof typeof en, string>>;

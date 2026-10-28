@@ -62,4 +62,7 @@ export default {
   'seed.sphere': 'Tohum Küresi Birleştirme',
   'seed.apply': 'Tohum Küresi uygulama',
   'seed.destroy': 'Tohum Küresi yok etme',
+  'chaos.refine': 'Arıt',
+  'chaos.restore': 'Geri yükle',
+  'chaos.cherryBlossom': 'Kiraz Çiçeği Ruhu',
 } satisfies Partial<Record<keyof typeof en, string>>;

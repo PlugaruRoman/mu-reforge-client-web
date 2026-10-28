@@ -51,4 +51,5 @@ export default {
   'muHelper.none': 'なし',
   'muHelper.save': '保存',
   'muHelper.init': '初期化',
+  'muHelper.autoParty': '自動承諾 - パーティー',
 } satisfies Partial<Record<keyof typeof en, string>>;

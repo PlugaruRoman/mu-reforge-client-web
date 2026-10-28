@@ -1,4 +1,4 @@
-import { CHAOS_CARD_WIRE_STORAGE, PET_TRAINER_WIRE_STORAGE, SEED_WIRE_STORAGES, StorageKind, localIndexOf } from './itemStorage';
+import { CHAOS_CARD_WIRE_STORAGE, PET_TRAINER_WIRE_STORAGE, REFINERY_WIRE_STORAGES, SEED_WIRE_STORAGES, StorageKind, localIndexOf } from './itemStorage';
 import { CharacterInventoryPacket, InventoryItemUpgradedPacket, InventoryMoneyUpdatePacket, ItemAddedToInventoryPacket, ItemDurabilityChangedPacket, ItemMovedPacket, ItemRemovedPacket } from '@versions/shared/packets/ServerToClientPackets';
 import { Economy } from '../economy/economy';
 import { EventBus } from '@/core/eventBus';
@@ -82,6 +82,7 @@ export function installNet(): void {
     const storage = (
       p.TargetStorageType === CHAOS_CARD_WIRE_STORAGE ||
       p.TargetStorageType === PET_TRAINER_WIRE_STORAGE || // the Pet Trainer's tray
+      (Object.values(REFINERY_WIRE_STORAGES) as number[]).includes(p.TargetStorageType) || // the refineries' trays
       SEED_WIRE_STORAGES.includes(p.TargetStorageType)
         ? StorageKind.ChaosMachine
         : p.TargetStorageType

@@ -9,4 +9,5 @@ export default {
   'windowMenu.move': 'Teletransport (M)',
   'windowMenu.map': 'Mapa (Tab)',
   'windowMenu.gens': 'Info de Gens (B)',
+  'windowMenu.reforge': 'Mu Reforge (N)',
 } satisfies Partial<Record<keyof typeof en, string>>;

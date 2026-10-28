@@ -7,6 +7,7 @@ const en = {
   'windowMenu.move': 'Move (M)',
   'windowMenu.map': 'Map (Tab)',
   'windowMenu.gens': 'Gens Info (B)',
+  'windowMenu.reforge': 'Mu Reforge (N)',
 };
 
 export default en;

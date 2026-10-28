@@ -62,4 +62,7 @@ export default {
   'seed.sphere': 'Seed Sphere সংযোজন',
   'seed.apply': 'Seed Sphere প্রয়োগ',
   'seed.destroy': 'Seed Sphere ধ্বংস',
+  'chaos.refine': 'পরিশোধন',
+  'chaos.restore': 'পুনরুদ্ধার',
+  'chaos.cherryBlossom': 'চেরি ফুলের আত্মা',
 } satisfies Partial<Record<keyof typeof en, string>>;

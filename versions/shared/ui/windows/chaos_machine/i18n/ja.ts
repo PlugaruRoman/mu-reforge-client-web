@@ -62,4 +62,7 @@ export default {
   'seed.sphere': 'シードスフィア合成',
   'seed.apply': 'シードスフィア装着',
   'seed.destroy': 'シードスフィア破壊',
+  'chaos.refine': '製錬',
+  'chaos.restore': '還元',
+  'chaos.cherryBlossom': '桜の精霊',
 } satisfies Partial<Record<keyof typeof en, string>>;

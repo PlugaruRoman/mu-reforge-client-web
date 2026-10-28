@@ -51,4 +51,5 @@ export default {
   'muHelper.none': 'Няма',
   'muHelper.save': 'Запази',
   'muHelper.init': 'Нулирай',
+  'muHelper.autoParty': 'Автоприемане - Група',
 } satisfies Partial<Record<keyof typeof en, string>>;

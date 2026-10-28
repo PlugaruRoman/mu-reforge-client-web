@@ -9,4 +9,5 @@ export default {
   'windowMenu.move': 'Işınlan (M)',
   'windowMenu.map': 'Harita (Tab)',
   'windowMenu.gens': 'Gens Bilgisi (B)',
+  'windowMenu.reforge': 'Mu Reforge (N)',
 } satisfies Partial<Record<keyof typeof en, string>>;

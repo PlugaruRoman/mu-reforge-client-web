@@ -23,9 +23,9 @@ One folder per in-game window. A window draws; its state and actions belong to i
 | Folder | id (order) | Shows | Reads |
 |---|---|---|---|
 | `inventory` | inventory (80) | the hero's bag and equipment, repair mode | hero, inventory, npc_shop, items, economy, events |
-| `npc_shop` | npc_shop (90) | the merchant's stock; buy, sell, repair | Merchant, items, inventory |
+| `npc_shop` | npc_shop (90), julia (352) | the merchant's stock; buy, sell, repair; Julia's Loren Market warp box (`julia.tsx`) | Merchant, items, inventory |
 | `vault` | vault (100) | the warehouse, zen buttons, pin lock | hero, economy, inventory |
-| `chaos_machine` | chaos_machine (110) | the mix tray of the goblin, the Chaos Card Master and the seed NPCs, its Mix.bmd recipe text, the goblin's and the seed NPCs' menus, the socket list | economy, chaos_mix, inventory, hero |
+| `chaos_machine` | chaos_machine (110) | the mix tray of the goblin, the Chaos Card Master, the Pet Trainer, the refineries, the Spirit of Cherry Blossoms and the seed NPCs, its Mix.bmd recipe text, the goblin's and the seed NPCs' menus, the socket list | economy, chaos_mix, inventory, hero |
 | `trade` | trade (120) | partner's half on top, the hero's below | hero, economy, inventory |
 | `personal_shop` | my_shop (130), shop_browser (140) | the hero's stall; another player's stall | economy, inventory |
 | `character_info` | character_info (150) | stats and stat point buttons | Hero, hero, options |
@@ -47,7 +47,8 @@ One folder per in-game window. A window draws; its state and actions belong to i
 | `social_prompts` | social_prompts (330) | yes/no boxes for party, guild, war, alliance, friend | social, friends |
 | `economy_prompts` | trade_prompt (340), economy_prompts (350) | trade request; zen, pin and price prompts | economy, items, inventory |
 | `system_menu` | system_menu (365) | Escape's five-button box in the world (`CSystemMenuMsgBox`); `labelFit.ts`, its labels on one line (the shrink is `menuLabelFit`); `pregame.tsx`, the server list's and character screen's `CSysMenuWin` (drawn by `src/app/App.tsx`, opened by Escape, `openPregameMenu` in `ecs/systems/keyboardInputSystem.ts`, and the character screen's Menu button) | session |
-| `window_menu` | window_menu (362) | the main frame's fifth button and U (`CNewUIWindowMenu`): System, Help, Guild, Move, Map, Gens Info; Help and Gens do nothing yet. While up it shields every click above the main frame, whose button stays pressed (`pressed` in `hud/bottom_bar/mainFrameButtons.ts`) | session, social |
+| `window_menu` | window_menu (362) | the main frame's fifth button and U (`CNewUIWindowMenu`): System, Help, Guild, Move, Map, Gens Info; Help and Gens do nothing yet, except that with `reforge_hud` on the Gens row is the Mu Reforge menu. While up it shields every click above the main frame, whose button stays pressed (`pressed` in `hud/bottom_bar/mainFrameButtons.ts`) | session, social |
+| `reforge_menu` | reforge_menu (363) | our client's Mu Reforge menu (N, the window menu's Gens row): one button per Mu Reforge window and the requests switch (`entries.ts`); module `reforge_hud` | resets, jewel_bank, vip, soul_points, olympiad, reforge_hud, hunt_log, reforge_market, item_collections |
 | `events` | events (400) | event entry windows, Chaos Castle prompt, timers, results | events, items |
 | `balgass_entry` | balgass_entry (410) | third class quest entry boxes | quests |
 | `lahap` | lahap (415) | Lahap's jewel combination boxes (`CGemIntegration*MsgBox`) | chaos_mix |

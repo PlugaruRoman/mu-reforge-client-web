@@ -17,6 +17,7 @@ import { uiClick } from '@/controllers/sound/sfx';
 import { useEventBus } from '@/controllers/interface/hooks';
 import { MuButton } from '@/controllers/interface/components/mu_button';
 import { OffExpButton } from '../reforge_hud/offModes';
+import { moduleOn } from '@/modules/module';
 import { MuSpriteFrame } from '@/controllers/interface/components/mu_sprite';
 import { MuItemWindow } from '@/controllers/interface/components/mu_window';
 import { SkillIcon } from '../../components/skill_icon';
@@ -499,6 +500,17 @@ const HuntTab = observer(
               label={t('muHelper.drainLife')}
               checked={draft.useDrainLife}
               onChange={value => edit(d => (d.useDrainLife = value))}
+            />
+          </div>
+        )}
+
+        {/* Mu Reforge: our client's "Auto accept - Party" (UI/Reforge/ReforgeMuHelperOptions.cpp). */}
+        {moduleOn('reforge_hud') && (
+          <div className="helper-row">
+            <Check
+              label={t('muHelper.autoParty')}
+              checked={draft.autoAcceptParty}
+              onChange={value => edit(d => (d.autoAcceptParty = value))}
             />
           </div>
         )}

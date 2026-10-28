@@ -51,4 +51,5 @@ export default {
   'muHelper.none': 'Nenhuma',
   'muHelper.save': 'Salvar',
   'muHelper.init': 'Reiniciar',
+  'muHelper.autoParty': 'Aceitar automaticamente - Grupo',
 } satisfies Partial<Record<keyof typeof en, string>>;

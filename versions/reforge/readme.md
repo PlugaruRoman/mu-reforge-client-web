@@ -9,10 +9,14 @@ plug-ins: the `...Extended` packets and the 5-15 byte `ItemSerializerExtended` i
 - `gameVersion` (`index.ts`): Season 6's (`../season6`) with id `reforge`, label `Mu Reforge`,
   list tag `REFORGE`, client version bytes `20404`, `variantRank` (`...Extended` first, then
   the classic name, then `...075` / `...095` / `...097`), `protocol.itemCodec: 'extended'`
-  and `modulesOff: ['marketplace', 'band']`. Serial, keys, data, features and mini-games are Season 6's.
+  and `modulesOff: ['marketplace', 'band']`. Serial, data, features and mini-games are Season 6's; the
+  keys too, except `keyDefaults`, which frees our C++ client's window letters (H, K, S, Y, L, and N for the
+  Mu Reforge menu) from the client actions that held them.
 - `packets` (`packets/index.ts`): `ServerToClientPackets`, `ClientToServerPackets`,
   `ConnectServerPackets`, `ChangeMapServerInfoPacket`, `REPLACED_BY_EXTENDED` and `SAME_FRAME`.
 - `packets/healthStatus.ts`: `ShowHealthStatusPacket`, the hand-written C1 ED 01.
+- `packets/requestsState.ts`: `RequestsStatePacket`, the hand-written C1 E4 01 (requests allowed), read by
+  `reforge_hud`.
 - `packets/eventPackets.ts`: the hand-written event frames (C2 CC 01 invasion status, C1 E2 01 / 02
   TvT, C1 E3 01 / 03 Deep Dungeon, C1 DA 01 hunting log), read by the modules `invasions`, `tvt`,
   `deep_dungeon` and `hunt_log`. The event list (C1 97) is generated; `event_list` reads it.
@@ -167,7 +171,7 @@ in our client.
   terrain file and tile slot of our worlds exists; Season 6's Lorencia / Noria tile lists unchanged,
   ours carry `ExtTile01` at 14 and cover every slot our `.map` paints, every fort model and Noria type
   resolves, the seats and candelabra rows.
-- `reforge.test.ts`: the login bytes, the Season 6 keys, the item codec, the variant ranks, no
+- `reforge.test.ts`: the login bytes, the Season 6 keys and our window letters, E4 01, the item codec, the variant ranks, no
   replaced or old-client packet in the set, nothing on E7, only the Market on E8, one class at
   each code M1 and M2 read, nothing on FA.
 - M2 handlers, with byte fixtures written from the C# senders: `modules/friends/letters.test.ts`,

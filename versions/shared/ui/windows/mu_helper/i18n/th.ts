@@ -51,4 +51,5 @@ export default {
   'muHelper.none': 'ไม่มี',
   'muHelper.save': 'บันทึก',
   'muHelper.init': 'ตั้งค่าใหม่',
+  'muHelper.autoParty': 'ตอบรับอัตโนมัติ - ปาร์ตี้',
 } satisfies Partial<Record<keyof typeof en, string>>;

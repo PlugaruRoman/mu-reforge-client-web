@@ -62,4 +62,7 @@ export default {
   'seed.sphere': 'Ensamblar esfera de semilla',
   'seed.apply': 'Aplicar esfera de semilla',
   'seed.destroy': 'Destruir esfera de semilla',
+  'chaos.refine': 'Refinar',
+  'chaos.restore': 'Restaurar',
+  'chaos.cherryBlossom': 'Espíritu de flores de cerezo',
 } satisfies Partial<Record<keyof typeof en, string>>;

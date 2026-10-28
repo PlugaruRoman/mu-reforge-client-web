@@ -62,4 +62,7 @@ export default {
   'seed.sphere': 'Lắp ráp cầu hạt giống',
   'seed.apply': 'Gắn cầu hạt giống',
   'seed.destroy': 'Phá hủy cầu hạt giống',
+  'chaos.refine': 'Tinh luyện',
+  'chaos.restore': 'Khôi phục',
+  'chaos.cherryBlossom': 'Linh hồn hoa anh đào',
 } satisfies Partial<Record<keyof typeof en, string>>;

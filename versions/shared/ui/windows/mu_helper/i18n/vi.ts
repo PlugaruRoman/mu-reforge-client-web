@@ -51,4 +51,5 @@ export default {
   'muHelper.none': 'Không',
   'muHelper.save': 'Lưu',
   'muHelper.init': 'Đặt lại',
+  'muHelper.autoParty': 'Tự động chấp nhận - Tổ đội',
 } satisfies Partial<Record<keyof typeof en, string>>;

@@ -53,7 +53,7 @@ export function chatCommandOf(p: AvailableChatCommandPacket): ChatCommand {
 let commandsFor: string | null = null;
 const commands = new Map<number, ChatCommand>();
 
-/** D8 04, EA, D5, D0 01/02/04, EC and F5 01 (Network/Reforge/PacketRoutes.cpp, WSclient.cpp). */
+/** D8 04, EA, D5, D0 01/02/04, E4 01, EC and F5 01 (Network/Reforge/PacketRoutes.cpp, WSclient.cpp). */
 export function installNet(): void {
   EventBus.on('PartyMemberBuffs', packet => {
     const buffs = readPartyMemberBuffs(packet);
@@ -69,6 +69,12 @@ export function installNet(): void {
   EventBus.on('MapMobSpotList', packet => {
     const spots = new MapMobSpotListPacket(packet).getMobSpots().map(s => ({ x: s.PositionX, y: s.PositionY, name: s.Name }));
     runInAction(() => ReforgeHud.setMobSpots(spots));
+  });
+
+  // E4 01 (S RemoteView/Character/RequestsBlockedViewPlugIn.cs): `[allowed]` at 4.
+  EventBus.on('RequestsState', packet => {
+    if (packet.byteLength < 5) return;
+    runInAction(() => ReforgeHud.setRequestsAllowed(packet.getUint8(4) !== 0));
   });
 
   EventBus.on('GuestAccessStatus', packet => {

@@ -62,4 +62,7 @@ export default {
   'seed.sphere': 'Perakitan Bola Benih',
   'seed.apply': 'Pemasangan Bola Benih',
   'seed.destroy': 'Penghancuran Bola Benih',
+  'chaos.refine': 'Memurnikan',
+  'chaos.restore': 'Memulihkan',
+  'chaos.cherryBlossom': 'Roh Bunga Sakura',
 } satisfies Partial<Record<keyof typeof en, string>>;

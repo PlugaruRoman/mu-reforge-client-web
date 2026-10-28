@@ -62,4 +62,7 @@ export default {
   'seed.sphere': '시드 스피어 조합',
   'seed.apply': '시드 스피어 장착',
   'seed.destroy': '시드 스피어 파괴',
+  'chaos.refine': '제련',
+  'chaos.restore': '환원',
+  'chaos.cherryBlossom': '벚꽃의 정령',
 } satisfies Partial<Record<keyof typeof en, string>>;

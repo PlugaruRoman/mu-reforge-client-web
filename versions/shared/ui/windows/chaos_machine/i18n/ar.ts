@@ -62,4 +62,7 @@ export default {
   'seed.sphere': 'تجميع كرة البذرة',
   'seed.apply': 'تركيب كرة البذرة',
   'seed.destroy': 'تدمير كرة البذرة',
+  'chaos.refine': 'تنقية',
+  'chaos.restore': 'استعادة',
+  'chaos.cherryBlossom': 'روح أزهار الكرز',
 } satisfies Partial<Record<keyof typeof en, string>>;

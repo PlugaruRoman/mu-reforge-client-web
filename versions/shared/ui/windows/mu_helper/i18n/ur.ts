@@ -52,4 +52,5 @@ export default {
   'muHelper.none': 'کوئی نہیں',
   'muHelper.save': 'محفوظ کریں',
   'muHelper.init': 'ری سیٹ',
+  'muHelper.autoParty': 'خودکار قبول - پارٹی',
 } satisfies Partial<Record<keyof typeof en, string>>;

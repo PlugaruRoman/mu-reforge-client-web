@@ -9,6 +9,7 @@ import { moduleOn } from '@/modules/module';
 import { BANK_JEWELS, JEWEL_BANK_WINDOW, JewelBank, WITHDRAW_AMOUNTS } from '@/modules/jewel_bank';
 import { VIP_WINDOW } from '@/modules/vip';
 import { AccountBody, AccountButton, AccountTabStrip, amount } from '../_shared/accountWidgets';
+import { ITEM_COLLECTIONS_ID, toggleItemCollections } from '../item_collections';
 import type { Item } from '@/ecs/world';
 import './style.less';
 
@@ -75,18 +76,26 @@ const toggle = (id: string) => MuWindows.setOpen(id, !MuWindows.isOpen(id));
 
 /**
  * Our client's shortcut column beside the inventory (UI/InventoryShortcuts/InventoryShortcutColumn.cpp):
- * the Jewel Bank and the VIP shop, as tabs over the inventory's frame.
+ * the Jewel Bank, the VIP shop and the Item Collections, as tabs over the inventory's frame.
  */
 export const InventoryShortcuts = observer(() => {
   const bank = moduleOn('jewel_bank');
   const vip = moduleOn('vip');
-  if (!bank && !vip) return null;
+  const collections = moduleOn('item_collections');
+  if (!bank && !vip && !collections) return null;
   return (
     <AccountTabStrip>
       {bank && (
         <AccountButton label={`${t('jewelBank.title')} (J)`} active={MuWindows.isOpen(JEWEL_BANK_WINDOW)} onClick={() => toggle(JEWEL_BANK_WINDOW)} />
       )}
       {vip && <AccountButton label={t('jewelBank.vip')} active={MuWindows.isOpen(VIP_WINDOW)} onClick={() => toggle(VIP_WINDOW)} />}
+      {collections && (
+        <AccountButton
+          label={`${t('itemCollections.title')} (;)`}
+          active={MuWindows.isOpen(ITEM_COLLECTIONS_ID)}
+          onClick={() => toggleItemCollections(false)}
+        />
+      )}
     </AccountTabStrip>
   );
 });

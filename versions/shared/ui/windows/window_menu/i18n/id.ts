@@ -9,4 +9,5 @@ export default {
   'windowMenu.move': 'Pindah (M)',
   'windowMenu.map': 'Peta (Tab)',
   'windowMenu.gens': 'Info Gens (B)',
+  'windowMenu.reforge': 'Mu Reforge (N)',
 } satisfies Partial<Record<keyof typeof en, string>>;

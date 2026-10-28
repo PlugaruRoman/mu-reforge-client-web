@@ -62,4 +62,7 @@ export default {
   'seed.sphere': 'Muntatge d\'esfera de llavor',
   'seed.apply': 'Aplicació d\'esfera de llavor',
   'seed.destroy': 'Destrucció d\'esfera de llavor',
+  'chaos.refine': 'Refinar',
+  'chaos.restore': 'Restaurar',
+  'chaos.cherryBlossom': 'Esperit de les flors de cirerer',
 } satisfies Partial<Record<keyof typeof en, string>>;

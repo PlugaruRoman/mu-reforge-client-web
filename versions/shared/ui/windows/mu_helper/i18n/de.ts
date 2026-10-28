@@ -51,4 +51,5 @@ export default {
   'muHelper.none': 'Keine',
   'muHelper.save': 'Speichern',
   'muHelper.init': 'Zurücksetzen',
+  'muHelper.autoParty': 'Automatisch annehmen - Gruppe',
 } satisfies Partial<Record<keyof typeof en, string>>;

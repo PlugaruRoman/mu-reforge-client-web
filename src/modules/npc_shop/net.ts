@@ -16,6 +16,7 @@ import { moduleOn } from '../module';
 import { ImperialGuardian } from '../imperial_guardian';
 import { runInAction } from 'mobx';
 import { t } from '@/i18n';
+import { closeJulia, forgetJulia, openJulia } from './julia';
 
 /** Registers this module's packet listeners (see ../module.ts). */
 export function installNet(): void {
@@ -58,6 +59,29 @@ export function installNet(): void {
       case NpcWindowResponseNpcWindowEnum.ChaosCardCombination:
         Merchant.dropNpcTalk();
         Economy.openMix('chaosCard');
+        break;
+      // The refineries (ReceiveTalk 0x11-0x13) and the Spirit of Cherry Blossoms (0x16): their trays.
+      // Our client shows Elpis's menu and Osbourne's warning first; their one way on is this tray.
+      case NpcWindowResponseNpcWindowEnum.ElphisRefinery:
+        Merchant.dropNpcTalk();
+        Economy.openMix('elpis');
+        break;
+      case NpcWindowResponseNpcWindowEnum.RefineStoneMaking:
+        Merchant.dropNpcTalk();
+        Economy.openMix('osbourne');
+        break;
+      case NpcWindowResponseNpcWindowEnum.RemoveJohOption:
+        Merchant.dropNpcTalk();
+        Economy.openMix('jerridon');
+        break;
+      case NpcWindowResponseNpcWindowEnum.CherryBlossomBranchesAssembly:
+        Merchant.dropNpcTalk();
+        Economy.openMix('cherryBlossom');
+        break;
+      // Julia (0x25): our server's warp between Lorencia and the Loren Market (./julia.ts).
+      case NpcWindowResponseNpcWindowEnum.JuliaWarpMarketServer:
+        Merchant.dropNpcTalk();
+        openJulia();
         break;
       case NpcWindowResponseNpcWindowEnum.DevilSquare:
         Merchant.dropNpcTalk();
@@ -167,6 +191,8 @@ export function installNet(): void {
   // cancels the trade and closes the vault, both shop windows and the NPC entry windows; the
   // merchant, vault and trade take the inventory with them (`Hide`, NewUISystem.cpp:1313-1410).
   // The quest windows close in their own listeners; the chaos machine stays.
+  EventBus.on('MapChanged', forgetJulia);
+  EventBus.on('wsClosed', forgetJulia);
   EventBus.on('heroWalked', () => {
     const docked = !!Merchant.npcShop || Economy.vaultOpen || Economy.tradeOpen;
     Economy.cancelTrade();
@@ -174,6 +200,7 @@ export function installNet(): void {
     Economy.closeMyShop();
     Economy.closeBrowsedShop();
     events.closeEntryWindows();
+    closeJulia();
     // The merchant closes with the inventory (state.ts).
     if (docked) MuWindows.setOpen('inventory', false);
   });

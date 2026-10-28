@@ -62,4 +62,7 @@ export default {
   'seed.sphere': 'Assembla sfera con seme',
   'seed.apply': 'Applica sfera con seme',
   'seed.destroy': 'Distruggi sfera con seme',
+  'chaos.refine': 'Raffina',
+  'chaos.restore': 'Ripristina',
+  'chaos.cherryBlossom': 'Spirito dei fiori di ciliegio',
 } satisfies Partial<Record<keyof typeof en, string>>;

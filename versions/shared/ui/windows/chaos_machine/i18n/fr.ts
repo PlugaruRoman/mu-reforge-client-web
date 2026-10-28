@@ -62,4 +62,7 @@ export default {
   'seed.sphere': 'Assembler une sphère de graine',
   'seed.apply': 'Appliquer une sphère de graine',
   'seed.destroy': 'Détruire une sphère de graine',
+  'chaos.refine': 'Raffiner',
+  'chaos.restore': 'Restaurer',
+  'chaos.cherryBlossom': 'Esprit des fleurs de cerisier',
 } satisfies Partial<Record<keyof typeof en, string>>;

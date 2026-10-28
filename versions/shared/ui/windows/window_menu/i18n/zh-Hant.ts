@@ -9,4 +9,5 @@ export default {
   'windowMenu.move': '移動（M）',
   'windowMenu.map': '地圖（Tab）',
   'windowMenu.gens': '家族資訊（B）',
+  'windowMenu.reforge': 'Mu Reforge (N)',
 } satisfies Partial<Record<keyof typeof en, string>>;

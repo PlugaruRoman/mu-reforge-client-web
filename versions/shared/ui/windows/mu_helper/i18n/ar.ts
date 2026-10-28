@@ -52,4 +52,5 @@ export default {
   'muHelper.itemFilters': 'المرشحات (+Luck +Opt 12)',
   'muHelper.itemFilters.hint':
     'الكلمات التي تبدأ بـ + ترشح الغرض: +Luck و+Skill و+Exc و+Anc و+Opt أو +Opt 12، و+9 للمستوى. يمكن أن تكون الإدخالات أطول؛ يحفظ هذا المتصفح النص كاملا. عند الإيقاف: الأصلي، جزء من الاسم.',
+  'muHelper.autoParty': 'قبول تلقائي - الفريق',
 } satisfies Partial<Record<keyof typeof en, string>>;

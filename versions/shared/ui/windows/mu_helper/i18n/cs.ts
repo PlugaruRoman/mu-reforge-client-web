@@ -52,4 +52,5 @@ export default {
   'muHelper.itemFilters': 'Filtry (+Luck +Opt 12)',
   'muHelper.itemFilters.hint':
     'Slova začínající + filtrují předmět: +Luck, +Skill, +Exc, +Anc, +Opt nebo +Opt 12, +9 pro úroveň. Položky můžou být delší; tento prohlížeč si uchová celý text. Vyp.: originál, část názvu.',
+  'muHelper.autoParty': 'Automaticky přijmout - Skupina',
 } satisfies Partial<Record<keyof typeof en, string>>;

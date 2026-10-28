@@ -89,6 +89,18 @@ export function closeHuntLog(helperActive: boolean): void {
   });
 }
 
+/** Our client's Mu Reforge menu row (ReforgeMenuEntries.cpp "huntlog"): shows it by hand, or closes it. */
+export function toggleHuntLog(helperActive: boolean): void {
+  if (huntLogShown(helperActive)) {
+    closeHuntLog(helperActive);
+    return;
+  }
+  runInAction(() => {
+    HuntLog.pinned = true;
+    HuntLog.dismissed = false;
+  });
+}
+
 /** The helper stopped: the next start brings the log back. */
 export function helperStopped(): void {
   if (HuntLog.dismissed) runInAction(() => (HuntLog.dismissed = false));

@@ -62,4 +62,7 @@ export default {
   'seed.sphere': 'Asamblare sferă cu sămânță',
   'seed.apply': 'Aplicare sferă cu sămânță',
   'seed.destroy': 'Distrugere sferă cu sămânță',
+  'chaos.refine': 'Rafinare',
+  'chaos.restore': 'Restaurare',
+  'chaos.cherryBlossom': 'Spiritul florilor de cireș',
 } satisfies Partial<Record<keyof typeof en, string>>;

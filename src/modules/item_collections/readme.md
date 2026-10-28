@@ -35,7 +35,8 @@ a permanent bonus to every character. Ported from our client's `UI/ItemCollectio
 
 ## Not yet
 - Collection names show the server's (English) name; our client has a translated table (`ItemColName1-50`).
-- Not on the window menu (U): our client lists it on its own N menu, which Babylon has not.
+- It opens with `;`, the Mu Reforge menu (N, `windows/reforge_menu`) and the inventory's tab strip, as in
+  our client.
 
 ## Tests
 - `catalog.test.ts`: the catalog and answer parsers on bytes written as the C# writer writes them,

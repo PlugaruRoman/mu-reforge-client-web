@@ -50,6 +50,7 @@ const en = {
   'muHelper.none': 'None',
   'muHelper.save': 'Save',
   'muHelper.init': 'Init',
+  'muHelper.autoParty': 'Auto accept - Party',
 };
 
 export default en;

@@ -62,4 +62,7 @@ export default {
   'seed.sphere': 'سرهم‌کردن گوی دانه',
   'seed.apply': 'نشاندن گوی دانه',
   'seed.destroy': 'تخریب گوی دانه',
+  'chaos.refine': 'پالایش',
+  'chaos.restore': 'بازگردانی',
+  'chaos.cherryBlossom': 'روح شکوفه‌های گیلاس',
 } satisfies Partial<Record<keyof typeof en, string>>;

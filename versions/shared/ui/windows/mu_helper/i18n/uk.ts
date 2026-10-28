@@ -52,4 +52,5 @@ export default {
   'muHelper.itemFilters': 'Фільтри (+Luck +Opt 12)',
   'muHelper.itemFilters.hint':
     'Слова, що починаються з +, фільтрують предмет: +Luck, +Skill, +Exc, +Anc, +Opt або +Opt 12, +9 для рівня. Записи можуть бути довшими; цей браузер зберігає весь текст. Вимк.: як в оригіналі, частина назви.',
+  'muHelper.autoParty': 'Автоприйняття - Група',
 } satisfies Partial<Record<keyof typeof en, string>>;

@@ -9,4 +9,5 @@ export default {
   'windowMenu.move': 'Teleport (M)',
   'windowMenu.map': 'Térkép (Tab)',
   'windowMenu.gens': 'Gens infó (B)',
+  'windowMenu.reforge': 'Mu Reforge (N)',
 } satisfies Partial<Record<keyof typeof en, string>>;

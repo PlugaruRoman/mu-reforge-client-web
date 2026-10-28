@@ -6,12 +6,16 @@ talk in flight with the merchant window's state and actions (`Merchant`).
 ## Public API
 - `Merchant` (`state.ts`, through `index.ts`, the door): see How it works; `SHOP_COLUMNS`,
   `SHOP_ROWS`, type `NpcShop`.
+- `Julia`, `juliaWarp`, `closeJulia` (`julia.ts`): Market Union Member Julia's warp window.
 - none for packets. `installNet()` in `net.ts` registers its handlers (`module.ts`, installed by `src/app/logic.ts`).
 
 ## How it works
 - `Merchant.talkToNpc` (called from ecs `npcTalkSystem`) sends `TalkToNpcRequest`; `NpcWindowResponse` says which
-  window to open. Merchants open the shop (`Merchant.openNpcShop`); vault, chaos machine and Chaos Card Master
-  open `Economy` windows; Lahap opens the jewel combination boxes (`chaos_mix/jewelMix.ts`); Devil Square,
+  window to open. Merchants open the shop (`Merchant.openNpcShop`); vault, chaos machine, Chaos Card Master,
+  Pet Trainer, the refineries (Elpis, Osbourne, Jerridon) and the Spirit of Cherry Blossoms open `Economy`
+  trays (our client shows Elpis's menu and Osbourne's warning first; their one way on is the tray);
+  Julia (0x25, our server's Lorencia - Loren Market warp, S AddLorenMarketJuliaWarpPlugIn.cs) opens her
+  window (`julia.ts`: Warp sends C1 BF 17 once, Close or a walk sends `CloseNpcRequest`); Lahap opens the jewel combination boxes (`chaos_mix/jewelMix.ts`); Devil Square,
   Blood Castle, duel watch and Doppelganger open `events` windows; legacy quest NPCs open `quests.openNpcWindow`. Anything else gets a notice and a `CloseNpcRequest`, because
   OpenMU otherwise ignores every later talk (TalkNpcAction.cs).
 - `StoreItemList` carries the merchant's stock, the vault's items and the chaos machine's tray. `Normal`

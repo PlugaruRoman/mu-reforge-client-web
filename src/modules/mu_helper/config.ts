@@ -65,6 +65,8 @@ export interface MuHelperConfig {
 
   useDarkRaven: boolean;
   darkRavenMode: DarkRavenMode;
+  /** Mu Reforge: accept party invitations alone (bit 4 of byte 29, S MuHelperConfigurationFlags). */
+  autoAcceptParty: boolean;
 
   repairItem: boolean;
 
@@ -112,6 +114,7 @@ export function defaultMuHelperConfig(): MuHelperConfig {
     useDrainLife: false,
     useDarkRaven: false,
     darkRavenMode: 0,
+    autoAcceptParty: false,
     repairItem: false,
     obtainRange: 8,
     pickAllItems: false,
@@ -209,6 +212,8 @@ export function encodeMuHelperConfig(config: MuHelperConfig): Uint8Array {
     bit(config.pickSelectedItems, 7);
 
   out[28] = config.darkRavenMode & 0xff;
+  // Our client's `bAutoAcceptParty` (WSclient.h PRECEIVE_MUHELPER_DATA index 33, bit 4).
+  out[29] = bit(config.autoAcceptParty, 4);
 
   for (let slot = 0; slot < MAX_EXTRA_ITEMS; slot++) {
     const name = config.extraItems[slot];
@@ -291,6 +296,7 @@ export function decodeMuHelperConfig(blob: Uint8Array): MuHelperConfig {
 
   const raven = blob[28];
   config.darkRavenMode = raven === 1 || raven === 2 ? raven : 0;
+  config.autoAcceptParty = (blob[29] & 0x10) !== 0;
 
   config.extraItems = [];
   for (let slot = 0; slot < MAX_EXTRA_ITEMS; slot++) {

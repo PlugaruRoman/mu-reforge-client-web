@@ -62,4 +62,7 @@ export default {
   'seed.sphere': 'बीज गोलक जोड़ना',
   'seed.apply': 'बीज गोलक लगाना',
   'seed.destroy': 'बीज गोलक तोड़ना',
+  'chaos.refine': 'परिष्कृत करें',
+  'chaos.restore': 'पुनर्स्थापित करें',
+  'chaos.cherryBlossom': 'चेरी ब्लॉसम की आत्मा',
 } satisfies Partial<Record<keyof typeof en, string>>;

@@ -62,4 +62,7 @@ export default {
   'seed.sphere': 'Сглобяване на сфера',
   'seed.apply': 'Поставяне на сфера',
   'seed.destroy': 'Разрушаване на сфера',
+  'chaos.refine': 'Рафиниране',
+  'chaos.restore': 'Възстановяване',
+  'chaos.cherryBlossom': 'Духът на черешовия цвят',
 } satisfies Partial<Record<keyof typeof en, string>>;

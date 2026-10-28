@@ -52,4 +52,5 @@ export default {
   'muHelper.itemFilters': 'Filter (+Luck +Opt 12)',
   'muHelper.itemFilters.hint':
     'Kata yang diawali + menyaring item: +Luck, +Skill, +Exc, +Anc, +Opt atau +Opt 12, +9 untuk level. Isian boleh lebih panjang; browser ini menyimpan seluruh teksnya. Nonaktif: seperti aslinya, sebagian nama.',
+  'muHelper.autoParty': 'Terima otomatis - Party',
 } satisfies Partial<Record<keyof typeof en, string>>;

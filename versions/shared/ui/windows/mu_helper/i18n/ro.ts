@@ -51,4 +51,5 @@ export default {
   'muHelper.none': 'Niciuna',
   'muHelper.save': 'Salvează',
   'muHelper.init': 'Resetează',
+  'muHelper.autoParty': 'Acceptă automat - Grup',
 } satisfies Partial<Record<keyof typeof en, string>>;

@@ -9,4 +9,5 @@ export default {
   'windowMenu.move': 'Μετακίνηση (M)',
   'windowMenu.map': 'Χάρτης (Tab)',
   'windowMenu.gens': 'Πληροφορίες Gens (B)',
+  'windowMenu.reforge': 'Mu Reforge (N)',
 } satisfies Partial<Record<keyof typeof en, string>>;

@@ -10,13 +10,14 @@ vi.hoisted(() => {
 await import('@versions/shared/skills/skillVisuals');
 const { installNet } = await import('./net');
 const { Merchant } = await import('./state');
-const { Economy } = await import('../economy/economy');
+const { Economy, MIX_TYPE } = await import('../economy/economy');
+const { Julia, juliaWarp } = await import('./julia');
 const { events } = await import('../events');
 const { bloodCastleWindow } = await import('../events/bloodCastle');
 const { Session } = await import('@/modules/session');
 const { MuWindows } = await import('@/controllers/interface');
 const { EventBus } = await import('@/core/eventBus');
-const { CloseNpcRequestPacket, TradeCancelPacket } = await import('@versions/shared/packets/ClientToServerPackets');
+const { CloseNpcRequestPacket, EnterMarketPlaceRequestPacket, TradeCancelPacket } = await import('@versions/shared/packets/ClientToServerPackets');
 const { CastleSiegeTaxRateNotificationPacket, CastleSiegeTaxTypeEnum, NpcWindowResponsePacket, NpcWindowResponseNpcWindowEnum } = await import('@versions/shared/packets/ServerToClientPackets');
 const { JewelMix } = await import('../chaos_mix/jewelMix');
 
@@ -125,6 +126,46 @@ describe('the seed NPCs', () => {
     expect(Economy.seedMenu).toBe('master');
     npcWindow(NpcWindowResponseNpcWindowEnum.SeedResearcher);
     expect(Economy.seedMenu).toBe('researcher');
+    expect(sent).not.toContain(CloseNpcRequestPacket.Code);
+  });
+});
+
+// ReceiveTalk 0x11-0x13 and 0x16 (WSclient.cpp): the refineries' and the Cherry Blossom Spirit's trays,
+// whose items move under their own storage byte (MixMgr.cpp GetMixInventoryEquipmentIndex).
+describe('the refinery NPCs', () => {
+  it.each([
+    [NpcWindowResponseNpcWindowEnum.ElphisRefinery, MIX_TYPE.elpis, 6],
+    [NpcWindowResponseNpcWindowEnum.RefineStoneMaking, MIX_TYPE.osbourne, 7],
+    [NpcWindowResponseNpcWindowEnum.RemoveJohOption, MIX_TYPE.jerridon, 8],
+    [NpcWindowResponseNpcWindowEnum.CherryBlossomBranchesAssembly, MIX_TYPE.cherryBlossom, 10],
+  ])('window %i opens its tray', (window, type, storage) => {
+    npcWindow(window);
+    expect(Economy.mixOpen).toBe(true);
+    expect(Economy.mixInventoryType).toBe(type);
+    expect(Economy.mixWireStorage).toBe(storage);
+    expect(sent).not.toContain(CloseNpcRequestPacket.Code);
+    Economy.closeMix(false);
+  });
+});
+
+// ReceiveTalk 0x25: Julia's warp window (UnitedMarketPlaceWindow.cpp), our server's Loren Market warp.
+describe('Julia', () => {
+  it('opens her window, warps once, and closes on a walk', () => {
+    npcWindow(NpcWindowResponseNpcWindowEnum.JuliaWarpMarketServer);
+    expect(Julia.open).toBe(true);
+    expect(sent).not.toContain(CloseNpcRequestPacket.Code);
+    juliaWarp();
+    juliaWarp();
+    expect(sent.filter(code => code === EnterMarketPlaceRequestPacket.Code)).toHaveLength(1);
+    walk();
+    expect(Julia.open).toBe(false);
+    expect(sent).toContain(CloseNpcRequestPacket.Code);
+  });
+
+  it('closes without a word to the server when the map changes', () => {
+    npcWindow(NpcWindowResponseNpcWindowEnum.JuliaWarpMarketServer);
+    EventBus.emit('MapChanged', new DataView(new ArrayBuffer(8)));
+    expect(Julia.open).toBe(false);
     expect(sent).not.toContain(CloseNpcRequestPacket.Code);
   });
 });

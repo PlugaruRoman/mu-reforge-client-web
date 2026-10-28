@@ -62,4 +62,7 @@ export default {
   'seed.sphere': 'Pagbuo ng Binhing Globo',
   'seed.apply': 'Pagkakabit ng Binhing Globo',
   'seed.destroy': 'Pagsira ng Binhing Globo',
+  'chaos.refine': 'Pinuhin',
+  'chaos.restore': 'Ibalik',
+  'chaos.cherryBlossom': 'Espiritu ng Cherry Blossoms',
 } satisfies Partial<Record<keyof typeof en, string>>;

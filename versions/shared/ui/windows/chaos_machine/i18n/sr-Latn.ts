@@ -62,4 +62,7 @@ export default {
   'seed.sphere': 'Sklapanje sfere semena',
   'seed.apply': 'Umetanje sfere semena',
   'seed.destroy': 'Uništavanje sfere semena',
+  'chaos.refine': 'Rafinisanje',
+  'chaos.restore': 'Vraćanje',
+  'chaos.cherryBlossom': 'Duh trešnjinog cveta',
 } satisfies Partial<Record<keyof typeof en, string>>;

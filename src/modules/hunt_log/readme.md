@@ -6,7 +6,8 @@ computes them (S `GameLogic/Hunt/HuntLogInfoAction.cs`). Port of our C++ client'
 
 ## Public API
 - `HuntLog`: the last figures (`statistics`), `pinned` (opened by hand) and `dismissed` (closed for
-  this MU Helper run). `huntLogShown(helperActive)`, `closeHuntLog`, `helperStopped`.
+  this MU Helper run). `huntLogShown(helperActive)`, `closeHuntLog`, `helperStopped`, `toggleHuntLog`
+  (the Mu Reforge menu's row, `versions/shared/ui/windows/reforge_menu`).
 - `requestHuntLog()`: C1 DA 01.
 
 ## How it works
@@ -21,8 +22,7 @@ computes them (S `GameLogic/Hunt/HuntLogInfoAction.cs`). Port of our C++ client'
 - out: DA 01 (S `MessageHandler/Hunt/HuntLogRequestHandlerPlugIn.cs`), hand-built.
 
 ## Not yet
-- Opening it by hand without the helper (our client's N menu row, `pinned`): Babylon has no such
-  menu yet. Our client's sizes, folding to the title and the dragged place kept across sessions.
+- Our client's sizes, folding to the title and the dragged place kept across sessions.
 
 ## Depends on / used by
 - uses: `session`.

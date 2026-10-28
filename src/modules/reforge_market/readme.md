@@ -40,7 +40,7 @@ stays off for reforge.
 - Setting a non-zen price (E8 03) from the personal store's price dialog, and showing a store's
   W Coin / jewel prices in its window from `storeCurrencies`: Babylon's personal shop window takes
   a zen price only.
-- Our client also opens the board from its Reforge main menu; Babylon has no such menu yet.
+- The Mu Reforge menu (`windows/reforge_menu`) opens the board too, as our client's does.
 
 ## Depends on / used by
 - uses: `session` (sending), `chat` (lines), `controllers/item_rules` (item codec),

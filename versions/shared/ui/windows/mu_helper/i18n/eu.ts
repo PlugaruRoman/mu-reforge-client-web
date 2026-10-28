@@ -52,4 +52,5 @@ export default {
   'muHelper.itemFilters': 'Iragazkiak (+Luck +Opt 12)',
   'muHelper.itemFilters.hint':
     '+ ikurraz hasten diren hitzek objektua iragazten dute: +Luck, +Skill, +Exc, +Anc, +Opt edo +Opt 12, +9 mailarako. Sarrerak luzeagoak izan daitezke; nabigatzaile honek testu osoa gordetzen du. Desaktibatuta: jatorrizkoa, izenaren zati bat.',
+  'muHelper.autoParty': 'Onartu automatikoki - Taldea',
 } satisfies Partial<Record<keyof typeof en, string>>;

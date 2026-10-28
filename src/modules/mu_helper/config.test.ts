@@ -35,6 +35,7 @@ function maximalConfig(): MuHelperConfig {
     useDrainLife: true,
     useDarkRaven: true,
     darkRavenMode: 2,
+    autoAcceptParty: true,
     repairItem: true,
     obtainRange: 3,
     pickAllItems: false,
@@ -91,6 +92,16 @@ describe('MU Helper blob codec', () => {
     // skill2 con(1) + precon attacking(2) + subcon 3 (>=5) + repair(5) + pickSelected(7)
     expect(blob[27]).toBe(0x02 | 0x04 | (3 << 3) | 0x20 | 0x80);
     expect(blob[28]).toBe(2);
+  });
+
+  // Our client's `bAutoAcceptParty` (WSclient.h PRECEIVE_MUHELPER_DATA index 33 bit 4 = blob 29).
+  it('keeps the Mu Reforge auto accept party in bit 4 of byte 29', () => {
+    const config = defaultMuHelperConfig();
+    config.autoAcceptParty = true;
+    const blob = encodeMuHelperConfig(config);
+    expect(blob[29]).toBe(0x10);
+    expect(decodeMuHelperConfig(blob).autoAcceptParty).toBe(true);
+    expect(decodeMuHelperConfig(encodeMuHelperConfig(defaultMuHelperConfig())).autoAcceptParty).toBe(false);
   });
 
   it('round-trips a maximal config', () => {

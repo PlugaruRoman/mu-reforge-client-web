@@ -32,7 +32,8 @@ import {
  * open (C1 9F), as the old client did: a stale player count is the most misleading thing it can show.
  */
 
-const WINDOW = 'event_list';
+export const EVENT_LIST_WINDOW = 'event_list';
+const WINDOW = EVENT_LIST_WINDOW;
 /** Our client's key (B is upstream's Gens ranking; our server runs without Gens). */
 const HOT_KEY = 'KeyB';
 const REQUEST_MS = 5000;

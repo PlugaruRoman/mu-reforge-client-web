@@ -61,6 +61,9 @@ const en = {
   'seed.sphere': 'Seed Sphere Assembly',
   'seed.apply': 'Seed sphere application',
   'seed.destroy': 'Seed sphere destruction',
+  'chaos.refine': 'Refine',
+  'chaos.restore': 'Restore',
+  'chaos.cherryBlossom': 'Spirit of Cherry Blossoms',
 };
 
 export default en;

@@ -20,7 +20,9 @@ the two server packets, with its running state and the raw config blob (`MuHelpe
   `stop()` (the session ended; no packet), `triggerStop()` (`CMuHelper::TriggerStop`: the pause request alone).
 - `config.ts` encodes and decodes the 257-byte blob. The layout is `PRECEIVE_MUHELPER_DATA`
   (`WSclient.h:3592-3642`) as `ConfigDataSerDe` (`MuHelperData.cpp`) writes it, so configs move
-  between this client and the reference client.
+  between this client and the reference client. Mu Reforge adds `autoAcceptParty`, bit 4 of byte 29 (our
+  C++ client's `bAutoAcceptParty`, the server's `MuHelperConfigurationFlags`), a checkbox in the window only
+  while `reforge_hud` is on.
 - `state.ts` decodes `MuHelper.config` with a `reaction` into `MuHelperState.config`, and
   into `draft` while the window is closed. `saveMuHelperConfig` (`NewUIMuHelper.cpp:1095-1116`)
   applies the draft and sends `MuHelperSaveDataRequest`; the server echoes the config back.

@@ -62,4 +62,7 @@ export default {
   'seed.sphere': 'Сборка сферы семени',
   'seed.apply': 'Вставка сферы семени',
   'seed.destroy': 'Разрушение сферы семени',
+  'chaos.refine': 'Очистка',
+  'chaos.restore': 'Восстановление',
+  'chaos.cherryBlossom': 'Дух цветущей вишни',
 } satisfies Partial<Record<keyof typeof en, string>>;

@@ -1,6 +1,7 @@
 import { makeAutoObservable } from 'mobx';
 import { MuWindows } from '@/controllers/interface';
 import { Session } from '../session';
+import { sendChatLine } from '../chat/sendLine';
 import {
   GuestAccessGenerateRequestPacket,
   GuestAccessListRequestPacket,
@@ -64,6 +65,8 @@ export const ReforgeHud = new (class _ReforgeHud {
   guestListAt = 0;
   /** The answer to the last generate request; `pending` until it came. */
   generated: { pending: boolean; success: boolean; name: string; password: string } | null = null;
+  /** E4 01: trade, party, duel and friend requests reach the hero (S Character.BlockRequests, false by default). */
+  requestsAllowed = true;
 
   private pvpTimer: ReturnType<typeof setInterval> | null = null;
 
@@ -147,7 +150,18 @@ export const ReforgeHud = new (class _ReforgeHud {
     return Math.max(0, session.remainingSeconds - Math.floor((now - this.guestListAt) / 1000));
   }
 
+  setRequestsAllowed(allowed: boolean): void {
+    this.requestsAllowed = allowed;
+  }
+
+  /** `Requests::Toggle` (GameLogic/Reforge/ReforgeRequests.cpp): flips now, asks the server; its E4 01 confirms. */
+  toggleRequests(): void {
+    this.requestsAllowed = !this.requestsAllowed;
+    sendChatLine(this.requestsAllowed ? '/requests on' : '/requests off');
+  }
+
   reset(): void {
+    this.requestsAllowed = true;
     this.partyBuffs = [];
     this.pvpFlags.clear();
     this.mobSpots = [];

@@ -9,7 +9,7 @@ vi.hoisted(() => {
 await import('@versions/shared/skills/skillVisuals');
 const { EventBus } = await import('@/core/eventBus');
 const { installNet } = await import('./net');
-const { HuntLog, NOT_ESTIMABLE, buildHuntLogRequest, closeHuntLog, helperStopped, huntLogShown } = await import('./state');
+const { HuntLog, NOT_ESTIMABLE, buildHuntLogRequest, closeHuntLog, helperStopped, huntLogShown, toggleHuntLog } = await import('./state');
 
 installNet();
 
@@ -64,6 +64,19 @@ describe('Hunt log (C1 DA 01)', () => {
     closeHuntLog(true);
     expect(huntLogShown(true)).toBe(false);
     helperStopped();
+    expect(huntLogShown(true)).toBe(true);
+  });
+
+  // Our client's Mu Reforge menu row opens it without the helper and closes it again.
+  it('opens and closes by hand, with or without the helper', () => {
+    expect(huntLogShown(false)).toBe(false);
+    toggleHuntLog(false);
+    expect(huntLogShown(false)).toBe(true);
+    toggleHuntLog(false);
+    expect(huntLogShown(false)).toBe(false);
+    toggleHuntLog(true);
+    expect(huntLogShown(true)).toBe(false);
+    toggleHuntLog(true);
     expect(huntLogShown(true)).toBe(true);
   });
 });

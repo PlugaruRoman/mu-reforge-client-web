@@ -71,6 +71,30 @@ describe('the Mu Reforge HUD frames', () => {
   });
 });
 
+// E4 01 and `/requests on|off` (GameLogic/Reforge/ReforgeRequests.cpp).
+describe('the requests switch', () => {
+  it('follows E4 01 and flips with the chat command', () => {
+    EventBus.emit('RequestsState', new DataView(new Uint8Array([0xc1, 0x05, 0xe4, 0x01, 0]).buffer));
+    expect(ReforgeHud.requestsAllowed).toBe(false);
+    const sent: string[] = [];
+    const send = vi.spyOn(Session, 'sendToGS').mockImplementation(view => {
+      const bytes = new Uint8Array(view.buffer, view.byteOffset, view.byteLength);
+      sent.push(String.fromCharCode(...bytes.slice(13)).replace(/\0+$/, ''));
+    });
+    try {
+      ReforgeHud.toggleRequests();
+      expect(ReforgeHud.requestsAllowed).toBe(true);
+      ReforgeHud.toggleRequests();
+      expect(ReforgeHud.requestsAllowed).toBe(false);
+      expect(sent).toEqual(['/requests on', '/requests off']);
+    } finally {
+      send.mockRestore();
+    }
+    EventBus.emit('RequestsState', new DataView(new Uint8Array([0xc1, 0x05, 0xe4, 0x01, 1]).buffer));
+    expect(ReforgeHud.requestsAllowed).toBe(true);
+  });
+});
+
 // F5 01: a game master and a player are offered different lists, so a character switch asks again.
 describe('the chat command list', () => {
   it('is asked for once per character, not once per connection', () => {

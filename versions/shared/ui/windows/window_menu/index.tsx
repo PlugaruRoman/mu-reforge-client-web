@@ -12,11 +12,15 @@ import { useEventBus } from '@/controllers/interface/hooks';
 import { isKey } from '@/controllers/interface/keyBindings';
 import { SessionExit } from '@/modules/session/sessionExit';
 import { Social } from '@/modules/social/social';
+import { moduleOn } from '@/modules/module';
+import { REFORGE_MENU_WINDOW } from '../reforge_menu';
 
 /**
  * `CNewUIWindowMenu` (NewUIWindowMenu.cpp): the main frame's fifth button. Six rows in the
  * `newui_commamd` frame over the bottom right of the stage; the hovered row turns yellow between two
  * arrows. Help (`CNewUIHelp`) and Gens Info (`CNewUIGensRanking`) are not ported: those rows do nothing.
+ * A server without Gens that has the Mu Reforge menu (`reforge_hud`) gets that menu on the Gens row: our
+ * C++ client's N menu, which a touch screen reaches only through here.
  */
 
 export const WINDOW_MENU = 'window_menu';
@@ -44,6 +48,10 @@ const LABELS: readonly TextKey[] = [
 
 const close = () => MuWindows.setOpen(WINDOW_MENU, false);
 
+/** The sixth row: Gens Info, or the Mu Reforge menu where that module is on. */
+const reforgeRow = () => moduleOn('reforge_hud');
+const labelOf = (key: TextKey, index: number): TextKey => (index === 5 && reforgeRow() ? 'windowMenu.reforge' : key);
+
 /** A click on row `index` (`UpdateMouseEvent`, NewUIWindowMenu.cpp:60-110). */
 export function chooseWindowMenu(index: number): void {
   runInAction(() => {
@@ -62,6 +70,11 @@ export function chooseWindowMenu(index: number): void {
       case 4:
         close();
         MuWindows.setOpen('minimap', !MuWindows.isOpen('minimap'));
+        break;
+      case 5:
+        if (!reforgeRow()) break;
+        close();
+        MuWindows.setOpen(REFORGE_MENU_WINDOW, !MuWindows.isOpen(REFORGE_MENU_WINDOW));
         break;
     }
   });
@@ -120,7 +133,7 @@ export const WindowMenu = observer(() => {
             onPointerEnter={() => setSelected(i)}
             onClick={() => chooseWindowMenu(i)}
           >
-            <span className="window-menu-label">{t(key)}</span>
+            <span className="window-menu-label">{t(labelOf(key, i))}</span>
           </div>
         ))}
       </div>

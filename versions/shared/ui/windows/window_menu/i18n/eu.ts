@@ -9,4 +9,5 @@ export default {
   'windowMenu.move': 'Mugitu (M)',
   'windowMenu.map': 'Mapa (Tab)',
   'windowMenu.gens': 'Gens informazioa (B)',
+  'windowMenu.reforge': 'Mu Reforge (N)',
 } satisfies Partial<Record<keyof typeof en, string>>;

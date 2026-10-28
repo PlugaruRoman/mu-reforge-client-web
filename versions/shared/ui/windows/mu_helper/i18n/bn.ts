@@ -52,4 +52,5 @@ export default {
   'muHelper.itemFilters': 'ফিল্টার (+Luck +Opt 12)',
   'muHelper.itemFilters.hint':
     '+ দিয়ে শুরু হওয়া শব্দ আইটেম ফিল্টার করে: +Luck, +Skill, +Exc, +Anc, +Opt বা +Opt 12, লেভেলের জন্য +9। এন্ট্রি আরও লম্বা হতে পারে; এই ব্রাউজার পুরো লেখাটি রাখে। বন্ধ: মূল গেমের মতো, নামের একাংশ।',
+  'muHelper.autoParty': 'স্বয়ংক্রিয় গ্রহণ - দল',
 } satisfies Partial<Record<keyof typeof en, string>>;

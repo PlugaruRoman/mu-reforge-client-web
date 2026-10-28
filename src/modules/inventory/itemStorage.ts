@@ -34,6 +34,13 @@ export const CHAOS_CARD_WIRE_STORAGE = 9;
 export const PET_TRAINER_WIRE_STORAGE = 5;
 
 /**
+ * `STORAGE_TYPE::ELPIS_MIX` .. `CHERRYBLOSSOM_MIX` (_define.h) / OpenMU `Storages.Refinery`, `Smelting`,
+ * `ItemRestore`, `CherryBlossomSpirit`: the refineries' and the Cherry Blossom Spirit's trays, the chaos
+ * machine's grid here like the card one.
+ */
+export const REFINERY_WIRE_STORAGES = { elpis: 6, osbourne: 7, jerridon: 8, cherryBlossom: 10 } as const;
+
+/**
  * `STORAGE_TYPE::EXTRACT_SEED_MIX` .. `DETACH_SOCKET_MIX` (_define.h:181-184) / OpenMU `SeedCrafting` ..
  * `SeedUnmountCrafting`: the Seed Master's and the Seed Researcher's trays, the chaos machine's grid here.
  */

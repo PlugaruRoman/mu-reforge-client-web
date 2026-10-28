@@ -9,4 +9,5 @@ export default {
   'windowMenu.move': '이동 (M)',
   'windowMenu.map': '지도 (Tab)',
   'windowMenu.gens': '겐스 정보 (B)',
+  'windowMenu.reforge': 'Mu Reforge (N)',
 } satisfies Partial<Record<keyof typeof en, string>>;

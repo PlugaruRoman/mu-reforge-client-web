@@ -62,4 +62,7 @@ export default {
   'seed.sphere': 'ประกอบสเฟียร์เมล็ด',
   'seed.apply': 'ใส่สเฟียร์เมล็ด',
   'seed.destroy': 'ทำลายสเฟียร์เมล็ด',
+  'chaos.refine': 'กลั่น',
+  'chaos.restore': 'คืนสภาพ',
+  'chaos.cherryBlossom': 'วิญญาณดอกซากุระ',
 } satisfies Partial<Record<keyof typeof en, string>>;

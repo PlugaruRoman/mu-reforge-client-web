@@ -62,4 +62,7 @@ export default {
   'seed.sphere': 'Składanie sfery z nasionem',
   'seed.apply': 'Nakładanie sfery z nasionem',
   'seed.destroy': 'Niszczenie sfery z nasionem',
+  'chaos.refine': 'Uszlachetnij',
+  'chaos.restore': 'Przywróć',
+  'chaos.cherryBlossom': 'Duch kwiatów wiśni',
 } satisfies Partial<Record<keyof typeof en, string>>;

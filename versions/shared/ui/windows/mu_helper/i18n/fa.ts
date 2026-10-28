@@ -52,4 +52,5 @@ export default {
   'muHelper.none': 'هیچ',
   'muHelper.save': 'ذخیره',
   'muHelper.init': 'بازنشانی',
+  'muHelper.autoParty': 'پذیرش خودکار - گروه',
 } satisfies Partial<Record<keyof typeof en, string>>;

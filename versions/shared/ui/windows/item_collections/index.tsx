@@ -162,12 +162,12 @@ type Pending = { collection: Collection; slot: number };
 
 const close = () => MuWindows.setOpen(ITEM_COLLECTIONS_ID, false);
 
-/** Opens it and asks for the catalog (`Show`: `SendItemCollectionListRequest` on every open). */
-export function toggleItemCollections(): void {
+/** Opens it and asks for the catalog (`Show`: `SendItemCollectionListRequest` on every open); a button clicks itself. */
+export function toggleItemCollections(click = true): void {
   const open = !MuWindows.isOpen(ITEM_COLLECTIONS_ID);
   MuWindows.setOpen(ITEM_COLLECTIONS_ID, open);
   if (open) ItemCollections.requestList();
-  playUiSound('click');
+  if (click) playUiSound('click');
 }
 
 export const ItemCollectionsWindow = observer(() => {

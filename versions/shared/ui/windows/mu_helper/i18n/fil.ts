@@ -52,4 +52,5 @@ export default {
   'muHelper.none': 'Wala',
   'muHelper.save': 'I-save',
   'muHelper.init': 'I-reset',
+  'muHelper.autoParty': 'Awtomatikong tanggapin - Party',
 } satisfies Partial<Record<keyof typeof en, string>>;

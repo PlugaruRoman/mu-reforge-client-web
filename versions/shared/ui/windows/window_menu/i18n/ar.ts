@@ -9,4 +9,5 @@ export default {
   'windowMenu.move': 'الانتقال (M)',
   'windowMenu.map': 'الخريطة (Tab)',
   'windowMenu.gens': 'معلومات Gens (B)',
+  'windowMenu.reforge': 'Mu Reforge (N)',
 } satisfies Partial<Record<keyof typeof en, string>>;

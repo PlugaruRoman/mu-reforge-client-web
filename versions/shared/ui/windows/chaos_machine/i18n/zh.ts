@@ -62,4 +62,7 @@ export default {
   'seed.sphere': '种子镶嵌球合成',
   'seed.apply': '种子镶嵌球镶嵌',
   'seed.destroy': '种子镶嵌球破坏',
+  'chaos.refine': '提炼',
+  'chaos.restore': '还原',
+  'chaos.cherryBlossom': '樱花之灵',
 } satisfies Partial<Record<keyof typeof en, string>>;

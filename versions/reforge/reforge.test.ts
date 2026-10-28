@@ -16,6 +16,18 @@ describe('reforge version', () => {
     expect(gameVersion.modulesOff).toContain('band');
   });
 
+  // UI/Reforge/ReforgeHotkeys.cpp: H, K, S, Y, L and N (the Mu Reforge menu) are our windows' keys.
+  it('frees our client\'s window letters from the client actions that held them', () => {
+    expect(gameVersion.keyDefaults).toMatchObject({ skillList: '', sortInventory: '', replyWhisper: '', repair: '', targetNearest: '' });
+    expect(gameVersion.keyDefaults?.hideUi).toBe('F9');
+  });
+
+  // C1 E4 01, the requests switch (S RemoteView/Character/RequestsBlockedViewPlugIn.cs).
+  it('reads the requests state on E4 01', () => {
+    const e4 = ServerToClientPackets.filter(p => p.Code === 0xe4);
+    expect(e4.map(p => p.Name)).toEqual(['RequestsState']);
+  });
+
   it('prefers the Extended variant, then the classic one, then the old clients', () => {
     const rank = gameVersion.protocol.variantRank;
     expect(rank('CharacterListExtended')).toBeLessThan(rank('CharacterList'));

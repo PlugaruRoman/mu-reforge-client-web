@@ -62,4 +62,7 @@ export default {
   'seed.sphere': 'Συναρμολόγηση σφαίρας σπόρου',
   'seed.apply': 'Εφαρμογή σφαίρας σπόρου',
   'seed.destroy': 'Καταστροφή σφαίρας σπόρου',
+  'chaos.refine': 'Εξευγενισμός',
+  'chaos.restore': 'Επαναφορά',
+  'chaos.cherryBlossom': 'Πνεύμα των ανθών κερασιάς',
 } satisfies Partial<Record<keyof typeof en, string>>;

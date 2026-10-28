@@ -62,4 +62,7 @@ export default {
   'seed.sphere': 'Maggömb összeállítása',
   'seed.apply': 'Maggömb behelyezése',
   'seed.destroy': 'Maggömb megsemmisítése',
+  'chaos.refine': 'Finomítás',
+  'chaos.restore': 'Visszaállítás',
+  'chaos.cherryBlossom': 'A cseresznyevirágok szelleme',
 } satisfies Partial<Record<keyof typeof en, string>>;

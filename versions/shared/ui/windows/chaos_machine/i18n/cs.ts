@@ -62,4 +62,7 @@ export default {
   'seed.sphere': 'Sestavení semenné sféry',
   'seed.apply': 'Vsazení semenné sféry',
   'seed.destroy': 'Zničení semenné sféry',
+  'chaos.refine': 'Rafinovat',
+  'chaos.restore': 'Obnovit',
+  'chaos.cherryBlossom': 'Duch třešňových květů',
 } satisfies Partial<Record<keyof typeof en, string>>;

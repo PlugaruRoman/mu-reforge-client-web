@@ -77,12 +77,14 @@ export const gameVersion: GameVersion = {
   // (E7 03/05) has no handler on our server: the login would hang, then ask for the password.
   serverSettingsOff: ['jewelBundling', 'loginTokens'],
   // Our C++ client's letters for our windows (H event timer, K VIP, S soul points, Y death records,
-  // L guest access): the client actions that held them move off, so the window keys reach them.
+  // L guest access, N the Mu Reforge menu): the client actions that held them move off, so the window
+  // keys reach them.
   keyDefaults: {
     hideUi: 'F9',
     skillList: '',
     sortInventory: '',
     replyWhisper: '',
     repair: '',
+    targetNearest: '',
   },
 };

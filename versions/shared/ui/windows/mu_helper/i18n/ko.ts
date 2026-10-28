@@ -51,4 +51,5 @@ export default {
   'muHelper.none': '없음',
   'muHelper.save': '저장',
   'muHelper.init': '초기화',
+  'muHelper.autoParty': '자동 수락 - 파티',
 } satisfies Partial<Record<keyof typeof en, string>>;

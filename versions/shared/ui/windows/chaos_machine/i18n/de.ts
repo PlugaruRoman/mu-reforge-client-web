@@ -62,4 +62,7 @@ export default {
   'seed.sphere': 'Samensphäre zusammensetzen',
   'seed.apply': 'Samensphäre einsetzen',
   'seed.destroy': 'Samensphäre zerstören',
+  'chaos.refine': 'Verfeinern',
+  'chaos.restore': 'Wiederherstellen',
+  'chaos.cherryBlossom': 'Geist der Kirschblüten',
 } satisfies Partial<Record<keyof typeof en, string>>;

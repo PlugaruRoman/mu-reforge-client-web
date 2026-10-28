@@ -52,4 +52,5 @@ export default {
   'muHelper.itemFilters': 'Szűrők (+Luck +Opt 12)',
   'muHelper.itemFilters.hint':
     'A + jellel kezdődő szavak a tárgyat szűrik: +Luck, +Skill, +Exc, +Anc, +Opt vagy +Opt 12, +9 a szinthez. A bejegyzések hosszabbak is lehetnek; ez a böngésző a teljes szöveget megőrzi. Kikapcsolva: az eredeti, a név egy része.',
+  'muHelper.autoParty': 'Automatikus elfogadás - Csapat',
 } satisfies Partial<Record<keyof typeof en, string>>;

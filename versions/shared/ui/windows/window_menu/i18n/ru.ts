@@ -9,4 +9,5 @@ export default {
   'windowMenu.move': 'Перемещение (M)',
   'windowMenu.map': 'Карта (Tab)',
   'windowMenu.gens': 'Инфо Gens (B)',
+  'windowMenu.reforge': 'Mu Reforge (N)',
 } satisfies Partial<Record<keyof typeof en, string>>;

@@ -52,4 +52,5 @@ export default {
   'muHelper.none': '無',
   'muHelper.save': '儲存',
   'muHelper.init': '重設',
+  'muHelper.autoParty': '自動接受 - 隊伍',
 } satisfies Partial<Record<keyof typeof en, string>>;

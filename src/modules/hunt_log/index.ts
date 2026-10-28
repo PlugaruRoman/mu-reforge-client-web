@@ -5,6 +5,7 @@ export {
   closeHuntLog,
   helperStopped,
   huntLogShown,
+  toggleHuntLog,
   type HuntLogStatistics,
 } from './state';
 export { requestHuntLog } from './net';
