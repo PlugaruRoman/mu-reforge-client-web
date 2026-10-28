@@ -218,6 +218,8 @@ type RelayData = {
   targetLabel: string;
   /** Server addresses -> aliases in the server's bytes; null without PROXY_TARGETS. */
   rewriter: AddressRewriter | null;
+  /** A weather frame held until the server's bytes end on a whole frame (sendWeather). */
+  weatherDue: WeatherState | null;
   /** The browser's address (X-Real-IP from a trusted proxy, else the socket peer); logged, never the packets. */
   clientIp: string;
   /** The browser's port when known (0 behind nginx), for the PROXY header. */
@@ -255,6 +257,15 @@ let weather: WeatherState = CLEAR;
 let lastBroadcast = 0;
 
 function sendWeather(ws: ServerWebSocket<RelayData>, state: WeatherState) {
+  // The server's reads arrive cut anywhere; a frame put between two halves of one of its
+  // frames desyncs the client's parser and drops the player. The rewriter knows where the
+  // frames end, so mid-frame the weather waits for the next read that ends on one.
+  const rewriter = ws.data.rewriter;
+  if (rewriter && !rewriter.atFrameBoundary) {
+    ws.data.weatherDue = state;
+    return;
+  }
+  ws.data.weatherDue = null;
   ws.send(weatherPacket(state));
 }
 
@@ -521,6 +532,7 @@ Bun.serve<WebSocketData>({
               else if (note.to === UNLISTED_ALIAS) console.warn(`rewrite ${targetLabel}: ${note.from} is not in PROXY_TARGETS, sent as "${UNLISTED_ALIAS}"`);
             })
           : null,
+        weatherDue: null,
         clientIp: client.ip,
         clientPort: client.port,
         pipe: null,
@@ -639,6 +651,7 @@ Bun.serve<WebSocketData>({
             if (!bytes.byteLength) return;
 
             if (!pipe.fromServer(bytes)) return;
+            if (relay.data.weatherDue) sendWeather(relay, relay.data.weatherDue);
 
             // The server's side of the login: the sniffer names a socket only
             // once the game server has said yes, never off the client's own

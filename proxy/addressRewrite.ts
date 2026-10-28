@@ -86,6 +86,14 @@ export class AddressRewriter {
     private readonly note: (note: RewriteNote) => void = () => {}
   ) {}
 
+  /**
+   * True when everything forwarded so far ends on a whole frame, so a frame of the proxy's own
+   * (the weather) can go in between without splitting one of the server's.
+   */
+  get atFrameBoundary(): boolean {
+    return this.skip === 0 && this.pending.length === 0;
+  }
+
   /** Bytes held back for the next read: an incomplete header or candidate frame. */
   get heldBytes(): number {
     return this.pending.length;

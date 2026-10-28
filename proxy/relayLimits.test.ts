@@ -211,7 +211,7 @@ describe('client address', () => {
     expect(isTrustedProxy(docker, '172.31.255.254')).toBe(true);
     expect(isTrustedProxy(docker, '172.32.0.1')).toBe(false);
     expect(isTrustedProxy(docker, '::1')).toBe(true);
-    expect(isTrustedProxy(docker, '84.247.161.247')).toBe(false);
+    expect(isTrustedProxy(docker, '203.0.113.7')).toBe(false);
     expect(() => parseTrustedProxies('127.0.0.1,nginx')).toThrow();
     expect(() => parseTrustedProxies('10.0.0.0/33')).toThrow();
     expect(parseTrustedProxies(' , ')).toEqual([]);

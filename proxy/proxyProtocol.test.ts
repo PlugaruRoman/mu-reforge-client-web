@@ -11,7 +11,7 @@ function ip(text: string): Uint8Array {
 
 describe('parseIp', () => {
   it('reads IPv4 and IPv6 literals, compressed, bracketed and v4-mapped', () => {
-    expect(Array.from(ip('84.247.161.247'))).toEqual([84, 247, 161, 247]);
+    expect(Array.from(ip('203.0.113.7'))).toEqual([203, 0, 113, 7]);
     expect(ip('::1').length).toBe(16);
     expect(ip('::1')[15]).toBe(1);
     expect(hex(ip('[2001:db8::ff00:42:8329]'))).toBe('20 01 0d b8 00 00 00 00 00 00 ff 00 00 42 83 29');

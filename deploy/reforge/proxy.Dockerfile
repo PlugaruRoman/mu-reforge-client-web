@@ -24,7 +24,8 @@ COPY src ./src
 COPY versions ./versions
 COPY tools/sqliteMigrate.ts ./tools/sqliteMigrate.ts
 
-ENV PORT=3000 \
+ENV NODE_ENV=production \
+    PORT=3000 \
     HOSTNAME=0.0.0.0 \
     LOG_PACKETS=off \
     TRACK=off \

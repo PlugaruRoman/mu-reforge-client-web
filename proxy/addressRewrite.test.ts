@@ -201,3 +201,22 @@ describe('AddressRewriter: ChatRoomConnectionInfo (C3 CA)', () => {
     expect(r.feed(wire)).toBe(wire);
   });
 });
+
+describe('AddressRewriter frame boundary', () => {
+  it('knows when the bytes forwarded so far end on a whole frame', () => {
+    const rewriter = new AddressRewriter(TABLE, CHAT_PORT);
+    expect(rewriter.atFrameBoundary).toBe(true);
+
+    // A C2 frame of 300 bytes, cut after 100: the proxy's own frame must not go in between.
+    const big = new Uint8Array(300);
+    big.set([0xc2, 0x01, 0x2c, 0xf3]);
+    rewriter.feed(big.subarray(0, 100));
+    expect(rewriter.atFrameBoundary).toBe(false);
+    rewriter.feed(big.subarray(100));
+    expect(rewriter.atFrameBoundary).toBe(true);
+
+    // A held candidate frame is not a boundary either.
+    rewriter.feed(connectionInfo('169.58.146.212', 55901).subarray(0, 10));
+    expect(rewriter.atFrameBoundary).toBe(false);
+  });
+});
