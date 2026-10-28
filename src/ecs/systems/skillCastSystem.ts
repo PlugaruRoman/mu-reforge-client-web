@@ -3,6 +3,7 @@ import { Bag } from '../../modules/inventory';
 import { Hero } from '../../modules/hero';
 import { Session } from '../../modules/session';
 import { applyPlayerActionSpeed, serverMinAttackInterval } from '../../controllers/anim/playSpeed';
+import { serverAttackSpeedCap } from './attackPacing';
 import {
   AreaSkillPacket,
   EnterGateRequestPacket,
@@ -466,7 +467,7 @@ export const SkillCastSystem: ISystemFactory = world => {
           const duration = playClip(hero, clipFor(hero, def));
           cooldown = Math.max(
             duration > 0 ? duration : FALLBACK_CAST_COOLDOWN,
-            serverMinAttackInterval(hero.attributeSystem?.getValue('attackSpeed') ?? 0)
+            serverMinAttackInterval(hero.attributeSystem?.getValue('attackSpeed') ?? 0, serverAttackSpeedCap(Hero.charClass))
           );
           playSkill(def.num, hero.transform.pos);
         }
@@ -749,7 +750,7 @@ export const SkillCastSystem: ISystemFactory = world => {
 
       cooldown = Math.max(
         duration > 0 ? duration : FALLBACK_CAST_COOLDOWN,
-        serverMinAttackInterval(hero.attributeSystem?.getValue('attackSpeed') ?? 0)
+        serverMinAttackInterval(hero.attributeSystem?.getValue('attackSpeed') ?? 0, serverAttackSpeedCap(Hero.charClass))
       );
 
       if (def.type === 'SummonMonster') summonCast = true;

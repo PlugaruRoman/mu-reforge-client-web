@@ -9,6 +9,7 @@
  * definitions the same serial; only the version bytes differ).
  */
 import { asciiBytes, type GameVersion } from '@/version/contract';
+import { BaseClass } from '@/core/types';
 import { gameVersion as season6 } from '../season6';
 import { reforgeData } from './data';
 // Our own monsters and NPCs (ReforgeMonsters.cpp), registered over Season 6's.
@@ -52,6 +53,17 @@ export const gameVersion: GameVersion = {
     // Our client's 60-byte login (20-byte password): a 50-byte short login is read with the long
     // layout by the server, which then misses the 20404 version (contract.ts loginPacket).
     loginPacket: 'long',
+    // Our classes' attack speed ceilings (S Persistence/Initialization/Updates/
+    // AlignCharacterClassesWithInitializationUpdateSeason6.cs SpeedValues(_, max)), by BaseClass.
+    attackSpeedCaps: {
+      [BaseClass.Wizard]: 252,
+      [BaseClass.Knight]: 255,
+      [BaseClass.Elf]: 246,
+      [BaseClass.MagicGladiator]: 262,
+      [BaseClass.DarkLord]: 258,
+      [BaseClass.Summoner]: 245,
+      [BaseClass.RageFighter]: 254,
+    },
   },
   // `marketplace` sends Babylon's escrow request, C1 E7 01, which our server reads as its
   // anti-cheat GuardDetectionReport (S GameServer/MessageHandler/AntiCheat/GuardDetectionReportHandlerPlugIn.cs).

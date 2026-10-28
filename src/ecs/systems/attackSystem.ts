@@ -6,6 +6,7 @@ import { Session } from '../../modules/session';
 import { addNotification } from '../../modules/chat';
 import { Ecs } from '../current';
 import { applyPlayerActionSpeed, serverMinAttackInterval } from '../../controllers/anim/playSpeed';
+import { serverAttackSpeedCap } from './attackPacing';
 import { HitRequestPacket } from '@versions/shared/packets/ClientToServerPackets';
 import {
   MonsterActionType,
@@ -377,7 +378,7 @@ export const AttackSystem: ISystemFactory = world => {
       attackCooldown = Math.max(
         MOUSE_UPDATE_SECONDS_MAX,
         hitDelay,
-        serverMinAttackInterval(playerEntity.attributeSystem?.getValue('attackSpeed') ?? 0)
+        serverMinAttackInterval(playerEntity.attributeSystem?.getValue('attackSpeed') ?? 0, serverAttackSpeedCap(Hero.charClass))
       );
       // `swingFill` (Enhanced): after the blow the clip slows to end as the next swing may start.
       if (clipSeconds && clipSeconds < attackCooldown && isOn('swingFill')) {

@@ -50,6 +50,11 @@ export function installNet(): void {
         Merchant.dropNpcTalk();
         Economy.openMix();
         break;
+      // The Pet Trainer's Dark Horse / Dark Raven tray.
+      case NpcWindowResponseNpcWindowEnum.PetTrainer:
+        Merchant.dropNpcTalk();
+        Economy.openMix('petTrainer');
+        break;
       case NpcWindowResponseNpcWindowEnum.ChaosCardCombination:
         Merchant.dropNpcTalk();
         Economy.openMix('chaosCard');
@@ -117,7 +122,8 @@ export function installNet(): void {
     // C2 31: type at 4, count at 5, then slot + item from 6 (S RemoteView/NPC/ShowMerchantStoreItemListPlugIn.cs:40-71).
     const entries = readItemList(packet, 6, p.ItemCount, 1).map(({ at, item }) => ({ slot: packet.getUint8(at), item }));
 
-    if (p.Type === StoreItemListItemWindowEnum.ChaosMachine) {
+    // A failed pet mix comes back as ResurrectionFailed (OpenMU ItemCraftAction.cs).
+    if (p.Type === StoreItemListItemWindowEnum.ChaosMachine || p.Type === StoreItemListItemWindowEnum.ResurrectionFailed) {
       Economy.setMixItems(entries);
       return;
     }

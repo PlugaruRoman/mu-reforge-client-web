@@ -77,6 +77,12 @@ export interface VersionProtocol {
    * to the classic plug-ins.
    */
   readonly loginPacket?: 'short' | 'long';
+  /**
+   * The attack speed the server's speed check caps each class at, by `BaseClass` (core/types). The
+   * client works the speed out from agility uncapped, so the attack pacing (`serverMinAttackInterval`)
+   * caps it like the server does. Omitted: one cap of 200 for every class (the Season 6 data).
+   */
+  readonly attackSpeedCaps?: Readonly<Record<number, number>>;
 }
 
 export interface VersionData {

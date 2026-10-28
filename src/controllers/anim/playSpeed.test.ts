@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { PlayerAction } from '@versions/shared/objects/enum';
-import { magicSpeedFactor, playerFrameSpeedScale, playerPlaySpeed } from './playSpeed';
+import { magicSpeedFactor, playerFrameSpeedScale, playerPlaySpeed, serverMinAttackInterval } from './playSpeed';
 
 describe('Dark Lord clip speeds', () => {
   it('holds the party teleport pose at a tenth after key 5.5', () => {
@@ -79,5 +79,16 @@ describe('SetAttackSpeed rows over the base table', () => {
     for (const a of [A.PLAYER_SKILL_DARKSIDE_READY, A.PLAYER_SKILL_DARKSIDE_ATTACK, A.PLAYER_SKILL_DRAGONLORE])
       expect(playerPlaySpeed(a, 100, 0, true)).toBeCloseTo(0.5, 9);
     expect(playerPlaySpeed(A.PLAYER_RAGE_FENRIR_ATTACK_RIGHT, 600, 0, true)).toBeCloseTo(1.45, 9);
+  });
+});
+
+// Mu Reforge caps each class's attack speed for its speed check (245-262) instead of Season 6's 200:
+// with the 200 cap a fast web class waited longer between hits than the server allows.
+describe('serverMinAttackInterval with a per-class cap', () => {
+  it('lets a higher cap shorten the interval, and never goes under the server floor', () => {
+    expect(serverMinAttackInterval(300, 262)).toBeLessThan(serverMinAttackInterval(300));
+    expect(serverMinAttackInterval(300, 262)).toBeCloseTo(((450 - 262 * 1.2) / 1000) * 1.1, 6);
+    expect(serverMinAttackInterval(100, 262)).toBe(serverMinAttackInterval(100));
+    expect(serverMinAttackInterval(5000, 1000)).toBeCloseTo((60 / 1000) * 1.1, 6);
   });
 });
