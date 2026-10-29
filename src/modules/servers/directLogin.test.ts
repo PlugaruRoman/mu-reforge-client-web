@@ -1,4 +1,11 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+
+// The channel split the version picks (serverGroups.ts): these tests are about the published names, in
+// the 256-ids-a-group layout, whichever version a local .env pins.
+vi.mock('./serverGroups', () => ({
+  serverGroupOf: (id: number) => id >> 8,
+  serverChannelOf: (id: number) => id & 0xff,
+}));
 import { checkDirectLogin, DirectLogin, directChannel, readDirectLogin } from './directLogin';
 import { ServerConfig } from './serverConfig';
 

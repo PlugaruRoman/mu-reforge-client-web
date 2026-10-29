@@ -80,7 +80,8 @@ export class AddressRewriter {
   private skip = 0;
 
   constructor(
-    private readonly table: AliasTable,
+    /** Null: nothing is rewritten, the frames are only followed (`atFrameBoundary` for the weather). */
+    private readonly table: AliasTable | null,
     private readonly chatPort: number,
     /** Every rewrite and failure, for the proxy's log. */
     private readonly note: (note: RewriteNote) => void = () => {}
@@ -146,7 +147,8 @@ export class AddressRewriter {
       }
 
       const candidate =
-        (header === 0xc1 && size === CONNECTION_INFO_LENGTH) || (header === 0xc3 && size === CHAT_INFO_WIRE_LENGTH);
+        this.table !== null &&
+        ((header === 0xc1 && size === CONNECTION_INFO_LENGTH) || (header === 0xc3 && size === CHAT_INFO_WIRE_LENGTH));
 
       if (!candidate) {
         const available = data.length - pos;
@@ -188,6 +190,7 @@ export class AddressRewriter {
 
     const ip = readString(frame, CONNECTION_INFO_IP, CONNECTION_INFO_IP_LENGTH);
     const port = frame[CONNECTION_INFO_PORT] | (frame[CONNECTION_INFO_PORT + 1] << 8);
+    if (!this.table) return null;
     const alias = aliasFor(this.table, ip, port);
 
     const out = frame.slice();
@@ -216,6 +219,7 @@ export class AddressRewriter {
     const counter = (decryptor.Counter.Count + 255) % 256;
 
     const ip = readString(plain, CHAT_INFO_IP, CHAT_INFO_IP_LENGTH);
+    if (!this.table) return null;
     const alias = aliasFor(this.table, ip, this.chatPort);
     const edited = plain.slice();
     writeString(edited, CHAT_INFO_IP, CHAT_INFO_IP_LENGTH, alias);

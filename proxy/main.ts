@@ -216,7 +216,7 @@ type RelayData = {
   targetPort: number;
   /** What the browser asked for: the alias with PROXY_TARGETS, else `host:port`. */
   targetLabel: string;
-  /** Server addresses -> aliases in the server's bytes; null without PROXY_TARGETS. */
+  /** Server addresses -> aliases in the server's bytes (none without PROXY_TARGETS), and where its frames end. */
   rewriter: AddressRewriter | null;
   /** A weather frame held until the server's bytes end on a whole frame (sendWeather). */
   weatherDue: WeatherState | null;
@@ -526,12 +526,12 @@ Bun.serve<WebSocketData>({
         targetHost,
         targetPort,
         targetLabel,
-        rewriter: ALIASES
-          ? new AddressRewriter(ALIASES, CHAT_SERVER_PORT, note => {
-              if (note.kind === "chat-info-failed") console.warn(`rewrite ${targetLabel}: chat room info kept as sent (re-encryption check failed)`);
-              else if (note.to === UNLISTED_ALIAS) console.warn(`rewrite ${targetLabel}: ${note.from} is not in PROXY_TARGETS, sent as "${UNLISTED_ALIAS}"`);
-            })
-          : null,
+        // Always made: without PROXY_TARGETS (ALLOW_TARGETS rollback, a dev proxy) it rewrites nothing
+        // and only follows the frames, so the weather still waits for a frame boundary (sendWeather).
+        rewriter: new AddressRewriter(ALIASES ?? null, CHAT_SERVER_PORT, note => {
+          if (note.kind === "chat-info-failed") console.warn(`rewrite ${targetLabel}: chat room info kept as sent (re-encryption check failed)`);
+          else if (note.to === UNLISTED_ALIAS) console.warn(`rewrite ${targetLabel}: ${note.from} is not in PROXY_TARGETS, sent as "${UNLISTED_ALIAS}"`);
+        }),
         weatherDue: null,
         clientIp: client.ip,
         clientPort: client.port,

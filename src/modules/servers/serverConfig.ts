@@ -472,7 +472,8 @@ function urlOverride(saved: StoredState): {
 /** Whether a world talks through the build's own proxy (`VITE_WS_HOST`), by host name. */
 export function isOwnProxy(profile: Pick<ServerProfile, 'wsUrl'>): boolean {
   try {
-    return new URL(profile.wsUrl).hostname === new URL(WS_HOST).hostname;
+    // Normalized like any list address: a VITE_WS_HOST without its scheme must not drop every world.
+    return new URL(profile.wsUrl).hostname === new URL(normalizeWsUrl(WS_HOST)).hostname;
   } catch {
     return false;
   }

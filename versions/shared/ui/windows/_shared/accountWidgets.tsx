@@ -14,7 +14,11 @@ export const amount = (n: number): string => Math.max(0, Math.floor(n)).toLocale
 
 /** The content box under the frame's title. */
 export const AccountBody = observer(({ children, className }: { children?: ReactNode; className?: string }) => (
-  <div className={`acct-body${className ? ` ${className}` : ''}`}>{children}</div>
+  // No drag from the body: it scrolls when its content is taller than the frame, and a press on its
+  // scrollbar or a swipe through it moved the window instead. The frame and its title still drag.
+  <div className={`acct-body${className ? ` ${className}` : ''}`} data-no-drag="true">
+    {children}
+  </div>
 ));
 
 type ButtonProps = {

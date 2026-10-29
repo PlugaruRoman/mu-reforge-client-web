@@ -220,3 +220,20 @@ describe('AddressRewriter frame boundary', () => {
     expect(rewriter.atFrameBoundary).toBe(false);
   });
 });
+
+describe('AddressRewriter without a table', () => {
+  // ALLOW_TARGETS rollback or a dev proxy: nothing is rewritten, but the weather must still wait for a boundary.
+  it('rewrites nothing and still knows where the frames end', () => {
+    const rewriter = new AddressRewriter(null, CHAT_PORT);
+    const info = connectionInfo('169.58.146.212', 55901);
+    expect(Array.from(rewriter.feed(info))).toEqual(Array.from(info));
+    expect(rewriter.atFrameBoundary).toBe(true);
+
+    const big = new Uint8Array(300);
+    big.set([0xc2, 0x01, 0x2c, 0xf3]);
+    rewriter.feed(big.subarray(0, 100));
+    expect(rewriter.atFrameBoundary).toBe(false);
+    rewriter.feed(big.subarray(100));
+    expect(rewriter.atFrameBoundary).toBe(true);
+  });
+});
