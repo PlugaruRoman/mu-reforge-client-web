@@ -83,6 +83,13 @@ export interface VersionProtocol {
    * caps it like the server does. Omitted: one cap of 200 for every class (the Season 6 data).
    */
   readonly attackSpeedCaps?: Readonly<Record<number, number>>;
+  /**
+   * How many server ids one game server group (one button on the server list) holds. Omitted: 256,
+   * the group is `ServerId >> 8` and the channel its low byte. Mu Reforge: 20, the original client's
+   * rule its C++ client keeps (ServerListJson.h: group = id / 20, channel = id % 20), so Molten's
+   * 0-19 and Inferno's 20-39 are two groups.
+   */
+  readonly serverGroupSize?: number;
 }
 
 export interface VersionData {

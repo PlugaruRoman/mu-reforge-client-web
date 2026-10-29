@@ -3,6 +3,7 @@ import './style.less';
 import { useMemo, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { Servers } from '@/modules/servers';
+import { serverChannelOf, serverGroupOf } from '@/modules/servers/serverGroups';
 import { Session } from '@/modules/session';
 import {
   ServerConfig,
@@ -41,7 +42,7 @@ function groupServers(
   const byGroup = new Map<number, Server[]>();
 
   for (const server of servers) {
-    const groupId = server.ServerId >> 8;
+    const groupId = serverGroupOf(server.ServerId);
     const existing = byGroup.get(groupId);
 
     if (existing) existing.push(server);
@@ -60,7 +61,7 @@ function groupServers(
           .sort((a, b) => a.ServerId - b.ServerId)
           .map(server => ({
             ...server,
-            name: named?.channels.find(c => c.id === (server.ServerId & 0xff))
+            name: named?.channels.find(c => c.id === serverChannelOf(server.ServerId))
               ?.name,
           })),
       };
@@ -89,7 +90,7 @@ export const ServersPage = observer(() => {
     Servers.selectedServer = {
       name:
         group?.name ??
-        t('servers.serverName', { number: (serverId >> 8) + 1 }),
+        t('servers.serverName', { number: serverGroupOf(serverId) + 1 }),
       channel: (group?.servers.findIndex(s => s.ServerId === serverId) ?? 0) + 1,
       // A named channel replaces the "Ch. 2" the login line falls back to.
       channelName: channel?.name,
@@ -226,7 +227,7 @@ const leftGroups = groups.slice(0, LEFT_GROUP_MAX);
                   name={
                     server.name ||
                     t('servers.serverName', {
-                      number: (server.ServerId & 0xff) + 1,
+                      number: serverChannelOf(server.ServerId) + 1,
                     })
                   }
                   load={server.LoadPercentage}

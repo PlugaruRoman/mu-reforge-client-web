@@ -26,7 +26,7 @@ type PublishedChannel = { id: number; name: string };
 
 /**
  * One of a world's game servers, as the published list named it. `id` is the
- * server group (`ServerId >> 8`), `0` for a world that never set one up.
+ * server group (`serverGroupOf`: `ServerId >> 8`, or `/ 20` for Mu Reforge), `0` for a world that never set one up.
  *
  * The connect server sends ids and load percentages and no text at all, so the
  * published list is the only place a world can say what its game servers are

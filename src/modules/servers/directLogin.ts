@@ -4,6 +4,7 @@ import { parseServerManifest } from './serverManifest';
 import { parseServerList } from './serverList';
 import { ServerConfig, type PublishedGameServer, type ServerProfile } from './serverConfig';
 import type { Servers } from './state';
+import { serverChannelOf, serverGroupOf } from './serverGroups';
 
 /**
  * The installer's direct login (readme.md): a client served beside a `server.json` saying
@@ -85,13 +86,13 @@ export function directChannel(
 ): { serverId: number; selected: NonNullable<(typeof Servers)['selectedServer']> } | null {
   if (!list.length) return null;
   const serverId = Math.min(...list.map(s => s.ServerId));
-  const named = published.find(g => g.id === serverId >> 8);
+  const named = published.find(g => g.id === serverGroupOf(serverId));
   return {
     serverId,
     selected: {
-      name: named?.name || t('servers.serverName', { number: (serverId >> 8) + 1 }),
+      name: named?.name || t('servers.serverName', { number: serverGroupOf(serverId) + 1 }),
       channel: 1,
-      channelName: named?.channels.find(c => c.id === (serverId & 0xff))?.name,
+      channelName: named?.channels.find(c => c.id === serverChannelOf(serverId))?.name,
     },
   };
 }

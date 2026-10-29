@@ -19,15 +19,16 @@ The alias form needs a web client that reads it (the `alias@proxy` target, serve
 proxy with PROXY_TARGETS; a client or proxy without it does not show / refuses this world. Roll
 back with `play.mureforge.com:44406@wss://ws.mureforge.com` plus ALLOW_TARGETS (runbook.md).
 
-Names: the connect server sends ids only. The client files every id below 256 under game
-server 0 (`ServerId >> 8`) and shows the low byte as the channel, so Molten 0-2 and Inferno
-20-22 are six channels of one entry.
+Names: the connect server sends ids only. The reforge client groups them like our C++ client
+(`serverGroupSize: 20`): group = id / 20, channel = id % 20. So Molten 0-2 is group 0 channels
+0-2, Inferno 20-22 is group 1 channels 0-2 - two buttons, as in the desktop client.
 
 [1:REFORGE:Mu Reforge:Molten x100 PvP and Inferno x1200:en](cs@wss://ws.mureforge.com)
-- 0: Mu Reforge
+- 0: Molten
   - 0: Molten-1
   - 1: Molten-2
   - 2: Molten-3
-  - 20: Inferno-1
-  - 21: Inferno-2
-  - 22: Inferno-3
+- 1: Inferno
+  - 0: Inferno-1
+  - 1: Inferno-2
+  - 2: Inferno-3

@@ -53,6 +53,8 @@ export const gameVersion: GameVersion = {
     // Our client's 60-byte login (20-byte password): a 50-byte short login is read with the long
     // layout by the server, which then misses the 20404 version (contract.ts loginPacket).
     loginPacket: 'long',
+    // Server list groups of 20 ids, like our C++ client: Molten 0-19, Inferno 20-39 (contract.ts).
+    serverGroupSize: 20,
     // Our classes' attack speed ceilings (S Persistence/Initialization/Updates/
     // AlignCharacterClassesWithInitializationUpdateSeason6.cs SpeedValues(_, max)), by BaseClass.
     attackSpeedCaps: {
