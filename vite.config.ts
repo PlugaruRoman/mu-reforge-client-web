@@ -131,6 +131,10 @@ export default defineConfig(({ command, mode }) => {
     },
     optimizeDeps: {
       force: true,
+      // Found only once the first .tsx is served otherwise: the optimizer then runs again and
+      // reloads the page mid-boot, and a tab caught in it stops on "Failed to fetch dynamically
+      // imported module ... boot.tsx".
+      include: ['react/jsx-dev-runtime'],
     },
     test: {
       // Tests skip main.tsx, so the default version is loaded here instead.
