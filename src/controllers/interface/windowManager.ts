@@ -101,6 +101,18 @@ export const MuWindows = new (class _MuWindows {
   }
 
   /**
+   * Where a window that opens in the middle of the screen goes while it has no saved place: centred
+   * at the scale it is drawn at, never above or left of the stage.
+   */
+  centeredAt(id: string, width: number, height: number): { x: number; y: number } {
+    const scale = this.scaleOf(id);
+    return {
+      x: Math.max(0, Math.round((this.viewport.width - width * scale) / 2)),
+      y: Math.max(0, Math.round((this.viewport.height - height * scale) / 2)),
+    };
+  }
+
+  /**
    * The scale the window is drawn at: the saved scale times the interface
    * scale from the options, capped so the whole window still fits.
    */

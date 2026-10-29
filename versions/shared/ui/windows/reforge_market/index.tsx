@@ -57,7 +57,7 @@ const Coin = observer(({ currency }: { currency: number }) => {
 export const ReforgeMarketWindow = observer(() => {
   const back = useMuSprite('newui_msgbox_back.OZJ');
   const [hover, setHover] = useState<{ index: number; x: number; y: number } | null>(null);
-  const chrome = useWindowChrome(MARKET_WINDOW, { width: WIDTH, height: HEIGHT, onClose: () => ReforgeMarket.close() });
+  const chrome = useWindowChrome(MARKET_WINDOW, { width: WIDTH, height: HEIGHT, onClose: () => ReforgeMarket.close(), open: 'center' });
   const m = ReforgeMarket;
   if (!m.isOpen) return null;
 

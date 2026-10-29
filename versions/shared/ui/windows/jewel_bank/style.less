@@ -2,10 +2,11 @@
 .jewel-bank-body {
   gap: 1px;
 
+  // Over the name column (after the 18 px icon and its gap) and the count (before the button).
   .jewel-bank-head {
     display: flex;
     justify-content: space-between;
-    padding: 0 26px 0 24px;
+    padding: 0 30px 0 24px;
     color: #ffd927;
   }
 
@@ -27,6 +28,8 @@
       width: 18px;
       height: 18px;
       flex: none;
+      // The icon's fit transform zooms the model render; it stays in its square.
+      overflow: hidden;
 
       .item-icon {
         width: 100%;

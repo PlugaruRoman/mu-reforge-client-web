@@ -70,6 +70,7 @@
   }
 
   .vip-card-cost {
+    flex: 1;
     min-width: 0;
   }
 
@@ -77,10 +78,10 @@
     color: #fff;
   }
 
+  // Wraps rather than cut: "You need 100 more W Coin" is the one line that says what to do.
   .vip-card-reason {
     color: rgb(255, 130, 110);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: normal;
+    line-height: 11px;
   }
 }

@@ -111,7 +111,7 @@ const StorageRow = observer(({ entry }: { entry: StorageEntry }) => {
  */
 export const XShopWindow = observer(() => {
   const back = useMuSprite(BACK_SPRITE);
-  const chrome = useWindowChrome(WINDOW_ID, { width: WIDTH, height: HEIGHT, onClose: () => XShop.close() });
+  const chrome = useWindowChrome(WINDOW_ID, { width: WIDTH, height: HEIGHT, onClose: () => XShop.close(), open: 'center' });
 
   useEventBus('keyPressed', key => {
     if (togglesWindow(HOT_KEY, key)) XShop.toggle();

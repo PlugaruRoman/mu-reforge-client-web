@@ -184,6 +184,7 @@ export const ItemCollectionsWindow = observer(() => {
       else close();
       playUiSound('click');
     },
+    open: 'center',
   });
 
   useEventBus('keyPressed', key => {

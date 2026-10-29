@@ -12,6 +12,16 @@
   color: #e2e2e2;
   text-shadow: 1px 1px 0 #000;
   user-select: none;
+  // Content taller than the frame (a long VIP list, a translation) scrolls inside it
+  // instead of running over the frame's bottom.
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  pointer-events: auto;
+
+  > * {
+    flex-shrink: 0;
+  }
 }
 
 .acct-row {
@@ -72,8 +82,17 @@
 
 .acct-buttons {
   display: flex;
+  flex: none;
   gap: 4px;
   justify-content: center;
+
+  // A row of short equal choices (x1..x30, -10..+10): they share the width, so four of them
+  // fit the 158 px between the frame's borders instead of spilling over it.
+  &.fill > .acct-btn {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 2px 1px;
+  }
 }
 
 .acct-btn {

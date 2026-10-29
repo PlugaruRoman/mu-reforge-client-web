@@ -165,8 +165,8 @@ const Body = observer(() => {
     : t('eventTimer.clocks', { local: hhmm(local.secondOfDay), utc: hhmm(Math.floor(now / 1000) % 86_400) });
 
   return (
-    <div className="event-timer">
-      <div className="event-timer-tabs">
+    <div className="reforge-event-timer">
+      <div className="reforge-event-timer-tabs">
         {TABS.map(id => (
           <MuButton
             key={id}
@@ -186,22 +186,22 @@ const Body = observer(() => {
           />
         ))}
       </div>
-      <div className="event-timer-head">
+      <div className="reforge-event-timer-head">
         <MuText text={t('eventTimer.column.event')} color={TEXT_COLOR.orange} />
         <MuText text={t('eventTimer.column.time')} color={TEXT_COLOR.orange} />
       </div>
-      <div className="event-timer-rows" data-no-drag="true" onPointerLeave={() => setHovered(-1)}>
+      <div className="reforge-event-timer-rows" data-no-drag="true" onPointerLeave={() => setHovered(-1)}>
         {shown.map((row, i) => (
-          <div key={rows[i].entry.id} className={`event-timer-row${hovered === i ? ' hovered' : ''}`} onPointerEnter={() => setHovered(i)}>
-            <div className="event-timer-line">
-              <MuText className="event-timer-name" text={row.name} color={TONE_COLOR[row.tone]} />
-              <MuText className="event-timer-time" text={row.time} color={TONE_COLOR[row.tone]} />
+          <div key={rows[i].entry.id} className={`reforge-event-timer-row${hovered === i ? ' hovered' : ''}`} onPointerEnter={() => setHovered(i)}>
+            <div className="reforge-event-timer-line">
+              <MuText className="reforge-event-timer-name" text={row.name} color={TONE_COLOR[row.tone]} />
+              <MuText className="reforge-event-timer-time" text={row.time} color={TONE_COLOR[row.tone]} />
             </div>
-            <MuText className="event-timer-when" text={row.when} color={row.tone === 'live' ? TONE_COLOR.live : 'rgb(170, 170, 170)'} />
+            <MuText className="reforge-event-timer-when" text={row.when} color={row.tone === 'live' ? TONE_COLOR.live : 'rgb(170, 170, 170)'} />
           </div>
         ))}
       </div>
-      <MuText className="event-timer-footer" text={footer} color={TEXT_COLOR.brightYellow} />
+      <MuText className="reforge-event-timer-footer" text={footer} color={TEXT_COLOR.brightYellow} />
     </div>
   );
 });

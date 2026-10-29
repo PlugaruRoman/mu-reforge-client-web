@@ -187,7 +187,7 @@ export const SoulPointWindow = observer(() => {
           <div className="soul-line soul-next">{nextMilestone(selected, planned)}</div>
           {definition.multiplies && <div className="soul-line acct-hint">{t('soul.multiplies')}</div>}
           {committed > 0 && <div className="soul-line acct-hint">{t('soul.lockedIn', { points: committed })}</div>}
-          <div className="acct-buttons">
+          <div className="acct-buttons fill">
             {STEPS.map(delta => (
               <AccountButton key={delta} label={delta > 0 ? `+${delta}` : String(delta)} onClick={() => stepBy(delta)} />
             ))}

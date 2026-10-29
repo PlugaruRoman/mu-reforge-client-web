@@ -25,6 +25,13 @@ type WindowChromeOptions = {
   height: number;
   /** What Escape does while this is the top window. */
   onClose?: WindowCloser;
+  /**
+   * Where the window opens while it has no saved place. `corner` (default): where its CSS puts it,
+   * scaled about its bottom right corner - for windows the CSS docks right/bottom. `center`: the
+   * middle of the screen, scaled about its top left - a window docked by `left`/`top` would grow
+   * up and left off the screen from the corner origin.
+   */
+  open?: 'corner' | 'center';
 };
 
 /**
@@ -50,7 +57,7 @@ export function useWindowStackEntry(
 
 export function useWindowChrome(
   id: string,
-  { width, height, onClose }: WindowChromeOptions
+  { width, height, onClose, open = 'corner' }: WindowChromeOptions
 ): WindowChrome {
   const placement = MuWindows.placement(id);
   const dragging = useRef<{
@@ -123,13 +130,16 @@ export function useWindowChrome(
   // resized window can never leave the screen bounds.
   const scale = MuWindows.scaleOf(id);
 
+  const centered = anchored && open === 'center' ? MuWindows.centeredAt(id, width, height) : null;
+  const at = anchored ? centered : { x: placement.x!, y: placement.y! };
+
   const style: CSSProperties = {
     width,
     height,
     zIndex: MuWindows.zIndexOf(id),
     transform: `scale(${scale})`,
-    transformOrigin: anchored ? '100% 100%' : '0 0',
-    ...(anchored ? {} : { left: placement.x!, top: placement.y!, right: 'auto', bottom: 'auto' }),
+    transformOrigin: at ? '0 0' : '100% 100%',
+    ...(at ? { left: at.x, top: at.y, right: 'auto', bottom: 'auto' } : {}),
   };
 
   return { style, onPointerDown, ref, scale, anchored };

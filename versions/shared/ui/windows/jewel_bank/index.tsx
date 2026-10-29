@@ -33,7 +33,7 @@ export const JewelBankWindow = observer(() => {
   return (
     <ModuleWindowFrame id={JEWEL_BANK_WINDOW} title={t('jewelBank.title')} hotKey={HOT_KEY}>
       <AccountBody className="jewel-bank-body">
-        <div className="acct-buttons">
+        <div className="acct-buttons fill">
           {WITHDRAW_AMOUNTS.map((n, i) => (
             <AccountButton key={n} label={`x${n}`} active={JewelBank.amountIndex === i} onClick={() => JewelBank.selectAmount(i)} />
           ))}
