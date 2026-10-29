@@ -3,6 +3,7 @@ import { Sound } from '@babylonjs/core/Audio/sound';
 import { SoundTrack } from '@babylonjs/core/Audio/soundTrack';
 import { Engine, PointerEventTypes, type Scene } from '../render/babylon/exports';
 import { isMusicKey, soundUrl, type Sounds } from './recipes';
+import { PINNED_BUILD } from '@/core/buildFlags';
 
 /** Dev switch: false keeps the background music silent. */
 const ENABLE_BG_MUSIC = true;
@@ -127,7 +128,8 @@ export class SoundsManager {
 
   static {
     //@ts-ignore
-    typeof window !== 'undefined' && (window.__soundsManager = SoundsManager);
+    // Not in a pinned production build: it hands out the Babylon scene (boot.tsx).
+    typeof window !== 'undefined' && !PINNED_BUILD && (window.__soundsManager = SoundsManager);
   }
 
   /**

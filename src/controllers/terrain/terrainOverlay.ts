@@ -22,6 +22,7 @@ import { SNOW_ART, type ArtMatch } from './artMatch';
 import { lookDirector } from '../lighting/director';
 import { TERRAIN_BRANCH } from './terrainLighting';
 import { devQuery } from '../../core/devSeams';
+import { PINNED_BUILD } from '@/core/buildFlags';
 
 /**
  * Terrain overlays: masked layers (snow, wet stone, puddles) mixed into the ground's albedo before
@@ -389,7 +390,8 @@ const SNOW_SHADE = {
 
 const SNOW_SHADE_DEFAULTS = { ...SNOW_SHADE };
 
-if (typeof window !== 'undefined') {
+// A console handle for tuning; a pinned production build exposes none (boot.tsx).
+if (typeof window !== 'undefined' && !PINNED_BUILD) {
   (window as unknown as Record<string, unknown>).muSnow = {
     get: () => ({ ...SNOW_SHADE }),
     /** How much snow is on the ground right now, 0…1 (snowCover.ts). */

@@ -469,6 +469,15 @@ function urlOverride(saved: StoredState): {
   };
 }
 
+/** Whether a world talks through the build's own proxy (`VITE_WS_HOST`), by host name. */
+export function isOwnProxy(profile: Pick<ServerProfile, 'wsUrl'>): boolean {
+  try {
+    return new URL(profile.wsUrl).hostname === new URL(WS_HOST).hostname;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * What keys a listed world that published no id: its domain, or the address it
  * named. A world that later publishes one is moved off this key (`setListed`).
@@ -603,10 +612,13 @@ class ServerConfigStore {
    */
   setListed(entries: ServerProfile[]): void {
     if (this.pinnedBuild) {
-      // The first world of the build's own list, selected: there is nothing else to pick.
+      // The first world of the build's own list, selected: there is nothing else to pick. Only a
+      // world on the build's own proxy: the list comes from localStorage before the fetch answers,
+      // and a cache planted there must not send the login to someone else's relay.
+      const own = entries.filter(isOwnProxy);
       runInAction(() => {
-        this.listed = entries.slice(0, 1);
-        this.activeId = entries[0]?.id ?? '';
+        this.listed = own.slice(0, 1);
+        this.activeId = own[0]?.id ?? '';
       });
       return;
     }

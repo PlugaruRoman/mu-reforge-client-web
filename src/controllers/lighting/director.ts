@@ -77,6 +77,7 @@ import {
   type PostChain,
   type ToneMapperName,
 } from '@/controllers/render/scenes';
+import { PINNED_BUILD } from '@/core/buildFlags';
 
 /**
  * The look director: the one composer. Reads the map's
@@ -741,7 +742,8 @@ export function createLookDirector(
   };
 
   setLookDirector(director);
-  (globalThis as { __lighting?: unknown }).__lighting = director;
+  // A console handle; a pinned production build exposes none (boot.tsx).
+  if (!PINNED_BUILD) (globalThis as { __lighting?: unknown }).__lighting = director;
 
   return director;
 }

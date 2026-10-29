@@ -20,6 +20,7 @@ import { SNOW_GROUND_MAPS } from '../../controllers/weather/snowCover';
 import { RUN_THRESHOLD } from '../../controllers/actors/locomotion';
 import type { Entity, ISystemFactory } from '../world';
 import { isTeleporting } from './teleportSystem';
+import { PINNED_BUILD } from '@/core/buildFlags';
 
 /**
  * Lays the tracks down (`footprints.ts`) and runs the drying boot, for every
@@ -493,7 +494,8 @@ export const FootprintSystem: ISystemFactory = world => {
     return rows;
   }
 
-  if (typeof window !== 'undefined') {
+  // A console handle for tuning; a pinned production build exposes none (boot.tsx).
+  if (typeof window !== 'undefined' && !PINNED_BUILD) {
     (window as unknown as Record<string, unknown>).muTracks = explain;
   }
 

@@ -86,6 +86,7 @@ export const Notices = observer(() => {
         // The stack scrolls from the head: keyed by the line object, a
         // scroll moves nodes instead of re-propping every one of them.
         const key = stableKeyOf(line);
+        const linked = links && line.links;
         if (line.text === '') {
           return <div key={key} className="notice-line" style={LINE_STYLE} />;
         }
@@ -93,7 +94,7 @@ export const Notices = observer(() => {
           <div key={key} className="notice-line" style={LINE_STYLE}>
             <MuText
               face="bold"
-              text={links ? undefined : line.text}
+              text={linked ? undefined : line.text}
               color={style.color}
               background={NOTICE_BACKGROUND}
               style={{
@@ -102,7 +103,7 @@ export const Notices = observer(() => {
                 transformOrigin: 'center top',
               }}
             >
-              {links && <NoticeText text={line.text} />}
+              {linked && <NoticeText text={line.text} />}
             </MuText>
           </div>
         );

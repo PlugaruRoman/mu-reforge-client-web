@@ -17,3 +17,4 @@ Data-reforge/**/*.gz
 # Local-only helper files.
 start-local.ps1
 public/reforge-serverlist.md
+public/reforge-prod-serverlist.md

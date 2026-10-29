@@ -136,6 +136,7 @@ describe('a pinned build (VITE_PINNED_WORLD)', () => {
     vi.stubEnv('VITE_PINNED_WORLD', 'on');
     vi.stubEnv('VITE_SERVER_LIST_URL', 'https://web.mureforge.com/serverlist.md');
     vi.stubEnv('VITE_CS_HOST', 'play.mureforge.com');
+    vi.stubEnv('VITE_WS_HOST', 'wss://ws.mureforge.com');
     vi.stubGlobal('location', { search, hostname: 'web.mureforge.com', protocol: 'https:' });
     const { LocalStorage } = await import('../../core/localStorage');
     // A profile and a list another visit left behind.
@@ -183,6 +184,20 @@ describe('a pinned build (VITE_PINNED_WORLD)', () => {
     // Nothing the player does adds another.
     ServerConfig.add({ csHost: 'evil.example.com' });
     expect(ServerConfig.all.map(w => w.name)).toEqual(['Mu Reforge']);
+  });
+
+  it('plays no world of a planted pinned cache that is not on its own proxy', async () => {
+    const { ServerConfig, refreshServerList } = await pinnedBuild('');
+    const { LocalStorage } = await import('../../core/localStorage');
+    LocalStorage.save('mu_serverlist_pinned', `${EVIL}
+${OURS}
+`);
+    vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('offline'); }));
+
+    await refreshServerList();
+
+    // The planted world never becomes playable: until the fetch answers there is none at all.
+    expect(ServerConfig.all.filter(w => w.wsUrl !== 'wss://ws.mureforge.com')).toEqual([]);
   });
 
   it('keeps the upstream overrides when the switch is off', async () => {

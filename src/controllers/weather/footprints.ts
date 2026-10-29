@@ -16,6 +16,7 @@ import {
 import { sunLightOf } from '../lighting/keyRig';
 import { linearBufferActive } from '../lighting/lightModel';
 import { devQuery } from '../../core/devSeams';
+import { PINNED_BUILD } from '@/core/buildFlags';
 
 /**
  * Footprints: prints in settled snow, wet prints on dry stone. Our own (the original has no
@@ -1724,7 +1725,8 @@ function applyFootprintTuning(): void {
  */
 const DEFAULTS = { ...FOOTPRINT_TUNING, tint: [...FOOTPRINT_TUNING.tint] };
 
-if (typeof window !== 'undefined') {
+// A console handle for tuning; a pinned production build exposes none (boot.tsx).
+if (typeof window !== 'undefined' && !PINNED_BUILD) {
   (window as unknown as Record<string, unknown>).muFootprints = {
     get: () => ({ ...FOOTPRINT_TUNING }),
     set(next: Partial<typeof FOOTPRINT_TUNING>) {

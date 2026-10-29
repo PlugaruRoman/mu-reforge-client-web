@@ -38,6 +38,8 @@ const NoticeColor = {
 type NoticeLine = {
   text: string;
   color: number;
+  /** noticeLinks: its web addresses may be clicked. Off for what a player wrote (a guild notice). */
+  links: boolean;
 };
 
 export const NOTICE_STYLE: Record<number, { color: string; blink: boolean }> = {
@@ -80,22 +82,25 @@ export const Notices = new (class _Notices {
   }
 
   /** `CreateNotice(Text, Color)`. */
-  create(text: string, color: number = NoticeColor.Gold): void {
+  create(text: string, color: number = NoticeColor.Gold, links = true): void {
     // noticeLinks (ours): a line with a link stays whole, as cut in two it could split the link.
-    const keepWhole = isOn('noticeLinks') && hasNoticeLinks(text);
+    const keepWhole = links && isOn('noticeLinks') && hasNoticeLinks(text);
     if (keepWhole || measureNoticeWidth(text) < NOTICE_MAX_WIDTH || !text.includes(' ')) {
-      this.push(text, color);
+      this.push(text, color, links);
     } else {
       const [top, bottom] = cutNoticeText(text);
-      this.push(top, color);
-      this.push(bottom, color);
+      this.push(top, color, links);
+      this.push(bottom, color, links);
     }
     this.restartTimer();
   }
 
-  /** Type 2: `GlobalText[483]` around the text, colour 1. */
+  /**
+   * Type 2: `GlobalText[483]` around the text, colour 1. Any guild master writes it, so its
+   * addresses stay text: a clickable "claim your reward" link in every member's banner is phishing.
+   */
   createGuildNotice(text: string): void {
-    this.create(t(GUILD_NOTICE_FORMAT).replace('%s', text), NoticeColor.Guild);
+    this.create(t(GUILD_NOTICE_FORMAT).replace('%s', text), NoticeColor.Guild, false);
   }
 
   clear(): void {
@@ -106,9 +111,9 @@ export const Notices = new (class _Notices {
     }
   }
 
-  private push(text: string, color: number): void {
+  private push(text: string, color: number, links = true): void {
     // `ScrollNotice`: the stack holds MAX_NOTICE lines; the oldest drops.
-    const next = [...this.lines, { text, color }];
+    const next = [...this.lines, { text, color, links }];
     this.lines =
       next.length > MAX_NOTICE ? next.slice(next.length - MAX_NOTICE) : next;
   }
