@@ -752,7 +752,9 @@ export const MuHelperWindow = observer(() => {
         </button>
       </div>
 
-      <OffExpButton style={{ left: EXIT_BUTTON.x + EXIT_BUTTON.width + 8, top: EXIT_BUTTON.y + 6 }} />
+      {/* Outside the frame, left of it at the footer's height: the 190 px footer holds the exit button and
+          Init/Save, and inside it OFF EXP covered Init. The window docks right, so its left is free. */}
+      <OffExpButton style={{ right: 'calc(100% + 4px)', top: EXIT_BUTTON.y + 6 }} />
 
       <div
         data-no-drag="true"
