@@ -2,6 +2,7 @@
 
 Start with [AGENTS.md](../AGENTS.md), then [agents/](agents/readme.md) for how agents work here.
 
+- [reforge.md](reforge.md): **Mu Reforge** - how our web client, proxy and servers fit together, running it, deploying, upstream
 - [file_tree.md](file_tree.md): every folder, one line each
 - [controllers.md](controllers.md): the generic services and how content plugs into them
 - [content.md](content.md): skills, windows, maps, monsters, items

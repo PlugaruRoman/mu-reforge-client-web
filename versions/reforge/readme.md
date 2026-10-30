@@ -44,10 +44,10 @@ plug-ins: the `...Extended` packets and the 5-15 byte `ItemSerializerExtended` i
   (`src/controllers/item_rules/itemCodec.ts`) and moves items with `ItemMoveRequestExtended`
   (C3 07 24, no item bytes).
 - Connect through the Open Source client's connect server, 44406 (the GMO client's is 44405).
-- A local checkout plays our server through the seeded "Local (OpenMU)" world too: `.env.local` sets
-  `VITE_CS_VERSION=REFORGE` beside `VITE_CS_PORT=44406`. Without it that world names no version, so it
-  boots Season 6, which knows none of our numbers: every NPC and monster of ours (650, 763, 765-769,
-  603-612, 714-762) is drawn as the fallback Bull Fighter.
+- A local checkout plays the live servers with `start-prod.ps1` (`docs/reforge.md`). A world that
+  points at a local `-demo` server must name the version (`VITE_CS_VERSION=REFORGE`): without it the
+  world boots Season 6, which knows none of our numbers, and every NPC and monster of ours (650, 763,
+  765-769, 603-612, 714-762) is drawn as the fallback Bull Fighter.
 - `modulesOff`: `marketplace` sends Babylon's escrow request on C1 E7 01, which our server reads
   as its anti-cheat `GuardDetectionReport`. The token login only runs for a world whose
   `server.json` offers it, and our server has none.
