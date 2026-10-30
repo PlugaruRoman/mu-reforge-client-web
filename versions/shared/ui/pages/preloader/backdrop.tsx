@@ -3,6 +3,7 @@ import { observer } from 'mobx-react-lite';
 import { t, type TextKey } from '@/i18n';
 import { legPoint, ROUTE, tourAt, type StopNeed } from './mapTour';
 import { loadCredits, type Credit } from '@/modules/credits';
+import { PINNED_BUILD } from '@/core/buildFlags';
 import {
   foundVillages,
   roadSoFar,
@@ -211,7 +212,8 @@ export const Backdrop = observer(() => {
   cast.current = credits;
 
   useEffect(() => {
-    void loadCredits().then(setCredits);
+    // A pinned build sends no visitor's address to GitHub and shows no stranger's name from an issue.
+    if (!PINNED_BUILD) void loadCredits().then(setCredits);
   }, []);
 
   useEffect(() => {

@@ -44,5 +44,7 @@ declare module '*.wav?url' {
 declare const APP_VERSION: string;
 /** One per build (vite.config.ts): the asset cache worker is registered with it. */
 declare const BUILD_ID: string;
+/** `VITE_PINNED_WORLD` set (vite.config.ts); read it as `PINNED_BUILD` from src/core/buildFlags.ts. */
+declare const PINNED_WORLD: boolean | undefined;
 declare const APP_STAGE: 'dev' | 'prod' | 'cprod';
 declare const QA_ENABLED: string | undefined;

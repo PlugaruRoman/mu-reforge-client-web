@@ -102,6 +102,7 @@ import { installModuleStreaming } from '../modules/_api/streamPorts';
 import { installPingNet } from '../controllers/net/pingNet';
 import { loadNpcNames, onNpcNamesChanged } from '@/controllers/assets/mu';
 import { monsterDisplayName } from '@versions/shared/monsters/monstersDatabase';
+import { PINNED_BUILD } from '@/core/buildFlags';
 
 /**
  * `objectNameInWorld` is a snapshot, and deliberately so: it is also the
@@ -155,7 +156,8 @@ installModules(MODULES, onInVersion(gameVersion), moduleHost.api);
 // The module packet (E8): one listener hands each frame to the module it names (modules/_api/router.ts).
 installModuleRouter();
 // The modules a world streams (its server.json `modules`), loaded while the player is on it (modules/_api).
-installModuleStreaming(id => MODULES.some(m => m.id === id));
+// Not in a pinned build: its world runs only the code this bundle carries, whatever a server.json lists.
+if (!PINNED_BUILD) installModuleStreaming(id => MODULES.some(m => m.id === id));
 
 // The map ping: the proxy relay listener behind Shift + middle click.
 installPingNet({

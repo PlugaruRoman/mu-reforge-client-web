@@ -63,7 +63,8 @@ const DEBUG_LOGS = ['console.log', 'console.debug', 'console.trace'];
 // VITE_PINNED_VERSION build only its own.
 
 export default defineConfig(({ command, mode }) => {
-  const name = loadEnv(mode, process.cwd(), 'VITE_').VITE_APP_NAME?.trim();
+  const env = loadEnv(mode, process.cwd(), 'VITE_');
+  const name = env.VITE_APP_NAME?.trim();
 
   return {
     base: './',
@@ -123,6 +124,11 @@ export default defineConfig(({ command, mode }) => {
       APP_VERSION: JSON.stringify(process.env.npm_package_version),
       // One per build: the asset cache worker is registered with it (public/sw.js), tabs compare it.
       BUILD_ID: JSON.stringify(BUILD),
+      // src/core/buildFlags.ts: a literal, so the pinned build's dead branches are dropped. Same test as
+      // isOn there. Not under vitest, whose tests stub VITE_PINNED_WORLD per case.
+      ...(process.env.VITEST
+        ? {}
+        : { PINNED_WORLD: JSON.stringify(/^(on|1|true|yes)$/i.test((env.VITE_PINNED_WORLD ?? '').trim())) }),
       APP_STAGE: JSON.stringify(process.env.APP_ENV || 'unk'),
       QA_ENABLED: JSON.stringify(process.env.QA ? 'true' : ''),
       'import.meta.env.QA_ENABLED': JSON.stringify(

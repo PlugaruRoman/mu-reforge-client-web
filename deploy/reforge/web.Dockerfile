@@ -48,6 +48,8 @@ ARG VITE_PINNED_VERSION=REFORGE
 ARG VITE_APP_NAME="Mu Reforge"
 
 # A REFORGE build drops 0.97d's trees after the build: Mu Reforge plays on Season 6's and its own.
+# A pinned build also drops the developer's band sample (public/dev) and the marketplace frame:
+# the reforge version has both modules off (versions/reforge/index.ts modulesOff).
 # A developer's .env.local (ws://localhost) must never reach a production bundle: vite reads
 # .env* files from the root, and the dockerignore is the first guard, this the second.
 RUN rm -f .env .env.local .env.production .env.production.local \
@@ -58,7 +60,8 @@ RUN rm -f .env .env.local .env.production .env.production.local \
     VITE_APP_NAME="$VITE_APP_NAME" GITHUB_SHA="$GITHUB_SHA" bun run build \
  && if [ "$VITE_PINNED_VERSION" = REFORGE ]; then \
       rm -rf dist/Data-v097d dist/game-assets-v097d dist/packs-v097d dist/assets-index-v097d.json dist/bundles/v097d-*; \
-    fi
+    fi \
+ && if [ "$VITE_PINNED_WORLD" = on ]; then rm -rf dist/dev dist/ui/marketplace_frame.png; fi
 
 FROM nginx:1.28-alpine
 COPY deploy/reforge/nginx/web-container.conf /etc/nginx/conf.d/default.conf

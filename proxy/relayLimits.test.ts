@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   DEFAULT_TRUSTED_PROXIES,
+  envSwitch,
   IpSocketCounter,
   isTrustedProxy,
   parseTrustedProxies,
@@ -22,7 +23,7 @@ describe('relayLimitsFromEnv', () => {
       messageRate: 60,
       messageBurst: 200,
       byteRate: 32 * 1024,
-      byteBurst: 256 * 1024,
+      byteBurst: 64 * 1024,
       maxSocketsPerIp: 30,
       maxSocketsTotal: 2000,
     });
@@ -51,6 +52,17 @@ describe('relayLimitsFromEnv', () => {
     expect(off.maxSocketsTotal).toBe(0);
     const small = relayLimitsFromEnv({ WS_MAX_PAYLOAD: '65536', CLIENT_BYTE_BURST: '1000' });
     expect(small.byteBurst).toBe(65536);
+  });
+});
+
+describe('envSwitch', () => {
+  it('reads on and off, keeps the fallback when unset, and refuses anything else', () => {
+    expect(envSwitch({}, 'TRACK', false)).toBe(false);
+    expect(envSwitch({ TRACK: ' ON ' }, 'TRACK', false)).toBe(true);
+    expect(envSwitch({ TRACK: 'off' }, 'TRACK', true)).toBe(false);
+    for (const bad of ['', 'false', '0', 'yes', 'of']) {
+      expect(() => envSwitch({ LOG_PACKETS: bad }, 'LOG_PACKETS', false)).toThrow(/LOG_PACKETS/);
+    }
   });
 });
 

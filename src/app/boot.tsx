@@ -426,7 +426,8 @@ preloadPregameSprites()
 refreshServerList();
 
 // The installer's direct login: a server.json beside the client may skip the worlds list (servers/directLogin.ts).
-void checkDirectLogin();
+// A pinned build has no worlds list to skip and no server.json beside it: not even the request.
+if (!PINNED_BUILD) void checkDirectLogin();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

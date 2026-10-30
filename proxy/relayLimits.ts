@@ -20,6 +20,20 @@ export function envNumber(env: Env, name: string, fallback: number): number {
 }
 
 /**
+ * An `on`/`off` switch from the environment, `fallback` when unset. Anything else - `""`, `false`,
+ * `0`, a typo - throws, so the proxy refuses to start: `LOG_PACKETS=` used to read as "on" and dump
+ * every login (fixed public keys, so the passwords with it) into the container log.
+ */
+export function envSwitch(env: Env, name: string, fallback: boolean): boolean {
+  const raw = env[name];
+  if (raw === undefined) return fallback;
+  const value = raw.trim().toLowerCase();
+  if (value === "on") return true;
+  if (value === "off") return false;
+  throw new Error(`${name} must be "on" or "off", got ${JSON.stringify(raw)}`);
+}
+
+/**
  * Every limit the relay applies, with its environment variable and default.
  *
  * Memory: the application buffers one relay socket can pin are at most
@@ -83,8 +97,10 @@ export function relayLimitsFromEnv(env: Env = process.env): RelayLimits {
     messageRate: envNumber(env, "CLIENT_MSG_RATE", 60),
     messageBurst: envNumber(env, "CLIENT_MSG_BURST", 200),
     byteRate: envNumber(env, "CLIENT_BYTE_RATE", 32 * 1024),
+    // A real client sends a few KB a second; 64 KiB is still four letters at once, and 30 fresh
+    // sockets from one address can no longer front-load 7.5 MiB at the game servers.
     // A burst below one maximal frame would refuse that frame forever, however slowly it came.
-    byteBurst: Math.max(maxPayloadLength, envNumber(env, "CLIENT_BYTE_BURST", 256 * 1024)),
+    byteBurst: Math.max(maxPayloadLength, envNumber(env, "CLIENT_BYTE_BURST", 64 * 1024)),
     maxSocketsPerIp: envNumber(env, "MAX_SOCKETS_PER_IP", 30),
     maxSocketsTotal: envNumber(env, "MAX_SOCKETS_TOTAL", 2000),
   };

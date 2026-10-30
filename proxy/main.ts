@@ -20,6 +20,7 @@ import {
   CLOSE_POLICY,
   CLOSE_TRY_LATER,
   DEFAULT_TRUSTED_PROXIES,
+  envSwitch,
   IpSocketCounter,
   parseTrustedProxies,
   relayLimitsFromEnv,
@@ -44,7 +45,7 @@ const HOSTNAME = process.env.HOSTNAME || '0.0.0.0';
  * The state is global, not per connection: every client must see the same sky,
  * which is the whole reason this lives in the proxy instead of in each client.
  */
-const WEATHER_ENABLED = (process.env.WEATHER ?? "on") !== "off";
+const WEATHER_ENABLED = envSwitch(process.env, "WEATHER", true);
 
 /** How often the schedule is sampled. The client eases between the steps. */
 const WEATHER_TICK_MS = Number(process.env.WEATHER_TICK ?? 5000);
@@ -143,10 +144,10 @@ const RESERVED_TARGETS: ReservedTarget[] = [
  * and the stream refuses everyone. `TRACK_DB_PATH=memory` keeps the journal
  * in memory for the life of the process.
  */
-const TRACK_ENABLED = (process.env.TRACK ?? "on") !== "off";
+const TRACK_ENABLED = envSwitch(process.env, "TRACK", false);
 const TRACK_DB_PATH = process.env.TRACK_DB_PATH || DEFAULT_TRACK_DB;
 const TRACK_RETAIN_DAYS = Number(process.env.TRACK_RETAIN_DAYS ?? 30);
-const TRACK_WHISPERS = (process.env.TRACK_WHISPERS ?? "on") !== "off";
+const TRACK_WHISPERS = envSwitch(process.env, "TRACK_WHISPERS", false);
 
 /**
  * The band relay (documentation/band/ARCHITECTURE.md): instrument frames
@@ -155,7 +156,7 @@ const TRACK_WHISPERS = (process.env.TRACK_WHISPERS ?? "on") !== "off";
  * the tracker knows. `BAND=off` passes them to the game server (Mu Reforge's
  * Item Collections is C1 FA, clientFrames.ts). Needs `TRACK` on.
  */
-const BAND_ENABLED = (process.env.BAND ?? "on") !== "off";
+const BAND_ENABLED = envSwitch(process.env, "BAND", false);
 const BAND_MAX_PERFORMERS = Number(process.env.BAND_MAX_PERFORMERS ?? 16);
 const BAND_MAX_RECEIVERS = Number(process.env.BAND_MAX_RECEIVERS ?? 48);
 
@@ -165,7 +166,7 @@ const BAND_MAX_RECEIVERS = Number(process.env.BAND_MAX_RECEIVERS ?? 48);
  * sockets whose character can see the sender. `PING=off` swallows them.
  * Needs `TRACK` on, same as the band.
  */
-const PING_ENABLED = (process.env.PING ?? "on") !== "off";
+const PING_ENABLED = envSwitch(process.env, "PING", false);
 const PING_MAX_RECEIVERS = Number(process.env.PING_MAX_RECEIVERS ?? 48);
 
 /**
@@ -199,7 +200,7 @@ if (ALIASES) {
 }
 
 /** The per-packet hex dump. Priceless locally, far too loud against a real server. */
-const LOG_PACKETS = (process.env.LOG_PACKETS ?? "on") !== "off";
+const LOG_PACKETS = envSwitch(process.env, "LOG_PACKETS", false);
 
 console.log(
   `limits: payload ${LIMITS.maxPayloadLength} B, ws backpressure ${LIMITS.backpressureLimit} B, idle ${LIMITS.idleTimeout} s, ` +

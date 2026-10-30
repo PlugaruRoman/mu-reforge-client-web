@@ -3,6 +3,7 @@ import { Xor32Decryptor } from "../src/controllers/net/encryption/xor32";
 import { Xor3Byte } from "../src/controllers/net/encryption/xor3";
 import { getPacketSize, getSizeOfPacketType } from "../src/controllers/net/wireUtils";
 import { SESSION_NONCE_RE } from "../src/controllers/net/sessionNonce";
+import { envSwitch } from "./relayLimits";
 
 /**
  * Who is connected right now, answered on loopback.
@@ -47,7 +48,7 @@ import { SESSION_NONCE_RE } from "../src/controllers/net/sessionNonce";
  * login sniffing, no per-frame copies, no decryption queues (up to 2 x PRESENCE_SNIFF_LIMIT per
  * socket) for a feature nobody can ask.
  */
-export const PRESENCE_ENABLED = (process.env.PRESENCE ?? "on") !== "off";
+export const PRESENCE_ENABLED = envSwitch(process.env, "PRESENCE", false);
 /** Where the loopback server binds; exported so the relay can refuse to dial it. */
 export const PRESENCE_PORT = Number(process.env.PRESENCE_PORT ?? 3001);
 export const PRESENCE_HOST = process.env.PRESENCE_HOST ?? "127.0.0.1";

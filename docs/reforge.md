@@ -31,7 +31,7 @@ browser ── https ──> web.mureforge.com   static client (nginx in a conta
 
 | Variable | Value | Effect |
 |---|---|---|
-| `VITE_PINNED_WORLD` | `on` | One world, the first of the build's own list. No worlds page, no Setup, no offline scene, no debug handles; `?ws=` / `?cs=` / saved profiles are ignored, and only a world on the build's own proxy is played (`src/core/buildFlags.ts`, `src/modules/servers/serverConfig.ts`). |
+| `VITE_PINNED_WORLD` | `on` | One world, the first of the build's own list. No worlds page, no Setup, no offline scene, no debug handles; `?ws=` / `?cs=` / saved profiles are ignored, and only a world on the build's own proxy is played (`src/core/buildFlags.ts`, `src/modules/servers/serverConfig.ts`). No streamed modules from a `server.json`, no installer direct login, no GitHub credits request. vite defines it as a literal (`PINNED_WORLD`), so that code is left out of the bundle, not only switched off. |
 | `VITE_PINNED_VERSION` | `REFORGE` | Only the `reforge` version is bundled (`versions/registry.ts`). |
 | `VITE_WS_HOST` / `VITE_WS_PORT` | `wss://ws.mureforge.com` / `443` | The proxy. |
 | `VITE_SERVER_LIST_URL` | `https://web.mureforge.com/serverlist.md` | The published list, `deploy/reforge/serverlist.md`. |
@@ -110,6 +110,15 @@ This repository is public: no panel hostnames, logins or firewall exemptions in 
 Before the link is public: PROXY v2 live on every realm (the game server then sees each player's
 address, so its per-address limits apply to web players too), the proxy's address removed from the
 game servers' exemptions, and Cloudflare in front of `web.` and `ws.`.
+
+Cloudflare changes `$remote_addr` to Cloudflare's own address: every per-address limit in the host
+nginx would then cap Cloudflare, and `X-Real-IP` would name it instead of the player. Before
+switching it on, add `set_real_ip_from` for each Cloudflare range and `real_ip_header
+CF-Connecting-IP;` to both host configs, and accept 443 only from those ranges.
+
+The proxy's on/off switches (`LOG_PACKETS`, `TRACK`, `TRACK_WHISPERS`, `BAND`, `PING`,
+`PRESENCE`, `WEATHER`) take only `on` or `off`; anything else, an empty value included, stops it
+from starting. All but `WEATHER` are off when unset.
 
 ## What protects the servers
 
