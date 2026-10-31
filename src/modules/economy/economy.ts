@@ -138,7 +138,8 @@ const MIX_STORAGE: Readonly<Record<number, number>> = {
 };
 
 /** `GetSeedShpereSeedID` (SocketSystem.cpp:80-112): a seed sphere's seed, its kind's first seed plus its level. */
-const SPHERE_FIRST_SEED = [0, 10, 16, 21, 29, 34];
+// Earth starts at 36, as socketitem.bmd and the server number it (the original's 34 is an empty slot).
+const SPHERE_FIRST_SEED = [0, 10, 16, 21, 29, 36];
 function sphereSeed(item: Item): number | null {
   if (item.group !== 12 || item.num < 100 || item.num > 129) return null;
   return SPHERE_FIRST_SEED[(item.num - 100) % 6] + (item.lvl ?? 0);
