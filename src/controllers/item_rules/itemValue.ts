@@ -152,8 +152,8 @@ export function itemValue(item: Item, goldType: GoldType): number {
     // Life Stone
     gold = level === 0 ? 100000 : 2400000;
   } else if (group === ItemGroup.Helper && index === 20) {
-    // Wizard's Ring
-    gold = level === 0 ? 3000 : 0;
+    // Wizard's Ring: OpenMU's price (ItemPriceCalculator), so the merchant line shows what the sale pays
+    gold = level === 0 ? 30000 : 0;
   } else if (group === ItemGroup.Helper && index === 31) {
     // Spirit (Dark Horse / Raven spirit)
     gold = (level === 0 ? 10000000 : 5000000) * 3;

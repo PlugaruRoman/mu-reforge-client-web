@@ -5,7 +5,10 @@ import { HeroSkills } from '../skills';
 import { Hero } from '../hero';
 import { Social } from '../social/social';
 import { moduleOn } from '../module';
-import { calcMaxDurability, isJewel, itemDef } from '@/controllers/item_rules';
+import { calcMaxDurability, isJewel, itemDef, itemLevelName } from '@/controllers/item_rules';
+import { itemBaseName } from '@versions/shared/items/itemsDatabase';
+import { isZenOverPurse } from '../drops';
+import { t } from '@/i18n';
 import { InventoryConstants } from '@/core/inventoryConstants';
 import { PetCommandModeEnum } from '@versions/shared/packets/ClientToServerPackets';
 import { isAttackableEntity } from '../../ecs/systems/attackSystem';
@@ -331,11 +334,35 @@ function recoverHealth(world: World, hero: Entity, config: MuHelperConfig): bool
   return true;
 }
 
-/** `CMuHelper::ShouldObtainItem` - the pickup filters. */
+/**
+ * The name the extra items match (`HelperPickupName`, our MuHelperReforge.cpp): the localized name the
+ * ground label shows, picked by level (Box of Luck +7 is the Box of Heaven, +8..+12 the Boxes of Kundun),
+ * without the ancient set in front; `marks` adds the option words (+Skill+Option+Luck).
+ */
+function pickupName(drop: NonNullable<Entity['droppedItem']>, fallback: string, marks: boolean): string {
+  const item = drop.item;
+  const name = itemLevelName(drop.group, drop.num, item?.lvl, itemBaseName(drop.group, drop.num) || fallback);
+  if (!marks || !item) return name;
+  let options = '';
+  if (item.hasSkill) options += t('drop.skill');
+  if ((item.optionLevel ?? 0) > 0) options += t('drop.option');
+  if (item.luck) options += t('drop.luck');
+  return options ? `${name} ${options}` : name;
+}
+
+/**
+ * `CMuHelper::ReforgeShouldObtainItem` (our MuHelperReforge.cpp) - the pickup filters. Zen has its own box,
+ * but only while a pick mode runs, and never zen a full purse refuses; "pick all" ignores the filters; the
+ * selected filters count only while "selected" is ticked (upstream f4ec04ea1 / f91a3f709).
+ */
 function shouldObtain(config: MuHelperConfig, e: Entity): boolean {
   const drop = e.droppedItem!;
-  if (config.pickZen && drop.isMoney) return true;
-  if (drop.isMoney) return config.pickAllItems;
+  if (drop.isMoney) {
+    return config.pickZen && (config.pickAllItems || config.pickSelectedItems) && !isZenOverPurse(drop, Hero.money);
+  }
+
+  if (config.pickAllItems) return true;
+  if (!config.pickSelectedItems) return false;
 
   const def = itemDef(drop.group, drop.num);
   if (config.pickJewel && def && isJewel(def)) return true;
@@ -343,18 +370,19 @@ function shouldObtain(config: MuHelperConfig, e: Entity): boolean {
   if (config.pickExcellent && drop.item?.isExcellent) return true;
 
   if (config.pickExtraItems && def) {
-    // The player's item filters (ours, itemFilters.ts); off is the original's name match.
+    // The player's item filters (ours, itemFilters.ts); off is the original's name match, case-insensitive
+    // as ours (`ReforgeHelper::MatchesExtraItem`).
     if (GameOptions.helperItemFilters) {
-      if (matchesFilteredItem(config.extraItems, def.name, drop.item)) return true;
+      if (matchesFilteredItem(config.extraItems, pickupName(drop, def.name, false), drop.item)) return true;
     } else {
-      const name = def.name.toLowerCase();
-      if (config.extraItems.some(entry => name.includes(entry.toLowerCase()))) {
+      const name = pickupName(drop, def.name, true).toLowerCase();
+      if (config.extraItems.some(entry => entry && name.includes(entry.toLowerCase()))) {
         return true;
       }
     }
   }
 
-  return config.pickAllItems;
+  return false;
 }
 
 /** `CMuHelper::ObtainItem` via the pickup seam (`world.pickupTarget`). */

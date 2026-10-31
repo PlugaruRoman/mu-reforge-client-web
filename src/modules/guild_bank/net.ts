@@ -51,6 +51,14 @@ export function installNet(): void {
     GuildBank.close();
     MuWindows.setOpen('inventory', false);
   });
+  // And it closes with the inventory (V / I), as the vault does in our client: an open bank holds
+  // the guild-wide single-member reservation on the server.
+  reaction(
+    () => MuWindows.isOpen('inventory'),
+    shown => {
+      if (!shown && GuildBank.open) GuildBank.close();
+    }
+  );
   EventBus.on('wsClosed', () => {
     GuildBank.close(false);
     GuildBank.openSettings(false);

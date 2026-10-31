@@ -19,9 +19,9 @@ import { playSfx, type SfxPosition } from './listener';
 /** A drop landing is its own category (`controllers/sound/buses.ts`). */
 const BUS: SoundBus = 'drops';
 
-/** `INDEX_COMPILED_CELE` / `INDEX_COMPILED_SOUL`: 12/30 and 12/31. */
+/** `INDEX_COMPILED_CELE` / `INDEX_COMPILED_SOUL`: 12/30 and 12/31, and the other bundles 12/136-143. */
 const BUNDLE_GROUP = 12;
-const BUNDLED_JEWELS: readonly number[] = [30, 31];
+const BUNDLED_JEWELS: readonly number[] = [30, 31, 136, 137, 138, 139, 140, 141, 142, 143];
 
 /** What the drops module's handler knows about a drop when the packet lands. */
 export type DropSoundInfo = {

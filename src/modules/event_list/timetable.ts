@@ -74,14 +74,15 @@ const row = (id: string, where: string, tab: TimerTab, timetable: Timetable, sta
 /** EventTimerEntries.cpp `Table`, in its order (the order ties keep). */
 export const TIMER_ENTRIES: readonly TimerEntry[] = [
   row('bloodCastle', 'bloodCastle18', 'events', every(120, at(0, 30), 5), 0, MiniGameType.BloodCastle),
-  row('devilSquare', 'devilSquare17', 'events', every(240, at(0, 0), 1), 0, MiniGameType.DevilSquare),
-  row('chaosCastle', 'chaosCastle17', 'events', every(60, at(0, 0), 5), 0, MiniGameType.ChaosCastle),
+  row('devilSquare', 'devilSquare17', 'events', every(240, at(0, 15), 1), 0, MiniGameType.DevilSquare),
+  row('chaosCastle', 'chaosCastle17', 'events', every(120, at(1, 25), 5), 0, MiniGameType.ChaosCastle),
   row('illusionTemple', 'illusionTemple', 'events', every(120, at(1, 10), 5), 0, MiniGameType.IllusionTemple),
   row('happyHour', 'everywhere', 'events', every(360, at(0, 5), 60)),
-  row('flowerEvent', 'towns', 'events', every(240, at(3, 10), 30), 23),
+  row('flowerEvent', 'towns', 'events', every(240, at(3, 50), 30), 23),
   row('kanturu', 'kanturuRuins', 'events', dailyAt([at(20, 0)], 3)),
   row('tvt', 'tvtArena', 'events', TVT_TIMETABLE),
-  row('deepDungeon', 'deepDungeon15', 'events', dailyAt([at(8, 0), at(20, 0)], 30)),
+  // Not the full hour, where Kanturu, TvT and the Olympiad open and build their world at once.
+  row('deepDungeon', 'deepDungeon15', 'events', dailyAt([at(6, 55), at(18, 55)], 30)),
   row('castleSiege', 'valleyOfLoren', 'events', weekly(SUNDAY, [at(15, 0)], 60)),
   row('olympiad', 'lorencia', 'events', weekly(SATURDAY, [at(16, 0)], 180)),
   row('fortSiege', 'fortSiegeWhere', 'events', weekly(TUESDAY, [at(16, 0)], 60, 1 << FRIDAY)),
@@ -93,7 +94,7 @@ export const TIMER_ENTRIES: readonly TimerEntry[] = [
   row('pharaoh', 'karutan', 'invasions', every(360, at(1, 33), 90), 10),
   row('harpyQueen', 'landOfTrials', 'invasions', every(240, at(1, 35), 60), 6),
   row('malgruth', 'lostTower', 'invasions', every(180, at(1, 37), 40), 2),
-  row('goldenInvasion', 'townsAndFields', 'invasions', every(240, at(2, 0), 30), 20),
+  row('goldenInvasion', 'townsAndFields', 'invasions', every(240, at(2, 45), 30), 20),
   row('roshan', 'aida', 'invasions', every(240, at(2, 35), 60), 7),
   row('lordOfDarkness', 'atlans', 'invasions', every(180, at(2, 37), 40), 3),
   row('demonBull', 'crywolf', 'invasions', every(360, at(3, 33), 90), 11),

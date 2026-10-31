@@ -114,6 +114,24 @@ describe('guild bank (DC)', () => {
     GuildBank.close(false);
   });
 
+  it('closes like the vault: with the inventory and on a walk', async () => {
+    const { MuWindows } = await import('@/controllers/interface/windowManager');
+    GuildBank.close(false);
+    EventBus.emit('GuildBankPageInfo', pageInfo(0, 1));
+    expect(MuWindows.isOpen('inventory')).toBe(true);
+    sent = [];
+    MuWindows.setOpen('inventory', false);
+    expect(GuildBank.open).toBe(false);
+    expect(sent).toEqual([[0xc1, 4, 0xdc, 0x06]]);
+
+    EventBus.emit('GuildBankPageInfo', pageInfo(0, 1));
+    sent = [];
+    EventBus.emit('heroWalked', {});
+    expect(GuildBank.open).toBe(false);
+    expect(MuWindows.isOpen('inventory')).toBe(false);
+    expect(sent).toEqual([[0xc1, 4, 0xdc, 0x06]]);
+  });
+
   it('reads and saves the per-rank rights (DC 0D / 0E)', () => {
     GuildBank.openSettings(true);
     EventBus.emit('GuildSettingsResponse', view([0xc1, 12, 0xdc, 0x0d, 254, 0, 0, 0, 28, 0, 0, 0]));

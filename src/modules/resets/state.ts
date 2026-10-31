@@ -106,6 +106,11 @@ export const Resets = new (class {
   /** The server's stored auto stat settings, null until it answered D9 07. */
   auto: AutoStatSettings | null = null;
   pointsPerLevelUp = 0;
+  /**
+   * Which reset the Reset window shows: it holds one at a time (ResetWindow.cpp `m_Kind`). The
+   * character window opens it on the button that was clicked; any other open is the character reset.
+   */
+  showGrand = false;
 
   constructor() {
     makeAutoObservable(this);
@@ -128,12 +133,19 @@ export const Resets = new (class {
     this.pointsPerLevelUp = pointsPerLevelUp;
   }
 
-  /** On every open of the Reset window: level, Zen and resets change while it is closed. */
-  requestInfo(): void {
+  setShowGrand(grand: boolean): void {
+    this.showGrand = grand;
+  }
+
+  /**
+   * On every open of the Reset window: level, Zen and resets change while it is closed. `grand`
+   * asks for that reset only (`RequestInfo`, the window shows one); left out, both.
+   */
+  requestInfo(grand?: boolean): void {
     this.reset = null;
     this.grand = null;
-    Session.sendToGS(d9(0x01));
-    Session.sendToGS(d9(0x02));
+    if (grand !== true) Session.sendToGS(d9(0x01));
+    if (grand !== false) Session.sendToGS(d9(0x02));
   }
 
   /** The window's Reset / Grand Reset: our server takes them as chat commands (ResetRequests.cpp). */

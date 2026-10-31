@@ -616,6 +616,17 @@ export const GuildWindow = observer(() => {
           {tab === 'info' && <InfoTab />}
           {tab === 'members' && <MembersTab />}
           {tab === 'alliance' && <AllianceTab />}
+          {/* [reforge] GuildInfoWindow.cpp: the master's Position on every tab; off Members it opens
+              that tab, where the member is picked. */}
+          {Social.isGuildMaster && tab !== 'members' && (
+            <GuildButton
+              x={3}
+              y={BUTTON_ROW_Y}
+              label={t('guild.position')}
+              title={t('guild.appointAssistant')}
+              onClick={() => selectTab('members')}
+            />
+          )}
         </>
       ) : (
         <>

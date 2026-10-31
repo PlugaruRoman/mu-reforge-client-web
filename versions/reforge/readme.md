@@ -9,7 +9,9 @@ plug-ins: the `...Extended` packets and the 5-15 byte `ItemSerializerExtended` i
 - `gameVersion` (`index.ts`): Season 6's (`../season6`) with id `reforge`, label `Mu Reforge`,
   list tag `REFORGE`, client version bytes `20404`, `variantRank` (`...Extended` first, then
   the classic name, then `...075` / `...095` / `...097`), `protocol.itemCodec: 'extended'`
-  and `modulesOff: ['marketplace', 'band']`. Serial, data, features and mini-games are Season 6's; the
+  and `modulesOff: ['marketplace', 'band']`. Features are Season 6's plus `extraSocketSets: [44, 104]`
+  (the Eternal Wing and Tigris sets carry sockets) and `harmonyOnAncient` (the Jewel of Harmony goes on
+  ancient items), as our server and C++ client have them. Serial, data and mini-games are Season 6's; the
   keys too, except `keyDefaults`, which frees our C++ client's window letters (H, K, S, Y, L, and N for the
   Mu Reforge menu) from the client actions that held them.
 - `packets` (`packets/index.ts`): `ServerToClientPackets`, `ClientToServerPackets`,
@@ -96,7 +98,8 @@ plug-ins: the `...Extended` packets and the 5-15 byte `ItemSerializerExtended` i
   `items/readme.md`), the 57 monster GLBs, World88 and
   World91-95 (terrain, tiles) with the object GLBs their `.obj` places, and our
   `World7/EncTerrain7.att` (118 Arena cells opened). `Data-reforge/` (`data/inventory.ts`, 14 MB):
-  `MoveReq_eng.bmd` (our warp list, Fort entries), `NpcName_Eng.txt`, the World7/88/91-95
+  `MoveReq_eng.bmd` (our warp list, Fort entries), `NpcName_Eng.txt`, `Local/ItemAddOption.bmd` (the 380
+  option on every piece the server grants it, socket sets and Tigris included), the World7/88/91-95
   minimaps, the map name banners `Local/Eng/ImgsMapName/TeamVsTeam.OZT` and `DeepDungeon1-5.OZT`
   (our Spn / Por copies are the same pictures, so the banner's English fallback serves them) and the
   Hero Cape's cloth texture `Item/Cape_Bronze25_0.OZT`. `worlds` adds 88 and 91-95;

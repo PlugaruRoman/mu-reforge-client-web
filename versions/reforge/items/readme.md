@@ -23,9 +23,11 @@ all.ts                finds them and adds them to versions/shared/items' registr
   `Persistence/Initialization/VersionSeasonSix/Items/*.cs`, `GameLogic/Olympiad/OlympiadHeroItems.cs`);
   client-only rows (lucky items 62-72, "-J" items, cash shop items the server does not sell, the rings
   13/107-115 whose server block is commented out) are left out.
-- Renamed (41): the armour sets 39, 42, 43, 44, 47, 48, 51, 53 (Violent Wind, Demonic, Storm Blitz,
+- Renamed (46): the armour sets 39, 42, 43, 44, 47, 48, 51, 53 (Violent Wind, Demonic, Storm Blitz,
   Eternal Wing, Phantom, Destroy, Royal, Merlin) and the sticks 5/18-20, written whole from our row on
-  the stock model: Merlin (53) also changed size (armour 2x3), classes and requirements.
+  the stock model: Merlin (53) also changed size (armour 2x3), classes and requirements. The five
+  Archangel weapons 0/19, 2/13, 4/18, 5/10, 5/36 too: their damage and magic power are below the top
+  weapons (S `ArchangelWeaponsBelowTopGearUpdateSeason6`).
 - Models Season 6's tree lacks are converted from our client into Mu Reforge's own tree,
   `public/game-assets-reforge/Item/` and `Player/` (`../data/assets.ts`), under the stock folder names
   (`szModelFolder: 'Item/'`): the version reads a file its tree lists from there and every other one from

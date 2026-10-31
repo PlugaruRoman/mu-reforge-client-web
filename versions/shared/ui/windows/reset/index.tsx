@@ -138,21 +138,26 @@ const PaidPanel = observer(({ reset, onBack }: { reset: PaidReset; onBack: () =>
 });
 
 /**
- * `CResetWindow` (UI/Reset/ResetWindow.cpp, reforge_reset.rml): the next character reset and the next
- * grand reset, each confirmed before the chat command goes out, and the two paid resets our client
- * offers from its character window (PaidResetDialog.cpp) on a second page.
+ * `CResetWindow` (UI/Reset/ResetWindow.cpp, reforge_reset.rml): the next character reset or the next
+ * grand reset, one at a time (`Resets.showGrand`), confirmed before the chat command goes out, and the
+ * two paid resets our client offers from its character window (PaidResetDialog.cpp) on a second page.
  */
 export const ResetWindow = observer(() => {
   const open = MuWindows.isOpen(RESET_WINDOW);
+  const showGrand = Resets.showGrand;
   const [confirm, setConfirm] = useState<'reset' | 'grand' | null>(null);
   const [paid, setPaid] = useState<PaidReset | null>(null);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      // The next open without a kind (the N menu) is the character reset.
+      Resets.setShowGrand(false);
+      return;
+    }
     setConfirm(null);
     setPaid(null);
-    Resets.requestInfo();
-  }, [open]);
+    Resets.requestInfo(showGrand);
+  }, [open, showGrand]);
 
   const reset = Resets.reset;
   const grand = Resets.grand;
@@ -162,35 +167,38 @@ export const ResetWindow = observer(() => {
   };
 
   return (
-    <ModuleWindowFrame id={RESET_WINDOW} title={t('resetWin.title')}>
+    <ModuleWindowFrame id={RESET_WINDOW} title={t(showGrand ? 'resetWin.grandTitle' : 'resetWin.title')}>
       <AccountBody className="reset-body">
         {paid ? (
           <PaidPanel reset={paid} onBack={() => setPaid(null)} />
         ) : (
           <>
-            <ResetSection
-              loadingHeading={t('resetWin.characterTitle')}
-              button={t('resetWin.reset')}
-              okText={t('resetWin.confirmReset')}
-              section={reset && { ...reset, heading: t('resetWin.nextReset', { count: reset.currentResets + 1 }) }}
-              onReset={() => setConfirm('reset')}
-            />
-            <ResetSection
-              loadingHeading={t('resetWin.grandTitle')}
-              button={t('resetWin.grandTitle')}
-              okText={t('resetWin.confirmGrand')}
-              section={
-                grand && {
-                  ...grand,
-                  heading:
-                    grand.limit > 0
-                      ? t('resetWin.grandCountLimited', { count: grand.currentGrandResets + 1, limit: grand.limit })
-                      : t('resetWin.grandCount', { count: grand.currentGrandResets + 1 }),
-                  resets: [grand.currentResets, grand.requiredResets],
+            {showGrand ? (
+              <ResetSection
+                loadingHeading={t('resetWin.grandTitle')}
+                button={t('resetWin.grandTitle')}
+                okText={t('resetWin.confirmGrand')}
+                section={
+                  grand && {
+                    ...grand,
+                    heading:
+                      grand.limit > 0
+                        ? t('resetWin.grandCountLimited', { count: grand.currentGrandResets + 1, limit: grand.limit })
+                        : t('resetWin.grandCount', { count: grand.currentGrandResets + 1 }),
+                    resets: [grand.currentResets, grand.requiredResets],
+                  }
                 }
-              }
-              onReset={() => setConfirm('grand')}
-            />
+                onReset={() => setConfirm('grand')}
+              />
+            ) : (
+              <ResetSection
+                loadingHeading={t('resetWin.characterTitle')}
+                button={t('resetWin.reset')}
+                okText={t('resetWin.confirmReset')}
+                section={reset && { ...reset, heading: t('resetWin.nextReset', { count: reset.currentResets + 1 }) }}
+                onReset={() => setConfirm('reset')}
+              />
+            )}
             <div className="acct-buttons">
               <AccountButton label={t('resetWin.statsTitle')} title={t('resetWin.statsTooltip')} onClick={() => openPaid('stats')} />
               <AccountButton label={t('resetWin.masterTitle')} onClick={() => openPaid('master')} />
@@ -209,7 +217,8 @@ export const ResetWindow = observer(() => {
             {
               label: t(confirm === 'grand' ? 'resetWin.grandTitle' : 'resetWin.reset'),
               onClick: () => {
-                Resets.doReset(confirm === 'grand');
+                // Only the reset the window shows (`ConfirmReset`): a switch under an open confirm drops it.
+                if ((confirm === 'grand') === Resets.showGrand) Resets.doReset(confirm === 'grand');
                 setConfirm(null);
                 MuWindows.setOpen(RESET_WINDOW, false);
               },
@@ -225,16 +234,31 @@ export const ResetWindow = observer(() => {
 const toggle = (id: string) => MuWindows.setOpen(id, !MuWindows.isOpen(id));
 
 /**
+ * ReforgeCharacterButtons.cpp `OpenReset`: shows the Reset window on that reset, or switches an open
+ * one to it. The button of the reset already shown closes it, as the other tabs do.
+ */
+function toggleReset(grand: boolean): void {
+  if (MuWindows.isOpen(RESET_WINDOW) && Resets.showGrand === grand) {
+    MuWindows.setOpen(RESET_WINDOW, false);
+    return;
+  }
+  Resets.setShowGrand(grand);
+  MuWindows.setOpen(RESET_WINDOW, true);
+}
+
+/**
  * Our client's buttons on the character window (UI/Reforge/ReforgeCharacterButtons.cpp): Add Stats,
- * the Reset window, and the Soul Point window. Drawn as tabs over the character window's frame; only
- * on a world with the module on.
+ * the Reset window on the character reset or on the grand reset, and the Soul Point window. Drawn as
+ * tabs over the character window's frame; only on a world with the module on.
  */
 export const ResetCharacterButtons = observer(() => {
   if (!moduleOn('resets')) return null;
+  const resetOpen = MuWindows.isOpen(RESET_WINDOW);
   return (
     <AccountTabStrip>
       <AccountButton label={t('resetWin.addStats')} active={MuWindows.isOpen(ADD_STATS_WINDOW)} onClick={() => toggle(ADD_STATS_WINDOW)} />
-      <AccountButton label={t('resetWin.title')} active={MuWindows.isOpen(RESET_WINDOW)} onClick={() => toggle(RESET_WINDOW)} />
+      <AccountButton label={t('resetWin.title')} active={resetOpen && !Resets.showGrand} onClick={() => toggleReset(false)} />
+      <AccountButton label={t('resetWin.grandTitle')} active={resetOpen && Resets.showGrand} onClick={() => toggleReset(true)} />
       {moduleOn('soul_points') && (
         <AccountButton label={t('resetWin.soul')} active={MuWindows.isOpen(SOUL_WINDOW)} onClick={() => toggle(SOUL_WINDOW)} />
       )}

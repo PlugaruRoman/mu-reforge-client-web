@@ -164,16 +164,20 @@ export function playLandingSound(skill: number, at?: SfxPosition | null): void {
   if (LANDING_SOUNDS.has(skill)) playCombat(SKILL_SOUNDS[skill] ?? null, at);
 }
 
-/** Jewel pickups ring instead of clinking (WSclient.cpp:6181-6189). */
+/**
+ * Jewel pickups ring instead of clinking (WSclient.cpp:6181-6189): every item our C++ client's tables tag
+ * `jewel` (Data/Items Group12_Wing.json, Group14_Potion.json), the Gemstone first with its own sound.
+ */
 export function pickupSound(item: Item): 'jewel' | 'gemstone' | 'getItem' {
   if (item.group === 12) {
-    // Jewel of Chaos 15, the bundled Bless 30 and Soul 31
-    if ([15, 30, 31].includes(item.num)) return 'jewel';
+    // Jewel of Chaos 15, the bundled Bless 30 and Soul 31, the bundles 136-143 (Life ... Higher Refining Stone)
+    if ([15, 30, 31].includes(item.num) || (item.num >= 136 && item.num <= 143)) return 'jewel';
   }
   if (item.group === 14) {
-    // Bless 13, Soul 14, Life 16, Creation 22, Guardian 31
-    if ([13, 14, 16, 22, 31].includes(item.num)) return 'jewel';
     if (item.num === 41) return 'gemstone'; // Gemstone
+    // Bless 13, Soul 14, Life 16, Creation 22, Guardian 31, Harmony 42, the refining stones 43 / 44, and Mu
+    // Reforge's Skill 124, Luck 125, Chaos Assembly 157 and Sea 176
+    if ([13, 14, 16, 22, 31, 42, 43, 44, 124, 125, 157, 176].includes(item.num)) return 'jewel';
   }
   return 'getItem';
 }

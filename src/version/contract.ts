@@ -197,6 +197,14 @@ export interface VersionFeatures {
   /** Ancient sets (0.97+). */
   readonly ancientItems: boolean;
   /**
+   * Armour set numbers (groups 7-11) the server made socketable beside the original's 45-53: their byte 6
+   * is a socket bonus, never a harmony option, and a Socket Gem or the socket mixes take them. Omitted =
+   * none (Mu Reforge: 44 Eternal Wing, 104 Tigris).
+   */
+  readonly extraSocketSets?: readonly number[];
+  /** The Jewel of Harmony may be applied to an ancient item (Mu Reforge). Omitted = refused, as the original. */
+  readonly harmonyOnAncient?: boolean;
+  /**
    * The character classes after the first three: the create window offers
    * only those the version has (Dark Lord, Magic Gladiator: 0.99 / 0.97;
    * Summoner, Rage Fighter: S3 / S5).

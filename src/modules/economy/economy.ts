@@ -62,6 +62,9 @@ import {
   VaultProtectionInformationVaultProtectionStateEnum,
 } from '@versions/shared/packets/ServerToClientPackets';
 
+/** `GameLogic::Items::kMaxInventoryZen` (our client's ZenAmount.h): the most a withdrawal may leave in the bag. */
+const MAX_CARRIED_ZEN = 2_000_000_000;
+
 /** The zen the vault charges to open (`RenderText`, NewUIStorageInventory.cpp:227). */
 export function vaultOpenCost(level: number, masterLevel: number, locked: boolean): number {
   const total = level + masterLevel;
@@ -467,15 +470,21 @@ export const Economy = new (class _Economy {
   moveVaultMoney(amount: number, toVault: boolean): void {
     if (!this.vaultOpen || amount <= 0) return;
 
-    if (!this.vaultUsable) {
-      addNotification(t('notify.unlockVaultFirst'), 'error');
-      this.openPrompt({ kind: 'vault-unlock' });
-      return;
-    }
-
+    // Our client checks the balance first, then the bag's limit, each with its message, and only then
+    // the pin (StorageInventory.cpp; the original dropped an over-limit withdrawal silently).
     const available = toVault ? Hero.money : this.vaultMoney;
     if (amount > available) {
       addNotification(t('common.notEnoughZen'), 'error');
+      return;
+    }
+    if (!toVault && Hero.money + amount > MAX_CARRIED_ZEN) {
+      addNotification(t('notify.zenCap'), 'error');
+      return;
+    }
+
+    if (!this.vaultUsable) {
+      addNotification(t('notify.unlockVaultFirst'), 'error');
+      this.openPrompt({ kind: 'vault-unlock' });
       return;
     }
 
@@ -615,7 +624,7 @@ export const Economy = new (class _Economy {
 
   /** `CheckMixInventory`: the recipe the tray makes, against this window's `Mix.bmd` list. */
   get mixCheck(): MixCheck {
-    const check = checkMix(mixRecipes()?.[this.mixInventoryType] ?? [], this.mixItems);
+    const check = checkMix(mixRecipes()?.[this.mixInventoryType] ?? [], this.mixItems, this.mixInventoryType);
     const server = this.serverMixRate;
     if (!server || !check.recipe || check.recipe.mixId !== server.mixId) return check;
     return { ...check, successRate: server.rate, requiredZen: server.zen };
@@ -627,7 +636,7 @@ export const Economy = new (class _Economy {
    */
   mixAccepts(item: Item): boolean {
     if (this.mixResult || this.mixPending) return false;
-    return isMixSource(mixRecipes()?.[this.mixInventoryType] ?? [], item, this.mixCheck);
+    return isMixSource(mixRecipes()?.[this.mixInventoryType] ?? [], item, this.mixCheck, this.mixInventoryType);
   }
 
   /**

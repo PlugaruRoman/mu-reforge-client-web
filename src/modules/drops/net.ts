@@ -10,7 +10,7 @@ import { Hero } from '@/modules/hero';
 import { addNotification } from '@/modules/chat';
 import { Ecs } from '@/ecs/current';
 import { Vector3 } from '@/controllers/render/babylon/exports';
-import { ancientSetOf, archangelWeapon, dropModelProxy } from '@/controllers/item_rules';
+import { ancientSetOf, dropModelProxy } from '@/controllers/item_rules';
 import { itemSetTables } from '@/controllers/assets';
 import { createAttributeSystem } from '@/core/attributeSystem';
 import { itemLevelName } from '@/controllers/item_rules';
@@ -197,11 +197,11 @@ export function dropName(
 ): string {
   const zen = t('common.zen');
   if (isMoney) return amount > 0 ? `${zen} ${amount}` : zen;
-  // The Weapon of Archangel lies there as the Divine weapon it stands for,
-  // named for it and with no level (ZzzObject.cpp:5496-5512).
+  // The Weapon of Archangel lies there as the Divine weapon it stands for (ZzzObject.cpp:5496-5512), but
+  // is named for the weapon its level picks, with no level: Absolute Staff / Sword / Crossbow of Archangel
+  // (our C++ client's ZzzInventory.cpp BuildGroundItemLabelDescriptor, as the tooltip names it).
   if (item && item.group === ItemGroup.Helper && item.num === WEAPON_OF_ARCHANGEL) {
-    const [group, num] = archangelWeapon(item.lvl ?? 0);
-    return String(itemBaseName(group, num));
+    return itemLevelName(item.group, item.num, item.lvl ?? 0);
   }
   const name = String(baseName);
   if (!item) return name;

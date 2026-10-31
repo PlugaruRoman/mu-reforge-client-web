@@ -23,6 +23,14 @@ describe('a ground item label', () => {
     expect(dropName(false, 0, 'Kris', { group: 0, num: 0 })).toBe('Kris');
   });
 
+  // Our C++ client's BuildGroundItemLabelDescriptor (92fe06d9b): the level picks the weapon, it is no upgrade.
+  it('names a Weapon of Archangel by the weapon its level picks, with no level', () => {
+    const weapon = (lvl: number) => ({ group: 13, num: 19, lvl });
+    expect(dropName(false, 0, 'Divine Staff of Archangel', weapon(0))).toBe('Absolute Staff of Archangel');
+    expect(dropName(false, 0, 'Divine Staff of Archangel', weapon(1))).toBe('Absolute Sword of Archangel');
+    expect(dropName(false, 0, 'Divine Staff of Archangel', weapon(2))).toBe('Absolute Crossbow of Archangel');
+  });
+
   it('names the Horn of Dinorant skill as the knight skill', () => {
     const horn = { group: 13, num: 3, hasSkill: true };
     expect(dropName(false, 0, 'Horn of Dinorant', horn)).toBe('Horn of Dinorant +Knight specific skill');

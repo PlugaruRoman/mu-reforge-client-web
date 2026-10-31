@@ -38,12 +38,16 @@ export const MIX = {
 
 const FLOWERS = [120, 121, 122] as const;
 const LUCKY_COIN = 123;
+/** Suspicious Scrap of Paper: five stack into a Gaion's Order (our ReforgeMixRecipes.cpp, 2026-10-29). */
+const SCRAP_OF_PAPER = 101;
 const JEWEL_OF_CHAOS_ASSEMBLY = code(14, 157);
 const SPIRIT_STONES = [164, 165, 166] as const;
 const GARUDAS_FEATHER = 167;
 const GARUDAS_FLAME = 168;
 /** Our 4th wings (12/51-57) and the Olympiad Hero wings and capes. */
 const OUR_WINGS: ReadonlySet<number> = new Set([51, 52, 53, 54, 55, 56, 57, 58, 59, 66, 67].map(n => code(12, n)));
+/** `MIXTYPE_GOBLIN_ADD380`, the goblin's 380 option window (economy.ts `MIX_TYPE.option380`). */
+const MIX_TYPE_ADD380 = 2;
 
 /** `_MIXRATE_OPS`. */
 const OP = { number: 0, add: 1, div: 4, maxRate: 32, excellent: 35, set: 37 } as const;
@@ -175,14 +179,18 @@ function canReceiveGuardianOption(type: number): boolean {
   return !!options?.some(([option]) => option !== 0);
 }
 
-/** `AdjustMixItem`. */
-export function adjustMixItem(mix: MixItem, item: Item): void {
-  // SetItem's socket XOR set the 380 flag on every socket item instead of clearing it.
+/** `AdjustMixItem`; `mixType` is the window's (`GetMixInventoryType`). */
+export function adjustMixItem(mix: MixItem, item: Item, mixType = 0): void {
+  // SetItem's socket XOR set the 380 flag on every socket item instead of clearing it. The socket sets take
+  // the 380 option too, but a socketed piece carries the flag only in the 380 window: the +10..+15 upgrades
+  // have a 380 bracket and a socket bracket under one mix number, and the flag would pick the 380 one there
+  // (`MarkGuardianOptionItem`).
   mix.special &= ~SP.add380;
-  if ((item.socketCount ?? 0) === 0 && canReceiveGuardianOption(mix.type)) mix.special |= SP.add380;
+  const guardianWindow = mixType === MIX_TYPE_ADD380;
+  if (((item.socketCount ?? 0) === 0 || guardianWindow) && canReceiveGuardianOption(mix.type)) mix.special |= SP.add380;
   if (mix.type === JEWEL_OF_CHAOS_ASSEMBLY) mix.chaosCharm = true;
   if (OUR_WINGS.has(mix.type)) mix.thirdWing = true;
-  if (item.group === 14 && (FLOWERS.includes(item.num as 120) || item.num === LUCKY_COIN)) {
+  if (item.group === 14 && (FLOWERS.includes(item.num as 120) || item.num === LUCKY_COIN || item.num === SCRAP_OF_PAPER)) {
     mix.canStack = true;
     mix.count = mix.durability;
   }

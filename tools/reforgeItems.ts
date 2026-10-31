@@ -44,12 +44,15 @@ export const NEW_ITEMS: readonly string[] = [
 ];
 
 /**
- * Stock items our client names otherwise: the renamed armour sets and their sticks. Written whole from our
+ * Stock items our client names or tunes otherwise: the renamed armour sets and their sticks, the Archangel
+ * weapons. Written whole from our
  * row on the stock model, since the Merlin set (53) also changed size, classes and requirements.
  */
 export const RENAMED: readonly string[] = [
   ...[7, 8, 9, 10, 11].flatMap(g => [39, 42, 43, 44, 47, 48, 51, 53].filter(i => g !== 7 || i < 47 || i > 48).map(i => `${g}/${i}`)),
   '5/18', '5/19', '5/20',
+  // The Archangel weapons, about 5 % below the top weapons (S ArchangelWeaponsBelowTopGearUpdateSeason6).
+  '0/19', '2/13', '4/18', '5/10', '5/36',
 ];
 
 /** `slot` in our JSON -> `ItemSlot` (item_rules/equipSlots.ts). */

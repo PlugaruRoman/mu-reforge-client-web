@@ -1,5 +1,6 @@
 import type { Item } from '../../ecs/world';
 import type { ItemOptionTables } from '../assets/mu';
+import { gameVersion } from '@/version';
 
 /** `MAX_SOCKET_OPTION`: a socket byte is `seed + (sphere level - 1) * 50`. */
 const SOCKET_OPTIONS = 50;
@@ -9,18 +10,29 @@ const EMPTY_SOCKET = 0xfe;
 /** The armour sets of `IsSocketItem` (SocketSystem.cpp:39-74), indexes 45-53 of groups 7-11. */
 const SOCKET_SET_FIRST = 45;
 const SOCKET_SET_LAST = 53;
-/** The socket weapons and shields of `IsSocketItem`, by group. */
+/**
+ * The socket weapons and shields of `IsSocketItem`, by group. The staves are the server's: the Eternal Wing
+ * Stick (5/20) is socketable there, staff 5/32 does not exist (OpenMU `SocketSystem.AddSocketsToItems`; our
+ * C++ client's SocketSystem.cpp had the two swapped).
+ */
 const SOCKET_ITEMS: Readonly<Record<number, readonly number[]>> = {
   0: [26, 27, 28],
   2: [16, 17],
   4: [23],
-  5: [30, 31, 32],
+  5: [20, 30, 31],
   6: [17, 18, 19, 20],
 };
+/** Rage Fighter's Tigris set (104) has no gloves. */
+const TIGRIS = 104;
+const GLOVES = 10;
 
-/** `IsSocketItem`: by item type, not by the slots the item came with. */
+/** `IsSocketItem`: by item type, not by the slots the item came with. Plus the version's own socket sets. */
 export function isSocketItem(group: number, num: number): boolean {
-  if (group >= 7 && group <= 11) return num >= SOCKET_SET_FIRST && num <= SOCKET_SET_LAST;
+  if (group >= 7 && group <= 11) {
+    if (num >= SOCKET_SET_FIRST && num <= SOCKET_SET_LAST) return true;
+    if (num === TIGRIS && group === GLOVES) return false;
+    return gameVersion?.features.extraSocketSets?.includes(num) ?? false;
+  }
   return SOCKET_ITEMS[group]?.includes(num) ?? false;
 }
 

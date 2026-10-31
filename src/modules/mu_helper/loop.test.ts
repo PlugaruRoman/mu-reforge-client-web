@@ -24,6 +24,7 @@ const { updateMuHelperLoop } = await import('./loop');
 const { defaultMuHelperConfig } = await import('./config');
 const { HeroSkills } = await import('../skills');
 const { GameOptions } = await import('@/controllers/settings');
+const { Hero } = await import('../hero');
 
 describe('updateMuHelperLoop', () => {
   it('does nothing while the mu_helper module is off', () => {
@@ -117,11 +118,11 @@ describe('updateMuHelperLoop', () => {
     expect(pickupTick(true)).toBeNull();
   });
 
-  /** Whether one tick goes for a lucky or plain Guardian Shield listed as `entry`, filters on or off. */
+  /** Whether one tick goes for a lucky or plain Buckler (6/4; matched by its localized name, not the item file row) listed as `entry`, filters on or off. */
   function extraItemTick(entry: string, luck: boolean, filters: boolean): boolean {
     GameOptions.helperItemFilters = filters;
     on.module = true;
-    on.state.config = { ...defaultMuHelperConfig(), pickExtraItems: true, extraItems: [entry] };
+    on.state.config = { ...defaultMuHelperConfig(), pickSelectedItems: true, pickExtraItems: true, extraItems: [entry] };
     const drop = {
       worldIndex: 0,
       transform: { pos: { x: 11, z: 10 } },
@@ -144,10 +145,54 @@ describe('updateMuHelperLoop', () => {
     return picked;
   }
 
-  it('matches extra items by name only, as the original, until the player turns the filters on', () => {
-    expect(extraItemTick('Guardian', false, false)).toBe(true);
-    expect(extraItemTick('Guardian Shield +Luck', true, false)).toBe(false);
-    expect(extraItemTick('Guardian Shield +Luck', true, true)).toBe(true);
-    expect(extraItemTick('Guardian Shield +Luck', false, true)).toBe(false);
+  it('matches extra items by the shown name and option words (HelperPickupName), or by the filters once on', () => {
+    expect(extraItemTick('Buckler', false, false)).toBe(true);
+    // The localized name the label shows, not the item file row (f4ec04ea1).
+    expect(extraItemTick('Guardian', false, false)).toBe(false);
+    expect(extraItemTick('Buckler +Luck', true, false)).toBe(true);
+    expect(extraItemTick('Buckler +Luck', false, false)).toBe(false);
+    expect(extraItemTick('Buckler +Luck', true, true)).toBe(true);
+    expect(extraItemTick('Buckler +Luck', false, true)).toBe(false);
+  });
+  /** One tick with a lone drop next to the hero and `config` on top of the defaults: whether it goes for it. */
+  function goesFor(config: Record<string, unknown>, droppedItem: Record<string, unknown>, money = 0): boolean {
+    on.module = true;
+    on.state.config = { ...defaultMuHelperConfig(), ...config };
+    Hero.money = money;
+    const drop = { worldIndex: 0, transform: { pos: { x: 11, z: 10 } }, droppedItem };
+    const world = {
+      playerEntity: { transform: { pos: { x: 10, z: 10 } }, attributeSystem: { isAboveZero: () => false } },
+      mapIndex: 0,
+      castRequest: null,
+      pickupTarget: null,
+      netObjsQuery: { entities: [drop] },
+      playersQuery: { entities: [] },
+    } as unknown as World;
+    on.helper.active = true;
+    updateMuHelperLoop(world, 0.3);
+    const picked = world.pickupTarget === (drop as unknown);
+    on.helper.active = false;
+    updateMuHelperLoop(world, 0.3);
+    Hero.money = 0;
+    return picked;
+  }
+
+  const zen = { isMoney: true, group: 14, num: 15, amount: 1000 };
+  const shield = { isMoney: false, group: 6, num: 4, item: { group: 6, num: 4 } };
+
+  it('picks zen only while a pick mode runs, and never zen a full purse refuses (IsZenOverPurse)', () => {
+    expect(goesFor({ pickZen: true }, zen)).toBe(false);
+    expect(goesFor({ pickZen: true, pickSelectedItems: true }, zen)).toBe(true);
+    expect(goesFor({ pickZen: true, pickAllItems: true }, zen)).toBe(true);
+    expect(goesFor({ pickZen: false, pickAllItems: true }, zen)).toBe(false);
+    expect(goesFor({ pickZen: true, pickAllItems: true }, zen, 2_147_483_646)).toBe(true);
+    expect(goesFor({ pickZen: true, pickAllItems: true }, zen, 2_147_483_647)).toBe(false);
+  });
+
+  it('honors the pick modes: the selected filters count only while Selected is ticked (f4ec04ea1)', () => {
+    expect(goesFor({ pickExtraItems: true, extraItems: ['Buckler'] }, shield)).toBe(false);
+    expect(goesFor({ pickSelectedItems: true, pickExtraItems: true, extraItems: ['buckler'] }, shield)).toBe(true);
+    expect(goesFor({ pickAllItems: true }, shield)).toBe(true);
+    expect(goesFor({ pickSelectedItems: true }, shield)).toBe(false);
   });
 });

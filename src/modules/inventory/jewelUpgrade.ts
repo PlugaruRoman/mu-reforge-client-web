@@ -139,8 +139,10 @@ export function jewelTargetError(
     case JEWEL.life:
       return null;
     case JEWEL.harmony:
-      if (target.isAncient) return t('item.jewelHarmonyAncient');
-      if ((target.socketCount ?? 0) > 0) return t('item.jewelHarmonySocket');
+      // Mu Reforge takes it on an ancient item (InventoryCtrl.cpp DropActsOn, S HarmonyJewelConsumeHandlerPlugIn).
+      if (target.isAncient && !facts.harmonyOnAncient) return t('item.jewelHarmonyAncient');
+      // A socket item by type, even without sockets: byte 6 is its socket bonus (`IsSocketItem`).
+      if ((target.socketCount ?? 0) > 0 || facts.socketItem) return t('item.jewelHarmonySocket');
       return null;
     case JEWEL.lowerRefineStone:
     case JEWEL.higherRefineStone:

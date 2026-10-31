@@ -37,6 +37,12 @@ the two server packets, with its running state and the raw config blob (`MuHelpe
   tiles, re-anchors the regroup point.
 - A drop is asked for once: the pickup system marks it `pickupAsked` when the request goes out and the
   helper never goes for it again, as the original takes it off its list (`DeleteItem`, MuHelper.cpp:1252).
+  It looks at every drop in scope each tick, so drops that fell before it started count too.
+- Pickup modes as our C++ client's `ReforgeShouldObtainItem`: zen only while Pick All or Selected runs
+  and never zen a full purse refuses (`drops/purse.ts`, also skipped by Space); Pick All takes every
+  item; the categories and extra items count only under Selected. Extra items match the localized name
+  the ground label shows, chosen by level (Box of Luck +7 is the Box of Heaven), with +Skill+Option+Luck
+  after it, case-insensitive.
 - Switching it off clears `world.castRequest`, `attackTarget` and `pickupTarget`, so the hero does not
   keep walking to the monster or drop it was on.
 - Item filters (`itemFilters.ts`, ours): with the player's `GameOptions.helperItemFilters` (a check

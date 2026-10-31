@@ -71,13 +71,24 @@ describe('drop sounds', () => {
   });
 
   it('rings the bundled jewels on pickup only', () => {
-    for (const num of [BUNDLED_BLESS, BUNDLED_SOUL]) {
+    // and the bundles of Life, Creation, Guardian, Gemstone, Harmony, Chaos and the refining stones (12/136-143)
+    for (const num of [BUNDLED_BLESS, BUNDLED_SOUL, 136, 139, 143]) {
       const item = { group: BUNDLE_GROUP, num };
       expect(pickupSound(item)).toBe('jewel');
       expect(
         dropSound({ isMoney: false, item, group: BUNDLE_GROUP, num })
       ).toBe('Sound/pDropItem');
     }
+  });
+
+  // Every item our C++ client's tables tag `jewel` (8a931f7ab), the Gemstone keeping its own sound.
+  it('rings Harmony, the refining stones and our jewels, the Gemstone with its own sound', () => {
+    for (const num of [42, 43, 44, 124, 125, 157, 176]) {
+      expect(pickupSound({ group: JEWEL_GROUP, num })).toBe('jewel');
+      expect(dropSound({ isMoney: false, item: { group: JEWEL_GROUP, num }, group: JEWEL_GROUP, num })).toBe('Sound/eGem');
+    }
+    expect(pickupSound({ group: JEWEL_GROUP, num: GEMSTONE })).toBe('gemstone');
+    expect(pickupSound({ group: JEWEL_GROUP, num: 15 })).toBe('getItem');
   });
 
   it('sounds every drop while the filter is off', () => {

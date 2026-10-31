@@ -19,7 +19,7 @@ export default defineItem({
   Speed: 45,
   Durability: 255,
   MagicDur: 0,
-  MagicPwr: 151,
+  MagicPwr: 154,
   RequiredLvl: 0,
   Strength: 98,
   Agi: 48,

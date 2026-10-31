@@ -74,6 +74,15 @@ export const gameVersion: GameVersion = {
   // `band`: the proxy's band relay is C1 FA, which our server uses for its Item Collections
   // (S GameServer/RemoteView/ItemCollections/ItemCollectionViewPlugIn.cs); `packets/` lists no band class.
   modulesOff: ['marketplace', 'band'],
+  features: {
+    ...season6.features,
+    // The Eternal Wing (44) and Tigris (104, no gloves) sets carry sockets (S Items/SocketSystem.cs
+    // AddSocketsToItems; our client's SocketSystem.cpp IsSocketItem).
+    extraSocketSets: [44, 104],
+    // Ancient items take harmony (S ItemConsumeActions/HarmonyJewelConsumeHandlerPlugIn.cs; our client's
+    // InventoryCtrl.cpp DropActsOn).
+    harmonyOnAncient: true,
+  },
   // Babylon's bag bundling sends the Lahap mix with no NPC open: our server ignores the mix and
   // disconnects on the unmix (S GameLogic/PlayerActions/Items/ItemStackAction.cs). The token login
   // (E7 03/05) has no handler on our server: the login would hang, then ask for the password.

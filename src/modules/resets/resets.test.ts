@@ -53,6 +53,12 @@ describe('reset info (C1 D9 01 / 02)', () => {
       [0xc1, 4, 0xd9, 0x02],
     ]);
     sent.length = 0;
+    Resets.requestInfo(true);
+    expect(sent).toEqual([[0xc1, 4, 0xd9, 0x02]]);
+    sent.length = 0;
+    Resets.requestInfo(false);
+    expect(sent).toEqual([[0xc1, 4, 0xd9, 0x01]]);
+    sent.length = 0;
     Hero.name = 'Hero';
     Resets.doReset(false);
     Resets.doReset(true);

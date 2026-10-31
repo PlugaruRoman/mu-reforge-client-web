@@ -1,6 +1,7 @@
 import { PointerEventTypes } from '../../controllers/render/babylon/exports';
 import { Bag } from '../../modules/inventory';
-import { Drops } from '../../modules/drops';
+import { Drops, isZenOverPurse } from '../../modules/drops';
+import { Hero } from '../../modules/hero';
 import { QuickItemActions } from '../../modules/inventory/quickItemActions';
 import { pickGround } from '../../controllers/terrain/terrainPick';
 import { bottomBarScreenHeight } from '../../controllers/interface/components/mu_window';
@@ -32,6 +33,8 @@ export function autoGetItem(world: World): boolean {
   for (const e of world.netObjsQuery.entities) {
     if (!e.droppedItem || e.objOutOfScope || e.visibility?.state !== 'visible') continue;
     if (e.worldIndex !== undefined && e.worldIndex !== world.mapIndex) continue;
+    // Ours (HotKey.cpp): the first drop in range wins, so a pile a full purse refuses kept Space off every item.
+    if (isZenOverPurse(e.droppedItem, Hero.money)) continue;
     const p = e.transform.pos;
     if (Math.hypot(p.x - hero.x, p.y - hero.y, p.z - hero.z) < AUTO_GET_RANGE) {
       world.pickupTarget = e;

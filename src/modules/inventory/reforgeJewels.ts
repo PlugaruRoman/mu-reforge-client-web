@@ -23,7 +23,13 @@ const MAX_SOCKETS = 5;
  * What the item data says of the target (`reforgeJewelFacts.ts` reads it): kept apart so this file and
  * `jewelUpgrade.ts` stay free of client code (the cash shop server imports them).
  */
-export type JewelTargetFacts = { hasSkill: boolean; wing: boolean; socketItem: boolean };
+export type JewelTargetFacts = {
+  hasSkill: boolean;
+  wing: boolean;
+  socketItem: boolean;
+  /** The server lets the Jewel of Harmony onto an ancient item (`features.harmonyOnAncient`). */
+  harmonyOnAncient?: boolean;
+};
 
 /** `CanHaveLuck`: weapons, shields and armour (not ammunition) and wings. */
 function canHaveLuck(target: Item, facts: JewelTargetFacts): boolean {

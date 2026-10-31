@@ -1,3 +1,4 @@
+import { existsSync, readFileSync } from 'node:fs';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import type { Item } from '@/ecs/world';
 import type { MixRecipe, MixSource } from '@/controllers/assets';
@@ -9,6 +10,7 @@ vi.hoisted(() => {
 
 const { checkMix, setMixAdjuster } = await import('../chaos_mix/mixRecipes');
 const { MIX, adjustGoblinRecipes, adjustMixItem, recipeName } = await import('./recipes');
+const { loadItemOptionTables } = await import('@/controllers/assets');
 
 const code = (group: number, num: number) => group * 512 + num;
 const src = (typeMin: number, typeMax = typeMin): MixSource => ({
@@ -86,5 +88,35 @@ describe('our goblin recipes (ReforgeMixRecipes.cpp AdjustRecipes)', () => {
     const wing = { ...mix, type: code(12, 52), chaosCharm: false };
     adjustMixItem(wing, { group: 12, num: 52 } as Item);
     expect(wing.thirdWing).toBe(true);
+  });
+});
+
+// Our ItemAddOption.bmd lists every 380 piece the server grants the Guardian option to, the socket sets
+// too (S GuardianOptions.AddToLevel380Items); ReforgeMixRecipes.cpp MarkGuardianOptionItem.
+const HARMONY = 'Data/Local/Eng/JewelOfHarmonyOption_eng.bmd';
+const SOCKETS = 'Data/Local/Eng/socketitem_eng.bmd';
+const OUR_ADD_OPTIONS = 'Data-reforge/Local/ItemAddOption.bmd';
+const NO_TABLES = ![HARMONY, SOCKETS, OUR_ADD_OPTIONS].every(f => existsSync(f));
+
+describe.skipIf(NO_TABLES)('the 380 option flag (MarkGuardianOptionItem)', () => {
+  beforeAll(() => loadItemOptionTables(new Uint8Array(readFileSync(HARMONY)), new Uint8Array(readFileSync(SOCKETS)), new Uint8Array(readFileSync(OUR_ADD_OPTIONS))));
+  const ADD380 = 2;
+  const flagged = (item: Item, mixType: number) => {
+    const mix = { type: code(item.group, item.num), special: 0, chaosCharm: false, thirdWing: false, canStack: false, count: 1, durability: 1 } as Parameters<typeof adjustMixItem>[0];
+    adjustMixItem(mix, item, mixType);
+    return (mix.special & ADD380) !== 0;
+  };
+
+  it('marks a socketed piece only in the 380 window', () => {
+    const socketed = { group: 8, num: 45, socketCount: 3 } as Item; // Titan Armor
+    expect(flagged(socketed, 2)).toBe(true);
+    expect(flagged(socketed, 0)).toBe(false);
+    expect(flagged({ group: 8, num: 45 } as Item, 0)).toBe(true);
+  });
+
+  it('reads our table: the socket sets and the Tigris set take it, a shield does not', () => {
+    for (const [group, num] of [[0, 26], [5, 20], [7, 44], [8, 104], [11, 53]]) expect(flagged({ group, num } as Item, 2)).toBe(true);
+    expect(flagged({ group: 6, num: 17 } as Item, 2)).toBe(false);
+    expect(flagged({ group: 12, num: 36 } as Item, 2)).toBe(false);
   });
 });

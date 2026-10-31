@@ -10,6 +10,7 @@ vi.hoisted(() => {
 
 const { ItemPickupSystem, autoGetItem } = await import('./itemPickupSystem');
 const { Drops } = await import('../../modules/drops');
+const { Hero } = await import('../../modules/hero');
 
 const engine = new NullEngine();
 const scene = new Scene(engine);
@@ -75,5 +76,20 @@ describe('autoGetItem', () => {
     const world = worldWith(drop(13, 10), drop(11, 10, { visibility: { state: 'hidden' } } as Partial<Entity>));
     expect(autoGetItem(world)).toBe(false);
     expect(world.pickupTarget).toBeNull();
+  });
+  it('passes over zen a full purse refuses (our HotKey.cpp IsZenOverPurse)', () => {
+    const pile = drop(11, 10, { droppedItem: { isMoney: true, group: 14, num: 15 } } as Partial<Entity>);
+    const item = drop(12, 10);
+    const world = worldWith(pile, item);
+    Hero.money = 2_147_483_647;
+    try {
+      expect(autoGetItem(world)).toBe(true);
+      expect(world.pickupTarget).toBe(item);
+    } finally {
+      Hero.money = 0;
+    }
+    world.pickupTarget = null;
+    expect(autoGetItem(world)).toBe(true);
+    expect(world.pickupTarget).toBe(pile);
   });
 });

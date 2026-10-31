@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { InventoryConstants } from '@/core/inventoryConstants';
 import { FIDELITY_CLASSIC, FIDELITY_DEFAULT, setFidelityChoice } from '@/controllers/fidelity';
 import type { Item } from '../../ecs/world';
@@ -12,6 +12,7 @@ vi.mock('../servers/serverManifest', () => ({
 const { jewelTargetError } = await import('./jewelUpgrade');
 const { jewelryUpgradeAllowed } = await import('./jewelryUpgrade');
 const { jewelTargetFacts } = await import('./reforgeJewelFacts');
+const { loadGameVersion } = await import('@/version');
 
 const IN_BAG = InventoryConstants.EquippableSlotsCount;
 const item = (group: number, num: number, lvl = 0) => ({ group, num, lvl }) as Item;
@@ -99,5 +100,34 @@ describe('our jewels', () => {
   it('Bless and Soul go on our 4th and Hero wings', () => {
     expect(err(BLESS, item(12, 51, 3), IN_BAG)).toBeNull();
     expect(err(SOUL, item(12, 66, 6), IN_BAG)).toBeNull();
+  });
+});
+
+// The Jewel of Harmony: Season 6 refuses ancient and socket items; Mu Reforge takes ancient ones, and both
+// refuse a socket item by type, sockets or not (S HarmonyJewelConsumeHandlerPlugIn; our client's
+// InventoryCtrl.cpp DropActsOn, SocketSystem.cpp IsSocketItem).
+describe('the Jewel of Harmony', () => {
+  const err = (target: Item) => jewelTargetError(HARMONY, target, IN_BAG, false, jewelTargetFacts(target));
+  const ancient = { ...item(8, 5), isAncient: true, ancientDiscriminator: 1 } as Item;
+
+  it('Season 6: no ancient item, no socket item', () => {
+    expect(err(item(0, 5))).toBeNull();
+    expect(err(ancient)).not.toBeNull();
+    expect(err(item(0, 26))).not.toBeNull();
+    expect(err(item(5, 20))).not.toBeNull(); // the Eternal Wing Stick
+    expect(err(item(5, 32))).toBeNull();
+    expect(err(item(8, 44))).toBeNull(); // Eternal Wing Armor is no socket item there
+  });
+
+  describe('Mu Reforge', () => {
+    beforeAll(() => loadGameVersion('reforge'), 60_000);
+    afterAll(() => loadGameVersion('season6'));
+
+    it('takes an ancient item, refuses the Eternal Wing and Tigris sets', () => {
+      expect(err(ancient)).toBeNull();
+      for (const group of [7, 8, 9, 10, 11]) expect(err(item(group, 44))).not.toBeNull();
+      for (const group of [7, 8, 9, 11]) expect(err(item(group, 104))).not.toBeNull();
+      expect(err(item(10, 104))).toBeNull(); // Tigris has no gloves
+    });
   });
 });
