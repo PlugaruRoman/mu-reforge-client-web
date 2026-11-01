@@ -2574,6 +2574,29 @@
   }
 }
 
+// A phone held sideways: about 360-430 px of height. The side column keeps only its tabs and the
+// Enter button, and scrolls if even that does not fit, so Enter is never below the screen.
+@media (max-height: 480px) {
+  .ws-logo {
+    height: 48px;
+  }
+  .ws-card {
+    gap: 16px;
+    padding: 12px;
+  }
+  .ws-marker,
+  .ws-headline,
+  .ws-tab-desc {
+    display: none;
+  }
+  .ws-side {
+    overflow-y: auto;
+  }
+  .ws-side-actions {
+    padding-top: 10px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .ws-logo-glow,
   .ws-logo-bloom,

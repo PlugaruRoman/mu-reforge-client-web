@@ -31,6 +31,7 @@ export const MuHelperButtons = observer(() => {
 
   return (
     <div
+      className="mu-helper-buttons"
       style={{
         position: 'absolute',
         top,

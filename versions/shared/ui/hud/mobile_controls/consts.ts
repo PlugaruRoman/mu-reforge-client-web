@@ -17,3 +17,6 @@ export const SLOT_SCALE = 1.6;
 
 /** The five main-frame buttons (30x41) at 42x57. */
 export const MENU_SCALE = 1.4;
+
+/** The potion slots, a row under the skills' height: 38x46. */
+export const POTION_SCALE = 1.2;

@@ -8,17 +8,25 @@
 @edge-gap: 12px;
 @button-gap: 8px;
 @bar-clearance: 63px;
+// The notch and the home bar: a button never sits under either.
+@edge-top: max(@edge-gap, env(safe-area-inset-top));
+@edge-right: max(@edge-gap, env(safe-area-inset-right));
+@edge-left: max(@edge-gap, env(safe-area-inset-left));
 
 .mobile-controls {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  z-index: 400;
+  // Under every window (WINDOW_Z_BASE is 100): an open window is on top and whole, and the pad
+  // is back when it closes. Over the HUD's own corner widgets (z 10).
+  z-index: 99;
   .mu-font();
   image-rendering: pixelated;
 
   // Every button opts back in; the layer stays transparent to taps.
   .mobile-move-button,
+  .mobile-chat-button,
+  .mobile-potion-slot,
   .mobile-menu-button,
   .mobile-skill-slot,
   .mobile-picker-slot,
@@ -34,13 +42,31 @@
   }
 }
 
-// ---- the warp button, top left ---------------------------------------------
+// ---- the warp and chat buttons, top left ----------------------------------
+
+.mobile-left-column {
+  position: absolute;
+  top: @edge-top;
+  left: @edge-left;
+  display: flex;
+  flex-direction: column;
+  gap: @button-gap;
+}
+
+.mobile-chat-button .mobile-glyph {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 28px;
+  height: 28px;
+  transform: translate(-50%, -50%);
+  fill: none;
+  stroke: #d8c89a;
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
 
 .mobile-move-button {
-  position: absolute;
-  top: @edge-gap;
-  left: @edge-gap;
-
   .mobile-move-glyph {
     position: absolute;
     left: 50%;
@@ -55,8 +81,8 @@
 
 .mobile-menu-cluster {
   position: absolute;
-  top: @edge-gap;
-  right: @edge-gap;
+  top: @edge-top;
+  right: @edge-right;
   display: flex;
   gap: @button-gap;
 
@@ -76,7 +102,7 @@
 
 .mobile-skill-pad {
   position: absolute;
-  right: @edge-gap;
+  right: @edge-right;
   bottom: @bar-clearance;
   display: flex;
   flex-direction: column;
@@ -87,6 +113,42 @@
     display: flex;
     flex-direction: row;
     gap: @button-gap;
+  }
+}
+
+// The Q/W/E/R potions, a row over the skills.
+.mobile-potion-slots {
+  display: flex;
+  gap: @button-gap;
+
+  .mobile-potion-slot.empty {
+    opacity: 0.55;
+  }
+
+  .mobile-potion-art {
+    position: absolute;
+    inset: 6px;
+
+    .item-icon {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+  }
+
+  .mobile-potion-count {
+    position: absolute;
+    right: 4px;
+    bottom: 2px;
+    font-size: 11px;
+    line-height: 12px;
+    color: #fff;
+    text-shadow:
+      1px 0 0 #000,
+      -1px 0 0 #000,
+      0 1px 0 #000,
+      0 -1px 0 #000;
+    pointer-events: none;
   }
 }
 
@@ -188,4 +250,37 @@
     border: 1px solid rgba(255, 255, 255, 0.25);
     text-align: center;
   }
+}
+
+// ---- the corner widgets the menu cluster displaced ---------------------------
+// The minimap slot they hang from is the cluster's on a phone, so the helper buttons and the
+// event timers move out from under it: below the row in landscape, beside the column in portrait.
+@media (orientation: landscape) {
+  .mu-mobile .mu-helper-buttons {
+    top: calc(@edge-top + 66px) !important;
+  }
+
+  .mu-mobile .event-timers {
+    top: calc(@edge-top + 101px) !important;
+  }
+}
+
+@media (orientation: portrait) {
+  .mu-mobile .mu-helper-buttons {
+    top: @edge-top !important;
+    right: calc(@edge-right + 50px) !important;
+  }
+
+  .mu-mobile .event-timers {
+    top: calc(@edge-top + 35px) !important;
+    right: calc(@edge-right + 50px) !important;
+  }
+}
+
+// Reset camera (after a pinch or a twist) under the warp and chat buttons, the one corner free.
+.mu-mobile .camera-reset {
+  top: calc(@edge-top + 138px) !important;
+  left: @edge-left;
+  right: auto !important;
+  transform-origin: 0 0 !important;
 }

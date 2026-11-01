@@ -25,6 +25,7 @@ export const CameraReset = observer(() => {
 
   return (
     <div
+      className="camera-reset"
       style={{
         position: 'absolute',
         top: TOP,

@@ -114,6 +114,9 @@ windows themselves are content in `versions/shared/ui/` (see
   `.mu-mobile` rule hang off this answer. Touch means coarse pointer and a touch point (either
   alone is a touch monitor or a trackpad). `?mobile=1|0` lasts for the page only, never stored.
   `main.tsx` imports it before the version loads, so it imports nothing.
+- `MuItemWindow` docks by column and above the bar, but never past the left or top edge: on a phone
+  the fit-capped scale makes it fit, so the column slides in and the window covers the bar.
+  `fitScaleOf` also knows the bar's own 640x51 (`FIXED_SIZES`), so the bar shrinks to a narrow screen.
 - `slideHelp.ts` (`CSlideHelpMgr` / `CUISlideHelp`, UIControls.cpp:4033-4530): two lanes, help
   (`g_hFont`) and notice (`g_hFontBold`), each a queue keyed by the second a text is due.
   `ServerMessage` types 10..12 go to help, 13..15 to notice; texts repeat `Count` times `Delay`

@@ -13,6 +13,7 @@ import { MobileSkillSlots, MOBILE_SKILL_SLOTS } from '@/modules/options/mobileSk
 import { isAttackableEntity } from '@/ecs/systems/attackSystem';
 import { SkillIcon } from '../../components/skill_icon';
 import { MobileButton, ScaledFrame } from './mobileButton';
+import { PotionPad } from './potionPad';
 import {
   BOX_HEIGHT,
   BOX_WIDTH,
@@ -246,6 +247,7 @@ export const SkillPad = observer(() => {
     <>
       <div className="mobile-skill-pad">
         <TargetLabel />
+        <PotionPad />
         <div className="mobile-skill-slots">
           {Array.from({ length: MOBILE_SKILL_SLOTS }, (_, slot) => (
             <PadSlot key={slot} slot={slot} onPick={setPicking} />

@@ -293,6 +293,8 @@ export function installCameraControl(
     canvas.addEventListener('pointercancel', endDrag);
   }
 
+  if (canvas && isMobileDevice()) installTouchCamera(canvas, () => GameOptions.cameraControl && isActive());
+
   installMouseLook(
     canvas,
     () => isActive() && canMouseLook(),
@@ -308,6 +310,55 @@ export function installCameraControl(
     resetCamera();
     distance = DISTANCE_BY_LEVEL[level];
   });
+}
+
+/** Finger spread change (screen px) that is one step of the distance ladder. */
+const PINCH_STEP_PX = 60;
+
+/**
+ * Two fingers on the canvas: spreading or pinching steps the distance ladder (the Ctrl+wheel),
+ * twisting turns the heading (the Ctrl+middle drag). One finger stays the walk.
+ */
+function installTouchCamera(canvas: HTMLCanvasElement, isActive: () => boolean): void {
+  const touches = new Map<number, { x: number; y: number }>();
+  let spread = 0;
+  let angle = 0;
+
+  const pair = () => {
+    const [a, b] = [...touches.values()];
+    return { spread: Math.hypot(b.x - a.x, b.y - a.y), angle: Math.atan2(b.y - a.y, b.x - a.x) };
+  };
+
+  canvas.addEventListener('pointerdown', ev => {
+    if (ev.pointerType !== 'touch') return;
+    touches.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
+    if (touches.size === 2) ({ spread, angle } = pair());
+  });
+
+  canvas.addEventListener('pointermove', ev => {
+    const at = touches.get(ev.pointerId);
+    if (!at) return;
+    at.x = ev.clientX;
+    at.y = ev.clientY;
+    if (touches.size !== 2 || !isActive()) return;
+
+    const now = pair();
+    const steps = Math.trunc((now.spread - spread) / PINCH_STEP_PX);
+    if (steps) {
+      // Spreading the fingers zooms in, like the wheel rolled up.
+      level = Math.max(0, Math.min(MAX_CAMERA_LEVEL, level - steps));
+      spread += steps * PINCH_STEP_PX;
+    }
+    const turn = Math.atan2(Math.sin(now.angle - angle), Math.cos(now.angle - angle));
+    headingDeg -= turn / RAD;
+    angle = now.angle;
+  });
+
+  const lift = (ev: PointerEvent) => {
+    touches.delete(ev.pointerId);
+  };
+  canvas.addEventListener('pointerup', lift);
+  canvas.addEventListener('pointercancel', lift);
 }
 
 /** Distance walked into the current stride, and how much bob is showing. */

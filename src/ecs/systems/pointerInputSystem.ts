@@ -162,7 +162,16 @@ export const PointerInputSystem: ISystemFactory = world => {
     }
   }
 
-  scene.onPointerObservable.add(ev => {
+  scene.onPointerObservable.add((ev, state) => {
+    // A second finger is the camera's pinch (`camera/index.ts`), never a tap: no system sees it,
+    // and the first finger's walk stops while the two are down.
+    const pointer = ev.event as PointerEvent;
+    if (pointer.pointerType === 'touch' && !pointer.isPrimary) {
+      world.pointerPressed = false;
+      state.skipNextObservers = true;
+      return;
+    }
+
     // Only the ray is wanted here - the hovered object is resolved by
     // testing it against each candidate's own box. `scene.pick` would
     // ray-intersect every pickable mesh in the scene (the terrain's 131k
@@ -283,7 +292,9 @@ export const PointerInputSystem: ISystemFactory = world => {
     } else if (ev.type === PointerEventTypes.POINTERUP) {
       world.pointerPressed = false;
     }
-  });
+    // First of the pointer observers, whatever the system order: the ones registered earlier
+    // (character select) read the target this resolves, and a tap has no hover to resolve it before.
+  }, undefined, true);
 
   window.addEventListener('lostpointercapture', () => {
     world.pointerPressed = false;
