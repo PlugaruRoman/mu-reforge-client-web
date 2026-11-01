@@ -28,4 +28,6 @@ export const REFORGE_ONLY_MODULES: readonly string[] = [
   'vault_pages',
   'reforge_mix',
   'quest_board',
+  'guild_browser',
+  'party_search',
 ];

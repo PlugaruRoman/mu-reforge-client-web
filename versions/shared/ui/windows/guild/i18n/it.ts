@@ -58,4 +58,11 @@ export default {
   'guild.kickHint': "Per espellere il personaggio '{name}',",
   'guild.enterSecurityCode': 'inserisci il codice di sicurezza del tuo account.',
   'guild.securityCode': 'Codice',
+  'guild.plateWars': 'Guerre di gilda',
+  'guild.plateWarsTip': 'Sfoglia le gilde e dichiara guerra',
+  'guild.plateAlliance': 'Alleanza di gilde',
+  'guild.plateAllianceTip': 'Proponi un\'alleanza a un\'altra gilda',
+  'guild.platePositionTip': 'Assegna un grado al membro selezionato',
+  'guild.noticePlaceholder': 'Annuncio...',
+  'guild.noticeSend': 'Imposta l\'annuncio',
 } satisfies Partial<Record<keyof typeof en, string>>;

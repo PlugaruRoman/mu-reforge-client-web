@@ -57,4 +57,11 @@ export default {
   'guild.kickHint': '\'{name}\' pertsonaia kanporatzeko,',
   'guild.enterSecurityCode': 'idatzi zure kontuaren segurtasun-kodea.',
   'guild.securityCode': 'Kodea',
+  'guild.plateWars': 'Kofradien gerrak',
+  'guild.plateWarsTip': 'Arakatu kofradiak eta deklaratu gerra',
+  'guild.plateAlliance': 'Kofradien aliantza',
+  'guild.plateAllianceTip': 'Eskatu aliantza beste kofradia bati',
+  'guild.platePositionTip': 'Eman maila bat hautatutako kideari',
+  'guild.noticePlaceholder': 'Iragarkia...',
+  'guild.noticeSend': 'Ezarri iragarkia',
 } satisfies Partial<Record<keyof typeof en, string>>;

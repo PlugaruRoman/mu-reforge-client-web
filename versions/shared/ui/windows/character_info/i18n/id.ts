@@ -35,4 +35,7 @@ export default {
   'charInfo.attackSpeed': 'Kecepatan Serang: {value}',
   'charInfo.defenseRatePvpBonus': 'Tingkat Pertahanan: {value} (+{bonus})',
   'charInfo.curseSpellRate': 'Mantra Kutukan: {min} ~ {max}(+{rate})',
+  'charInfo.plateAddStatsTip': 'Gunakan banyak poin naik level sekaligus, atau biarkan server menggunakannya untukmu.',
+  'charInfo.plateResetTip': 'Memulai ulang karakter di level lebih rendah dan menambah satu jumlah reset-mu.',
+  'charInfo.plateGrandResetTip': 'Menukar satu putaran penuh reset dengan satu grand reset, lalu memulainya lagi.',
 } satisfies Partial<Record<keyof typeof en, string>>;

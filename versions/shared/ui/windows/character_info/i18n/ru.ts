@@ -37,4 +37,7 @@ export default {
   'characterInfo.quest': 'Задание (T)',
   'characterInfo.pet': 'Питомец',
   'characterInfo.masterTree': 'Дерево мастерства (A)',
+  'charInfo.plateAddStatsTip': 'Распредели много очков сразу или позволь серверу делать это за тебя.',
+  'charInfo.plateResetTip': 'Начинает персонажа заново с меньшего уровня и добавляет один ресет.',
+  'charInfo.plateGrandResetTip': 'Меняет полный круг ресетов на один гранд-ресет и начинает их заново.',
 } satisfies Partial<Record<keyof typeof en, string>>;

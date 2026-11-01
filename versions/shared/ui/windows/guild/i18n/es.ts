@@ -58,4 +58,11 @@ export default {
   'guild.kickHint': "Para expulsar al personaje '{name}',",
   'guild.enterSecurityCode': 'escribe el código de seguridad de tu cuenta.',
   'guild.securityCode': 'Código',
+  'guild.plateWars': 'Guerras de gremios',
+  'guild.plateWarsTip': 'Ver gremios y declarar la guerra',
+  'guild.plateAlliance': 'Alianza de gremios',
+  'guild.plateAllianceTip': 'Proponer una alianza a otro gremio',
+  'guild.platePositionTip': 'Dar un rango al miembro seleccionado',
+  'guild.noticePlaceholder': 'Anuncio...',
+  'guild.noticeSend': 'Fijar anuncio',
 } satisfies Partial<Record<keyof typeof en, string>>;

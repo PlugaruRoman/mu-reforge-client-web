@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { isKey } from '@/controllers/interface/keyBindings';
 import { t } from '@/i18n';
 import './style.less';
@@ -15,6 +16,8 @@ import { MuSpriteFrame } from '@/controllers/interface/components/mu_sprite';
 import { MuItemWindow, MuTableFrame } from '@/controllers/interface/components/mu_window';
 import { useNearbyPlayers } from '../_shared/nearby_players';
 import { TELEPORT_ALLY } from '@/modules/skills/skillCasting';
+import { moduleOn } from '@/modules/module';
+import { LEAD_CONFIRM_MS, PartySearch, PartySearchTab } from '@/modules/party_search';
 
 /**
  * `CNewUIPartyInfoWindow`: the party list in an item-window frame. Each row
@@ -48,6 +51,16 @@ const HP_BACK = { width: 151, height: 8 };
 const HP_FILL = { width: 147, height: 4, insetX: 2, insetY: 2 };
 const NEARBY = { x: 12, y: 204, width: 166, height: 180 };
 const EXIT_BUTTON = { x: 13, y: 392, width: 36, height: 29 };
+/**
+ * Mu Reforge's Party Search buttons (our client's party_info.rml / party_info.rcss `.party-search-btn`):
+ * 53x23 `newui_btn_empty_very_small` plates 11 over the bottom, Find at 56 and Settings at 112.
+ */
+const SEARCH_BUTTON = { width: 53, height: 23, y: 429 - 11 - 23 };
+const FIND_BUTTON_X = 56;
+const SETTINGS_BUTTON_X = 112;
+const SEARCH_BUTTON_SPRITE = 'newui_btn_empty_very_small.OZT';
+/** The module the Party Search parts belong to (Reforge only). */
+const PARTY_SEARCH = 'party_search';
 
 const FLAG_SPRITE = 'newui_Party_flag.OZT';
 const X_SPRITE = 'newui_Party_X.OZT';
@@ -87,6 +100,9 @@ const MemberRow = observer(({ index }: { index: number }) => {
   // `int iHP = (currHP * 147) / maxHP` - an integer number of filled pixels.
   const filled = Math.max(0, Math.min(HP_FILL.width, Math.trunc(ratio * HP_FILL.width)));
   const canRemove = isMe || Social.isPartyLeader;
+  // Mu Reforge (PartyWindowExtras.cpp): the master hands the lead over with two clicks on a member's flag.
+  const leadOffered = index > 0 && moduleOn(PARTY_SEARCH) && PartySearch.leadOffered;
+  const armed = leadOffered && PartySearch.leadArm?.name === member.name;
 
   return (
     <div
@@ -102,6 +118,15 @@ const MemberRow = observer(({ index }: { index: number }) => {
           className="party-flag"
           title={t('party.leader')}
         />
+      )}
+      {leadOffered && (
+        <div
+          className={`party-lead${armed ? ' armed' : ''}`}
+          onClick={uiClick(() => PartySearch.giveLead(member.name))}
+        >
+          <MuSpriteFrame file={FLAG_SPRITE} width={FLAG_SIZE} height={FLAG_SIZE} />
+          <span className="party-lead-hint">{armed ? t('party.giveLeadConfirm') : t('party.giveLead')}</span>
+        </div>
       )}
       <div
         className={`party-name${isMe ? ' me' : ''}`}
@@ -201,6 +226,21 @@ const NearbyList = observer(() => {
   );
 });
 
+/** Opens Party Search on a tab (PartyWindowExtras.cpp `party_search_open`). */
+const SearchButton = observer(({ x, label, tab }: { x: number; label: string; tab: PartySearchTab }) => (
+  <div data-no-drag="true" style={{ position: 'absolute', left: x, top: SEARCH_BUTTON.y }}>
+    <MuButton
+      file={SEARCH_BUTTON_SPRITE}
+      width={SEARCH_BUTTON.width}
+      height={SEARCH_BUTTON.height}
+      frames={{ up: 0, active: 1, down: 2 }}
+      label={label}
+      labelStyle={{ fontSize: 11 }}
+      onClick={() => PartySearch.open(tab)}
+    />
+  </div>
+));
+
 export const PartyWindow = observer(() => {
   const toggle = () => {
     runInAction(() => {
@@ -214,8 +254,19 @@ export const PartyWindow = observer(() => {
     });
 
   useEventBus('keyPressed', key => {
-    if (isKey(HOT_KEY, key) && Ecs.world?.playerEntity) toggle();
+    if (!isKey(HOT_KEY, key) || !Ecs.world?.playerEntity) return;
+    // Mu Reforge (ReforgeHotkeys.cpp): without a party, P opens Party Search instead.
+    if (moduleOn(PARTY_SEARCH) && !Social.inParty) PartySearch.toggle();
+    else toggle();
   });
+
+  // An armed lead flag lets go after LEAD_CONFIRM_MS.
+  const leadArm = PartySearch.leadArm;
+  useEffect(() => {
+    if (!leadArm) return;
+    const timer = setTimeout(() => PartySearch.expireLead(), LEAD_CONFIRM_MS + 50);
+    return () => clearTimeout(timer);
+  }, [leadArm]);
 
   if (!Social.partyWindowEnabled) return null;
 
@@ -270,6 +321,12 @@ export const PartyWindow = observer(() => {
           onClick={close}
         />
       </div>
+      {moduleOn(PARTY_SEARCH) && (
+        <>
+          <SearchButton x={FIND_BUTTON_X} label={t('party.find')} tab={PartySearchTab.Find} />
+          <SearchButton x={SETTINGS_BUTTON_X} label={t('party.settings')} tab={PartySearchTab.Settings} />
+        </>
+      )}
     </MuItemWindow>
   );
 });

@@ -11,6 +11,7 @@ import {
 } from '@/modules/inventory/itemStorage';
 import { MuSpriteFrame } from '@/controllers/interface/components/mu_sprite';
 import { MuButton } from '@/controllers/interface/components/mu_button';
+import { moduleOn } from '@/modules/module';
 import { OffStoreButton } from '../reforge_hud/offModes';
 import { MuItemWindow } from '@/controllers/interface/components/mu_window';
 import { ItemGrid } from '../../components/item_grid';
@@ -49,6 +50,9 @@ import {
   NAME_X,
   NAME_Y,
   OPEN_BUTTON_X,
+  OFF_STORE_BUTTON_X,
+  REFORGE_CLOSE_BUTTON_X,
+  REFORGE_OPEN_BUTTON_X,
   OPEN_SPRITE,
   OPEN_TOOLTIP,
   ROWS,
@@ -102,6 +106,8 @@ export const MyShop = observer(() => {
   const banned = !!picked && isPersonalShopBanned(picked.item);
 
   const column = 1 + (MuWindows.isOpen('inventory') ? 1 : 0) + (MuWindows.isOpen('character_info') ? 1 : 0);
+  // [reforge] the row makes room for OFF STORE.
+  const offStore = moduleOn('offline_modes');
 
   return (
     <MuItemWindow
@@ -201,7 +207,7 @@ export const MyShop = observer(() => {
       <div
         className="window-button"
         data-no-drag="true"
-        style={{ left: OPEN_BUTTON_X, top: BUTTON_Y }}
+        style={{ left: offStore ? REFORGE_OPEN_BUTTON_X : OPEN_BUTTON_X, top: BUTTON_Y }}
       >
         <MuButton
           file={OPEN_SPRITE}
@@ -218,7 +224,7 @@ export const MyShop = observer(() => {
       <div
         className="window-button"
         data-no-drag="true"
-        style={{ left: CLOSE_BUTTON_X, top: BUTTON_Y }}
+        style={{ left: offStore ? REFORGE_CLOSE_BUTTON_X : CLOSE_BUTTON_X, top: BUTTON_Y }}
       >
         <MuButton
           file={CLOSE_SPRITE}
@@ -232,7 +238,7 @@ export const MyShop = observer(() => {
         </MuButton>
       </div>
 
-      <OffStoreButton title={name} style={{ left: CLOSE_BUTTON_X + BUTTON_WIDTH + 6, top: BUTTON_Y + 6 }} />
+      <OffStoreButton title={name} left={OFF_STORE_BUTTON_X} top={BUTTON_Y} />
     </MuItemWindow>
   );
 });

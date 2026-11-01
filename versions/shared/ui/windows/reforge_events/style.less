@@ -61,91 +61,207 @@
   }
 }
 
-.re-title {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 12px;
-}
-
-.re-tabs {
-  position: absolute;
-  left: 16px;
-  top: 36px;
-  width: 158px;
-  display: flex;
-  gap: 2px;
-  pointer-events: auto;
-
-  .re-tab {
-    flex: 1;
-    padding: 3px 0;
-    font-size: 11px;
-    text-align: center;
-    color: #aaa;
-    background: rgba(0, 0, 0, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    cursor: pointer;
-
-    &.active {
-      color: #ffd927;
-      border-color: rgba(255, 210, 60, 0.8);
-    }
+.fort-herald {
+  .fs-page {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
   }
-}
 
-.re-body {
-  position: absolute;
-  left: 16px;
-  top: 60px;
-  width: 158px;
-  max-height: 310px;
-  overflow-y: auto;
-  font-size: 11px;
-  user-select: none;
-  text-shadow: 1px 1px 0 #000;
-  pointer-events: auto;
+  .fs-wait {
+    padding-top: 30px;
+    text-align: center;
+    color: #c8c8c8;
+  }
 
-  .re-line {
-    display: block;
-    margin: 2px 0;
+  .fs-panel {
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 4px;
+    padding: 3px 8px;
+    background: rgba(0, 0, 0, 0.43);
+    border: 1px solid #5a4a2c;
+  }
+
+  .fs-panel-title {
+    height: 16px;
+    line-height: 16px;
+    margin-bottom: 2px;
+    text-align: center;
+    font-weight: bold;
+    color: #ffe196;
+    border-bottom: 1px solid #8a6a36;
+  }
+
+  .fs-phase-title {
+    height: 15px;
+    line-height: 15px;
+    text-align: center;
+    font-weight: bold;
+    color: #78e678;
+  }
+
+  .fs-phase.phase-1 .fs-phase-title {
+    color: #ffaa46;
+  }
+
+  .fs-phase.phase-2 .fs-phase-title {
+    color: #ff5a46;
+  }
+
+  .fs-row {
+    display: flex;
+    height: 13px;
+    line-height: 13px;
+    white-space: nowrap;
+  }
+
+  .fs-label {
+    flex: 1 1 0;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #afafb4;
+  }
+
+  .fs-value {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    padding-left: 4px;
+    font-weight: bold;
+  }
+
+  .fs-line {
+    width: 100%;
+    min-height: 13px;
+    line-height: 13px;
     text-align: center;
     white-space: normal;
+    color: #c8c8c8;
   }
 
-  .re-panel {
-    margin: 4px 0;
-    padding: 3px 5px;
-    background: rgba(0, 0, 0, 0.35);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+  .fs-headline {
+    font-weight: bold;
+    margin-bottom: 3px;
   }
 
-  .re-row {
+  .fs-mark {
+    flex: none;
+    width: 9px;
+    height: 9px;
+    margin-right: 3px;
+    vertical-align: middle;
+    image-rendering: pixelated;
+  }
+
+  .fs-card {
     display: flex;
-    justify-content: space-between;
-    gap: 4px;
-    white-space: nowrap;
-    margin: 1px 0;
+    align-items: center;
   }
 
-  .re-button {
-    margin: 3px 0;
-    padding: 4px 2px;
+  .fs-card-text {
+    flex: 1 1 0;
+    min-width: 0;
+    margin-right: 4px;
+  }
+
+  .fs-card-name {
+    height: 14px;
+    line-height: 14px;
+    font-weight: bold;
+    color: #ffd25a;
+  }
+
+  .fs-card-owner {
+    height: 13px;
+    line-height: 13px;
+    color: #e6e2c8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    &.none {
+      color: #96969b;
+    }
+  }
+
+  .fs-card-count {
+    height: 13px;
+    line-height: 13px;
+    color: #a0a0a5;
+  }
+
+  .fs-registered {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
+
+  .fs-fort-name {
+    height: 15px;
+    line-height: 15px;
     text-align: center;
-    color: #e2e2e2;
-    border: 1px solid rgba(255, 210, 120, 0.35);
-    background: linear-gradient(#3a3226, #1d1912);
-    cursor: pointer;
+    font-weight: bold;
+    color: #ffd25a;
+  }
 
-    &:hover {
-      color: #fff;
-      border-color: rgba(255, 210, 60, 0.9);
+  .acct-btn.fs-wide-btn {
+    margin-top: 4px;
+  }
+
+  .fs-hint {
+    width: 100%;
+    height: 13px;
+    line-height: 13px;
+    text-align: center;
+    color: #a0a0aa;
+  }
+
+  .fs-columns {
+    padding: 0;
+  }
+
+  .fs-listed {
+    height: 15px;
+    line-height: 15px;
+    color: #bebec3;
+
+    &:nth-child(even) {
+      background: rgba(0, 0, 0, 0.3);
     }
 
-    &.disabled {
-      color: #777;
-      border-color: rgba(255, 255, 255, 0.1);
-      cursor: default;
+    &.attacks {
+      color: #8ceb8c;
+      background: rgba(26, 82, 31, 0.4);
     }
+  }
+
+  .fs-column-guild {
+    display: flex;
+    align-items: center;
+    flex: 1 1 0;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .fs-column-signs {
+    flex: 0 0 40px;
+    text-align: right;
+  }
+
+  .fs-place {
+    flex: 0 0 14px;
+    font-weight: bold;
+    color: #ffcd3c;
+  }
+
+  .fs-empty,
+  .fs-more {
+    height: 15px;
+    line-height: 15px;
+    text-align: center;
+    color: #b4b4b4;
   }
 }

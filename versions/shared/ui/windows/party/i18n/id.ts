@@ -13,4 +13,8 @@ export default {
   'party.notInParty': 'Tidak dalam party.',
   'party.invite': 'Undang',
   'party.shop': 'Toko',
+  'party.find': 'Cari',
+  'party.settings': 'Pengaturan',
+  'party.giveLead': 'Serahkan ketua?',
+  'party.giveLeadConfirm': 'Klik lagi',
 } satisfies Partial<Record<keyof typeof en, string>>;

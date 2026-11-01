@@ -6,4 +6,5 @@ export default {
   'master.spendPoint': '{skill} पर {points} मास्टर पॉइंट खर्च करें?',
   'master.spendPoints': '{skill} पर {points} मास्टर पॉइंट खर्च करें?',
   'master.skillFallback': 'स्किल {number}',
+  'master.resetTree': 'ट्री रीसेट',
 } satisfies Partial<Record<keyof typeof en, string>>;

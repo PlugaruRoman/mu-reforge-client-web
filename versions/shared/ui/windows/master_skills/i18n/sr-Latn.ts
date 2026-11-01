@@ -6,4 +6,5 @@ export default {
   'master.spendPoint': 'Uložiti Master poene ({points}) u veštinu {skill}?',
   'master.spendPoints': 'Uložiti Master poene ({points}) u veštinu {skill}?',
   'master.skillFallback': 'br. {number}',
+  'master.resetTree': 'Resetuj stablo',
 } satisfies Partial<Record<keyof typeof en, string>>;

@@ -37,4 +37,7 @@ export default {
   'characterInfo.quest': 'クエスト（T）',
   'characterInfo.pet': 'ペット',
   'characterInfo.masterTree': 'マスタースキルツリー（A）',
+  'charInfo.plateAddStatsTip': 'レベルアップポイントをまとめて振る、またはサーバーに自動で振らせます。',
+  'charInfo.plateResetTip': 'キャラクターを低いレベルからやり直し、リセット回数を1増やします。',
+  'charInfo.plateGrandResetTip': 'リセット一巡をグランドリセット1回と交換し、リセットを最初からやり直します。',
 } satisfies Partial<Record<keyof typeof en, string>>;

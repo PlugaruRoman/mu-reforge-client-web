@@ -35,4 +35,7 @@ export default {
   'charInfo.attackSpeed': 'Швидкість атаки: {value}',
   'charInfo.defenseRatePvpBonus': 'Шанс захисту: {value} (+{bonus})',
   'charInfo.curseSpellRate': 'Шкода прокльону: {min} ~ {max} (+{rate})',
+  'charInfo.plateAddStatsTip': 'Розподіли багато очок одразу або дозволь серверу робити це за тебе.',
+  'charInfo.plateResetTip': 'Починає персонажа заново з меншого рівня й додає один ресет.',
+  'charInfo.plateGrandResetTip': 'Міняє повне коло ресетів на один гранд-ресет і починає їх заново.',
 } satisfies Partial<Record<keyof typeof en, string>>;

@@ -128,4 +128,7 @@ export default {
   'deathRecords.agoYears': '{n}y',
   'deathRecords.footerTally': 'Killed you {deaths} times, you killed them {kills} times',
   'deathRecords.footerLastDeath': 'Last death: {where}, {when}',
+  'deathRecords.guild': '길드',
+  'deathRecords.where': '위치',
+  'deathRecords.opponents': '상대 {n}명',
 } satisfies Partial<Record<keyof typeof en, string>>;

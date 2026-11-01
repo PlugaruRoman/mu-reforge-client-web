@@ -54,7 +54,8 @@ import {
   BUTTON_HEIGHT,
   BUTTON_WIDTH,
   BUTTON_Y,
-  CASTLE_BUTTON_X,
+  ALLIANCE_PLATE_TOP,
+  CASTLE_BUTTON,
   COLUMNS,
   DEPOSIT_SPRITE,
   DEPOSIT_X,
@@ -62,7 +63,6 @@ import {
   GRID_Y,
   GUILD_BUTTON,
   GUILD_BUTTON_SPRITE,
-  GUILD_ROW_Y,
   HEAD_CLOSE,
   HINT_Y,
   LOCKED_SPRITE,
@@ -76,14 +76,16 @@ import {
   MONEY_Y,
   PAGER,
   ROWS,
-  SETTINGS_BUTTON_X,
-  SETTINGS_ROW_STEP,
-  SETTINGS_ROW_Y,
+  SETTINGS_BUTTON,
   TITLE_Y,
   UNLOCKED_SPRITE,
   WITHDRAW_SPRITE,
+  WARS_PLATE_TOP,
   WITHDRAW_X,
 } from './layout';
+import { SidePlate } from '../_shared/sidePlates';
+import { playUiSound } from '@/controllers/sound/sfx';
+import { ReforgeShell, RfButton, RfFooter, RfList, RfTableHead } from '../_shared/reforgeShell';
 
 const BANK_ID = 'guild_bank';
 const SETTINGS_ID = 'guild_settings';
@@ -385,38 +387,57 @@ export const GuildSettingsWindow = observer(() => {
         ? 'guildSettings.saved'
         : 'guildSettings.masterFullAccess';
 
+  const has = (rank: number, withdraw: boolean) => !!((withdraw ? GuildBank.withdrawFlags : GuildBank.depositFlags) & (1 << rank));
+  // A caption sets the whole column, or clears it when every rank already has it (`ToggleColumn`).
+  const toggleColumn = (withdraw: boolean) => {
+    if (readOnly) return;
+    playUiSound('click');
+    const all = ASSIGNABLE_RANKS.every(rank => has(rank, withdraw));
+    for (const rank of ASSIGNABLE_RANKS) if (has(rank, withdraw) === all) GuildBank.toggleRight(rank, withdraw);
+  };
+  const canSave = !readOnly && GuildBank.settingsDirty;
+
   return (
-    <MuItemWindow id={SETTINGS_ID} className="guild-settings" column={3} label={t('guildSettings.title')} onClose={close}>
-      <div className="window-title" style={{ top: TITLE_Y }}>{t('guildSettings.title')}</div>
-      <div className="head-close" data-no-drag="true" style={HEAD_CLOSE} onClick={close} />
-      <div className="gs-section" style={{ top: 50 }}>{t('guildSettings.bankAccess')}</div>
-      <div className="gs-legend" style={{ top: 66 }}>{t('guildSettings.legend')}</div>
-      <div className="gs-row gs-head" style={{ top: SETTINGS_ROW_Y - 18 }}>
+    <ReforgeShell
+      id={SETTINGS_ID}
+      title={t('guildSettings.title')}
+      height={320}
+      open
+      closeButton={false}
+      className="guild-settings"
+      onClose={close}
+    >
+      <RfTableHead className="gs-section" columns={[{ label: t('guildSettings.bankAccess'), align: 'center' }]} />
+      <div className="gs-legend">{t('guildSettings.legend')}</div>
+      <div className="gs-columns">
         <span className="gs-rank" />
-        <span className="gs-col">{t('guildSettings.columnIn')}</span>
-        <span className="gs-col">{t('guildSettings.columnOut')}</span>
+        <span className={`gs-cell gs-head${readOnly ? ' locked' : ''}`} onClick={() => toggleColumn(false)}>
+          {t('guildSettings.columnIn')}
+        </span>
+        <span className={`gs-cell gs-head${readOnly ? ' locked' : ''}`} onClick={() => toggleColumn(true)}>
+          {t('guildSettings.columnOut')}
+        </span>
       </div>
-      {ASSIGNABLE_RANKS.map((rank, i) => (
-        <div key={rank} className="gs-row" style={{ top: SETTINGS_ROW_Y + i * SETTINGS_ROW_STEP }}>
-          <span className="gs-rank">{t(RANK_TEXT[rank])}</span>
-          <span className="gs-col">
-            <Check on={!!(GuildBank.depositFlags & (1 << rank))} readOnly={readOnly} onClick={() => GuildBank.toggleRight(rank, false)} />
-          </span>
-          <span className="gs-col">
-            <Check on={!!(GuildBank.withdrawFlags & (1 << rank))} readOnly={readOnly} onClick={() => GuildBank.toggleRight(rank, true)} />
-          </span>
-        </div>
-      ))}
-      <div className={`gs-status ${GuildBank.settingsDirty ? 'unsaved' : GuildBank.settingsSaved ? 'saved' : 'note'}`} style={{ top: 250 }}>
-        {t(status)}
+      <RfList height={140} className="gs-list">
+        {ASSIGNABLE_RANKS.map(rank => (
+          <div key={rank} className="rf-row gs-row">
+            <span className="gs-rank">{t(RANK_TEXT[rank])}</span>
+            <span className="gs-cell">
+              <Check on={has(rank, false)} readOnly={readOnly} onClick={() => GuildBank.toggleRight(rank, false)} />
+            </span>
+            <span className="gs-cell">
+              <Check on={has(rank, true)} readOnly={readOnly} onClick={() => GuildBank.toggleRight(rank, true)} />
+            </span>
+          </div>
+        ))}
+      </RfList>
+      <RfFooter className={`gs-status ${GuildBank.settingsDirty ? 'unsaved' : GuildBank.settingsSaved ? 'saved' : 'note'}`}>{t(status)}</RfFooter>
+      <div className="gs-actions">
+        <RfButton small label={t('guildSettings.save')} disabled={!canSave} onClick={() => GuildBank.saveSettings()} />
+        <RfButton small label={t('guildSettings.revert')} disabled={!canSave} onClick={() => GuildBank.revertSettings()} />
+        <RfButton small label={t('common.close')} onClick={close} />
       </div>
-      {!readOnly && (
-        <>
-          <GuildRowButton x={30} y={280} label={t('guildSettings.revert')} disabled={!GuildBank.settingsDirty} onClick={() => GuildBank.revertSettings()} />
-          <GuildRowButton x={96} y={280} label={t('guildSettings.save')} disabled={!GuildBank.settingsDirty} onClick={() => GuildBank.saveSettings()} />
-        </>
-      )}
-    </MuItemWindow>
+    </ReforgeShell>
   );
 });
 
@@ -437,21 +458,56 @@ const GuildRowButton = observer(({ x, y, label, title, disabled, onClick }: { x:
   </div>
 ));
 
+/** The guild browser's two windows (versions/shared/ui/windows/guild_browser). */
+const GUILD_WARS_WINDOW = 'guild_wars';
+const GUILD_ALLIANCE_WINDOW = 'guild_alliance';
+
+const toggle = (id: string) => MuWindows.setOpen(id, !MuWindows.isOpen(id));
+
 /**
- * Our guild window's two buttons (UI/Reforge/ReforgeGuildButtons.cpp): Settings (the guild master's)
- * and Castle, shown while the guild owns the castle (DC 0F). Drawn by the guild window's bottom row.
+ * Our guild window's parts (UI/Reforge/ReforgeGuildButtons.cpp, guild_info.rml `#reforge_guild_parts`):
+ * the guild master's Guild Wars and Guild Alliance plates off the left edge (each toggles its window
+ * of the guild browser), Settings beside Disband on the Guild tab, and Castle on the exit button's
+ * row while the guild owns the castle (DC 0F). Nothing on a world without our guild bank.
  */
 export const GuildReforgeButtons = observer(() => {
   if (!moduleOn('guild_bank') || !Social.myGuild) return null;
+  const master = Social.isGuildMaster;
+  const browser = master && moduleOn('guild_browser');
   return (
     <>
-      {Social.isGuildMaster && (
-        <GuildRowButton x={SETTINGS_BUTTON_X} y={GUILD_ROW_Y} label={t('guildSettings.button')} onClick={() => GuildBank.openSettings(!GuildBank.settingsOpen)} />
+      {browser && (
+        <>
+          <SidePlate
+            top={WARS_PLATE_TOP}
+            file="newui_guildinfo_btn_wars.OZT"
+            title={t('guild.plateWars')}
+            description={t('guild.plateWarsTip')}
+            active={MuWindows.isOpen(GUILD_WARS_WINDOW)}
+            onClick={() => toggle(GUILD_WARS_WINDOW)}
+          />
+          <SidePlate
+            top={ALLIANCE_PLATE_TOP}
+            file="newui_guildinfo_btn_alliance.OZT"
+            title={t('guild.plateAlliance')}
+            description={t('guild.plateAllianceTip')}
+            active={MuWindows.isOpen(GUILD_ALLIANCE_WINDOW)}
+            onClick={() => toggle(GUILD_ALLIANCE_WINDOW)}
+          />
+        </>
+      )}
+      {master && Social.guildTab === 'info' && (
+        <GuildRowButton
+          x={SETTINGS_BUTTON.x}
+          y={SETTINGS_BUTTON.y}
+          label={t('guildSettings.button')}
+          onClick={() => GuildBank.openSettings(!GuildBank.settingsOpen)}
+        />
       )}
       {GuildBank.ownsCastle && (
         <GuildRowButton
-          x={CASTLE_BUTTON_X}
-          y={GUILD_ROW_Y}
+          x={CASTLE_BUTTON.x}
+          y={CASTLE_BUTTON.y}
           label={t('guildCastle.label')}
           title={t('guildCastle.hint')}
           onClick={() => {

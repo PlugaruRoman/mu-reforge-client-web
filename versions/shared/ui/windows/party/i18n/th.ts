@@ -13,4 +13,8 @@ export default {
   'party.notInParty': 'คุณไม่ได้อยู่ในปาร์ตี้',
   'party.invite': 'เชิญ',
   'party.shop': 'ร้านค้า',
+  'party.find': 'ค้นหา',
+  'party.settings': 'ตั้งค่า',
+  'party.giveLead': 'มอบหัวหน้า?',
+  'party.giveLeadConfirm': 'คลิกอีกครั้ง',
 } satisfies Partial<Record<keyof typeof en, string>>;

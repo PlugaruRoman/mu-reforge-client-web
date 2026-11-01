@@ -128,4 +128,7 @@ export default {
   'deathRecords.agoYears': '{n}г',
   'deathRecords.footerTally': 'Убил вас раз: {deaths}, вы его: {kills}',
   'deathRecords.footerLastDeath': 'Последняя смерть: {where}, {when}',
+  'deathRecords.guild': 'Гильдия',
+  'deathRecords.where': 'Где',
+  'deathRecords.opponents': 'Противников: {n}',
 } satisfies Partial<Record<keyof typeof en, string>>;

@@ -16,4 +16,5 @@ export default {
   'huntLog.nextLevelIn': 'Level {n} in',
   'huntLog.maxLevelIn': 'Max level in',
   'huntLog.resetAvailable': 'Reset is available!',
+  'huntLog.foldHint': 'গুটাতে বা খুলতে ক্লিক করুন, সরাতে টেনে নিন',
 } satisfies Partial<Record<keyof typeof en, string>>;

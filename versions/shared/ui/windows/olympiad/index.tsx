@@ -3,10 +3,9 @@ import { useEffect, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { t, type TextKey } from '@/i18n';
 import { MuWindows } from '@/controllers/interface';
-import { MuItemWindow } from '@/controllers/interface/components/mu_window';
 import { togglesWindow } from '@/controllers/interface/components/module_window';
 import { useEventBus } from '@/controllers/interface/hooks';
-import { MuText, TEXT_COLOR } from '@/controllers/interface/components/mu_text';
+import { guildMarkDataUrl, packGuildMark } from '@/core/guildMark';
 import { itemLevelName } from '@/controllers/item_rules';
 import { playUiSound } from '@/controllers/sound/sfx';
 import {
@@ -24,6 +23,7 @@ import {
   type DeathRecord,
   type OlympiadBoard,
 } from '@/modules/olympiad';
+import { ReforgeShell, RfButton, RfFooter, RfList, RfTableHead, columnStyle } from '../_shared/reforgeShell';
 
 /**
  * The Battle Statue window (our client's UI/Olympiad/OlympiadWindow.cpp, reforge_olympiad.rml) and
@@ -32,13 +32,14 @@ import {
  * action. The Death Records open with their key (Y in our client).
  */
 
+/** reforge_olympiad.rcss `tone-N`. */
 const TONE = {
-  normal: TEXT_COLOR.brightGray,
-  good: 'rgb(120, 230, 120)',
-  gold: TEXT_COLOR.brightOrange,
-  warn: TEXT_COLOR.orange,
-  bad: 'rgb(255, 90, 70)',
-  muted: 'rgb(150, 150, 150)',
+  normal: '#e6e2c8',
+  good: '#96eb96',
+  gold: '#ffcd3c',
+  warn: '#ffaa6e',
+  bad: '#ff7864',
+  muted: '#a0a0aa',
 } as const;
 type Tone = keyof typeof TONE;
 
@@ -101,7 +102,9 @@ function useTick(ms: number): number {
 const Lines = observer(({ lines }: { lines: Line[] }) => (
   <>
     {lines.map((l, i) => (
-      <MuText key={i} className="ol-line" text={l.text} color={TONE[l.tone ?? 'normal']} />
+      <div key={i} className="ol-line" style={{ color: TONE[l.tone ?? 'normal'] }}>
+        {l.text}
+      </div>
     ))}
   </>
 ));
@@ -109,30 +112,23 @@ const Lines = observer(({ lines }: { lines: Line[] }) => (
 const Panel = observer(({ title, rows }: { title?: string; rows: Row[] }) =>
   rows.length === 0 ? null : (
     <div className="ol-panel">
-      {title && <MuText face="bold" className="ol-panel-title" text={title} color={TEXT_COLOR.brightYellow} />}
+      {title && <div className="ol-panel-title">{title}</div>}
       {rows.map((r, i) => (
         <div key={i} className="ol-row">
-          <MuText text={r.label} color={TEXT_COLOR.orange} />
-          <MuText text={r.value} color={TONE[r.tone ?? 'normal']} />
+          <span className="ol-label">{r.label}</span>
+          <span className="ol-value" style={{ color: TONE[r.tone ?? 'normal'] }}>
+            {r.value}
+          </span>
         </div>
       ))}
     </div>
   ));
 
+/** The page's buttons (reforge_olympiad.rcss `.ol-btn`): two in a row, or one wide (96%). */
 const Buttons = observer(({ buttons }: { buttons: Button[] }) => (
-  <div className="ol-buttons" data-no-drag="true">
+  <div className="ol-buttons">
     {buttons.map((b, i) => (
-      <div
-        key={i}
-        className={`ol-button${b.wide ? ' wide' : ''}${b.enabled === false ? ' disabled' : ''}`}
-        onClick={() => {
-          if (b.enabled === false) return;
-          playUiSound('click');
-          b.onClick();
-        }}
-      >
-        {b.label}
-      </div>
+      <RfButton key={i} className={`ol-btn${b.wide ? ' wide' : ''}`} label={b.label} disabled={b.enabled === false} onClick={b.onClick} />
     ))}
   </div>
 ));
@@ -348,59 +344,60 @@ const OlympiadWindow = observer(() => {
   }
 
   return (
-    <MuItemWindow id="olympiad-window" label={title} onClose={close}>
-      <MuText face="bold" align="center" className="ol-title" text={title} />
-      <div className="ol-body">
-        <Lines lines={status} />
-        <Panel title={panelTitle} rows={rows} />
-        <Lines lines={text} />
-        {heroes.length > 0 && (
-          <div className="ol-table">
-            <div className="ol-table-row head">
-              <span>{t('olympiad.colName')}</span>
-              <span>{t('olympiad.colClass')}</span>
-              <span>{t('olympiad.colPoints')}</span>
-              <span>{t('olympiad.colRate')}</span>
-              <span>{t('olympiad.colTimes')}</span>
-            </div>
-            {heroes.map((h, i) => (
-              <div key={i} className={`ol-table-row${h.certified ? ' certified' : ''}`}>
-                <span>{h.name}</span>
-                <span>{classShort(h.classIndex)}</span>
-                <span>{h.points}</span>
-                <span>{winRatePercent(h.wins, h.matches)}%</span>
-                <span>{h.timesHero}</span>
-              </div>
-            ))}
+    <ReforgeShell id={OLYMPIAD_WINDOW} title={title} width={250} height={420} closeButton={false} onClose={close} className="olympiad">
+      {status.length > 0 && (
+        <div className="ol-panel ol-status">
+          <Lines lines={status} />
+        </div>
+      )}
+      <Lines lines={text} />
+      <Panel title={panelTitle} rows={rows} />
+      {heroes.length > 0 && (
+        <div className="ol-heroes">
+          <div className="rf-table-head ol-hero-columns">
+            <span>{t('olympiad.colName')}</span>
+            <span>{t('olympiad.colClass')}</span>
+            <span>{t('olympiad.colPoints')}</span>
+            <span>{t('olympiad.colRate')}</span>
+            <span>{t('olympiad.colTimes')}</span>
           </div>
-        )}
-        {shop && (
-          <div className="ol-table" data-no-drag="true">
-            <div className="ol-table-row head shop">
-              <span>{t('olympiad.colItem')}</span>
-              <span>{t('olympiad.colTokens')}</span>
+          {heroes.map((h, i) => (
+            <div key={i} className={`ol-hero-columns ol-hero${h.certified ? ' certified' : ''}`}>
+              <span>{h.name}</span>
+              <span>{classShort(h.classIndex)}</span>
+              <span>{h.points}</span>
+              <span>{winRatePercent(h.wins, h.matches)}%</span>
+              <span>{h.timesHero}</span>
             </div>
-            {shop.length === 0 && <MuText className="ol-line" text={t('olympiad.nothingOnSale')} color={TONE.muted} />}
-            {shop.map(row => (
-              <div
-                key={row.index}
-                className={`ol-table-row shop buy${row.affordable ? '' : ' disabled'}`}
-                onClick={() => {
-                  if (!row.affordable) return;
-                  playUiSound('click');
-                  Olympiad.buy(row.index, row.line);
-                }}
-              >
-                <span>{row.name}</span>
-                <span>{row.price}</span>
-              </div>
-            ))}
+          ))}
+        </div>
+      )}
+      {shop && (
+        <div className="ol-shop">
+          <div className="rf-table-head ol-shop-columns">
+            <span className="ol-shop-name">{t('olympiad.colItem')}</span>
+            <span className="ol-shop-price">{t('olympiad.colTokens')}</span>
           </div>
-        )}
-        <Lines lines={footer} />
-      </div>
+          {shop.length === 0 && <div className="ol-shop-empty">{t('olympiad.nothingOnSale')}</div>}
+          {shop.map(row => (
+            <div
+              key={row.index}
+              className={`rf-row ol-shop-columns ol-shop-row${row.affordable ? '' : ' locked'}`}
+              onClick={() => {
+                if (!row.affordable) return;
+                playUiSound('click');
+                Olympiad.buy(row.index, row.line);
+              }}
+            >
+              <span className="ol-shop-name">{row.name}</span>
+              <span className="ol-shop-price">{row.price}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      <Lines lines={footer} />
       <Buttons buttons={buttons} />
-    </MuItemWindow>
+    </ReforgeShell>
   );
 });
 
@@ -418,7 +415,7 @@ function ago(ms: number): string {
 }
 
 /** The totals over the list: deaths, kills, K/D and the nemesis (the most deaths). */
-function totals(records: DeathRecord[]): { deaths: number; kills: number; nemesis: string } {
+function totals(records: DeathRecord[]): { deaths: number; kills: number; nemesis: DeathRecord | null } {
   let deaths = 0;
   let kills = 0;
   let nemesis: DeathRecord | null = null;
@@ -427,81 +424,101 @@ function totals(records: DeathRecord[]): { deaths: number; kills: number; nemesi
     kills += r.kills;
     if (!nemesis || r.deaths > nemesis.deaths) nemesis = r;
   }
-  return { deaths, kills, nemesis: nemesis?.killer ?? '-' };
+  return { deaths, kills, nemesis };
 }
 
+/** reforge_death_records.rcss: Killer | Guild | Where (the rest) | D/K | When. */
+const DR_COLUMNS = { killer: 64, guild: 64, dk: 36, when: 36 } as const;
+
+/**
+ * `CDeathRecordsWindow` (UI/DeathRecords/DeathRecordsWindow.cpp, reforge_death_records.rml), 316 x 392:
+ * the summary (deaths, kills, K/D, nemesis), one row per opponent with the guild mark, two footer lines
+ * (the hovered row's tally and time, or the opponent count), Refresh | Close.
+ */
 const DeathRecordsWindow = observer(() => {
   useTick(60000);
-  const [selected, setSelected] = useState(-1);
+  const [hovered, setHovered] = useState(-1);
   const records = Olympiad.deathRecords;
   const close = () => MuWindows.setOpen(DEATH_RECORDS_WINDOW, false);
   const sum = totals(records);
-  const pick = records[selected];
+  const pick = records[hovered];
   const kd = sum.deaths > 0 ? (sum.kills / sum.deaths).toFixed(2) : String(sum.kills);
+  const empty = Olympiad.deathRecordsLoaded && records.length === 0;
+  const nemesis = sum.nemesis && sum.nemesis.deaths > 0 ? sum.nemesis : null;
 
   return (
-    <MuItemWindow id="death-records-window" column={1} label={t('deathRecords.title')} onClose={close}>
-      <MuText face="bold" align="center" className="ol-title" text={t('deathRecords.title')} />
-      <div className="ol-body">
-        <div className="ol-panel">
-          <div className="ol-row">
-            <MuText text={t('deathRecords.deaths')} color={TEXT_COLOR.orange} />
-            <MuText text={String(sum.deaths)} color={TONE.bad} />
-          </div>
-          <div className="ol-row">
-            <MuText text={t('deathRecords.kills')} color={TEXT_COLOR.orange} />
-            <MuText text={String(sum.kills)} color={TONE.good} />
-          </div>
-          <div className="ol-row">
-            <MuText text={t('deathRecords.kd')} color={TEXT_COLOR.orange} />
-            <MuText text={kd} />
-          </div>
-          <div className="ol-row">
-            <MuText text={t('deathRecords.nemesis')} color={TEXT_COLOR.orange} />
-            <MuText text={sum.nemesis} color={TONE.gold} />
-          </div>
+    <ReforgeShell id={DEATH_RECORDS_WINDOW} title={t('deathRecords.title')} width={316} height={392} closeButton={false} className="death-records">
+      <div className="dr-summary">
+        <div className="dr-stat dr-stat-deaths">
+          <div className="dr-stat-label">{t('deathRecords.deaths')}</div>
+          <div className="dr-stat-value">{sum.deaths}</div>
         </div>
-        {Olympiad.deathRecordsLoaded && records.length === 0 ? (
-          <Lines lines={[{ text: t('deathRecords.empty') }, { text: t('deathRecords.emptyHint'), tone: 'muted' }]} />
-        ) : (
-          <div className="ol-table dr-table" data-no-drag="true">
-            <div className="ol-table-row head dr">
-              <span>{t('deathRecords.killer')}</span>
-              <span>{t('deathRecords.dk')}</span>
-              <span>{t('deathRecords.when')}</span>
-            </div>
-            {records.map((r, i) => (
-              <div
-                key={i}
-                className={`ol-table-row dr buy${i === selected ? ' selected' : ''}`}
-                title={`${r.guild ? `${r.guild} - ` : ''}${r.location}`}
-                onClick={() => setSelected(i)}
-              >
-                <span>{r.killer}</span>
-                <span>
-                  {r.deaths}/{r.kills}
-                </span>
-                <span>{ago(Date.now() - r.when)}</span>
-              </div>
-            ))}
-          </div>
-        )}
-        {pick && (
-          <Lines
-            lines={[
-              { text: t('deathRecords.footerTally', { deaths: pick.deaths, kills: pick.kills }) },
-              { text: t('deathRecords.footerLastDeath', { where: pick.location, when: new Date(pick.when).toLocaleString() }), tone: 'muted' },
-            ]}
-          />
-        )}
+        <div className="dr-stat dr-stat-kills">
+          <div className="dr-stat-label">{t('deathRecords.kills')}</div>
+          <div className="dr-stat-value">{sum.kills}</div>
+        </div>
+        <div className={`dr-stat dr-stat-kd${sum.kills >= sum.deaths ? ' ahead' : ''}`}>
+          <div className="dr-stat-label">{t('deathRecords.kd')}</div>
+          <div className="dr-stat-value">{kd}</div>
+        </div>
+        <div className={`dr-stat dr-stat-nemesis${nemesis ? ' has-nemesis' : ''}`}>
+          <div className="dr-stat-label">{t('deathRecords.nemesis')}</div>
+          <div className="dr-stat-value">{nemesis?.killer ?? '-'}</div>
+        </div>
       </div>
-      <Buttons
-        buttons={[
-          { label: t('deathRecords.refresh'), onClick: () => Olympiad.requestDeathRecords() },
-          { label: t('olympiad.close'), onClick: close },
+      <RfTableHead
+        className="dr-head"
+        columns={[
+          { label: t('deathRecords.killer'), width: DR_COLUMNS.killer, align: 'center' },
+          { label: t('deathRecords.guild'), width: DR_COLUMNS.guild, align: 'center' },
+          { label: t('deathRecords.where'), align: 'center' },
+          { label: t('deathRecords.dk'), width: DR_COLUMNS.dk, align: 'center' },
+          { label: t('deathRecords.when'), width: DR_COLUMNS.when, align: 'center' },
         ]}
       />
-    </MuItemWindow>
+      <RfList height={206} className="dr-list">
+        <div onPointerLeave={() => setHovered(-1)}>
+          {records.map((r, i) => (
+            <div key={i} className={`rf-row dr-row${r === nemesis ? ' nemesis' : ''}`} onPointerEnter={() => setHovered(i)}>
+              <span className="dr-killer" style={columnStyle({ label: '', width: DR_COLUMNS.killer })}>
+                {r.killer}
+              </span>
+              <span className={`dr-guild${r.guild ? '' : ' no-guild'}`} style={columnStyle({ label: '', width: DR_COLUMNS.guild })}>
+                {r.guildMark && <img className="dr-mark" alt="" src={guildMarkDataUrl(packGuildMark(r.guildMark))} />}
+                <span className="dr-guild-name">{r.guild || '-'}</span>
+              </span>
+              <span className="dr-where" style={columnStyle({ label: '' })}>
+                {r.location}
+              </span>
+              <span className="dr-dk" style={columnStyle({ label: '', width: DR_COLUMNS.dk })}>
+                <span className="dr-deaths">{r.deaths}</span>
+                <span className="dr-sep">/</span>
+                <span className="dr-kills">{r.kills}</span>
+              </span>
+              <span className="dr-when" style={columnStyle({ label: '', width: DR_COLUMNS.when })}>
+                {ago(Date.now() - r.when)}
+              </span>
+            </div>
+          ))}
+          {empty && (
+            <div className="dr-empty">
+              <div className="dr-empty-title">{t('deathRecords.empty')}</div>
+              <div className="dr-empty-hint">{t('deathRecords.emptyHint')}</div>
+            </div>
+          )}
+        </div>
+      </RfList>
+      <RfFooter className="dr-footer">
+        {pick ? t('deathRecords.footerTally', { deaths: pick.deaths, kills: pick.kills }) : t('deathRecords.opponents', { n: records.length })}
+      </RfFooter>
+      <RfFooter className="dr-footer-detail">
+        {pick ? t('deathRecords.footerLastDeath', { where: pick.location, when: new Date(pick.when).toLocaleString() }) : ''}
+      </RfFooter>
+      <div className="dr-actions">
+        <RfButton small label={t('deathRecords.refresh')} onClick={() => Olympiad.requestDeathRecords()} />
+        <RfButton small label={t('olympiad.close')} onClick={close} />
+      </div>
+    </ReforgeShell>
   );
 });
 

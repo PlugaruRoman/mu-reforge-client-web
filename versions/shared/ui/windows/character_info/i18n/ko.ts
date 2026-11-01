@@ -37,4 +37,7 @@ export default {
   'characterInfo.quest': '퀘스트(T)',
   'characterInfo.pet': '펫',
   'characterInfo.masterTree': '마스터 스킬 트리(A)',
+  'charInfo.plateAddStatsTip': '레벨업 포인트를 한 번에 많이 쓰거나 서버가 대신 쓰게 합니다.',
+  'charInfo.plateResetTip': '캐릭터를 낮은 레벨에서 다시 시작하고 리셋 횟수를 1 늘립니다.',
+  'charInfo.plateGrandResetTip': '리셋 한 바퀴를 그랜드 리셋 1회로 바꾸고 리셋을 처음부터 다시 시작합니다.',
 } satisfies Partial<Record<keyof typeof en, string>>;

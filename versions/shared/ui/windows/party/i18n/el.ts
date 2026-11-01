@@ -13,4 +13,8 @@ export default {
   'party.notInParty': 'Δεν είστε σε ομάδα.',
   'party.invite': 'Πρόσκληση',
   'party.shop': 'Κατάστημα',
+  'party.find': 'Εύρεση',
+  'party.settings': 'Ρυθμίσεις',
+  'party.giveLead': 'Παράδοση αρχηγίας;',
+  'party.giveLeadConfirm': 'Πάτα ξανά',
 } satisfies Partial<Record<keyof typeof en, string>>;

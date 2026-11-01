@@ -57,4 +57,11 @@ export default {
   'guild.kickHint': 'Ha ki akarod zárni ezt a karaktert: „{name}”,',
   'guild.enterSecurityCode': 'add meg a fiókod biztonsági kódját.',
   'guild.securityCode': 'Kód',
+  'guild.plateWars': 'Céhháborúk',
+  'guild.plateWarsTip': 'Céhek böngészése és hadüzenet',
+  'guild.plateAlliance': 'Céhszövetség',
+  'guild.plateAllianceTip': 'Szövetség kérése egy másik céhtől',
+  'guild.platePositionTip': 'Rang adása a kiválasztott tagnak',
+  'guild.noticePlaceholder': 'Közlemény...',
+  'guild.noticeSend': 'Közlemény beállítása',
 } satisfies Partial<Record<keyof typeof en, string>>;

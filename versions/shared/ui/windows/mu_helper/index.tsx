@@ -752,9 +752,9 @@ export const MuHelperWindow = observer(() => {
         </button>
       </div>
 
-      {/* Outside the frame, left of it at the footer's height: the 190 px footer holds the exit button and
-          Init/Save, and inside it OFF EXP covered Init. The window docks right, so its left is free. */}
-      <OffExpButton style={{ right: 'calc(100% + 4px)', top: EXIT_BUTTON.y + 6 }} />
+      {/* Our client's plate off the left edge at the footer (mu_helper_config.rcss `#btn_reforge_offexp`),
+          hidden while the skill picker - our detail window - is up. */}
+      {!picker && <OffExpButton />}
 
       <div
         data-no-drag="true"

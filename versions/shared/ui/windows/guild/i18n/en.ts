@@ -56,6 +56,13 @@ const en = {
   'guild.kickHint': "To release character '{name}',",
   'guild.enterSecurityCode': 'please enter your account security code.',
   'guild.securityCode': 'Code',
+  'guild.plateWars': 'Guild Wars',
+  'guild.plateWarsTip': 'Browse guilds and declare war',
+  'guild.plateAlliance': 'Guild Alliance',
+  'guild.plateAllianceTip': 'Ask another guild for an alliance',
+  'guild.platePositionTip': 'Give the selected member a rank',
+  'guild.noticePlaceholder': 'Announcement...',
+  'guild.noticeSend': 'Set announcement',
 };
 
 export default en;

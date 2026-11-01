@@ -57,4 +57,11 @@ export default {
   'guild.kickHint': '“{name}” adlı karakteri loncadan çıkarmak için,',
   'guild.enterSecurityCode': 'lütfen hesap güvenlik kodunu gir.',
   'guild.securityCode': 'Kod',
+  'guild.plateWars': 'Lonca Savaşları',
+  'guild.plateWarsTip': 'Loncalara göz at ve savaş ilan et',
+  'guild.plateAlliance': 'Lonca İttifakı',
+  'guild.plateAllianceTip': 'Başka bir loncaya ittifak teklif et',
+  'guild.platePositionTip': 'Seçili üyeye bir rütbe ver',
+  'guild.noticePlaceholder': 'Duyuru...',
+  'guild.noticeSend': 'Duyuruyu ayarla',
 } satisfies Partial<Record<keyof typeof en, string>>;

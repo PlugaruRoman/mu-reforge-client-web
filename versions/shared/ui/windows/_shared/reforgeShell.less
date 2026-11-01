@@ -1,0 +1,221 @@
+@import (reference) '@/controllers/interface/components/mu_text/style.less';
+// The Mu Reforge window shell (reforgeShell.tsx): our client's reforge_window.rcss in dp = stage px.
+// The frame is the message box art; rows, tabs and buttons keep the web client's reforge look.
+.rf-shell {
+  .mu-font();
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  pointer-events: auto;
+  user-select: none;
+  outline: none;
+  font-size: 11px;
+  line-height: 13px;
+  color: #e2e2e2;
+  text-shadow: 1px 1px 0 #000;
+
+  .rf-back {
+    position: absolute;
+    left: 4px;
+    right: 4px;
+    top: 5px;
+    bottom: 5px;
+    background-size: 100% 100%;
+    pointer-events: none;
+  }
+
+  .rf-band {
+    position: absolute;
+    left: 0;
+    right: 0;
+    box-sizing: border-box;
+    border-style: solid;
+    border-color: transparent;
+    border-top-width: 0;
+    border-bottom-width: 0;
+    image-rendering: pixelated;
+    pointer-events: none;
+  }
+
+  .rf-shell-title {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 10px;
+    text-align: center;
+    font-weight: bold;
+    color: #fff;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+}
+
+// The content box: 18 in from the sides, under the 35 banner, 24 over the bottom (reforge_window.rcss #content).
+.rf-content {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: 35px 18px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  &.untitled {
+    margin-top: 20px;
+  }
+
+  > * {
+    flex-shrink: 0;
+  }
+
+  .acct-btn {
+    font-size: 11px;
+  }
+}
+
+.rf-tabs {
+  display: flex;
+  width: 100%;
+  height: 22px;
+  margin-bottom: 6px;
+  gap: 2px;
+  border-bottom: 1px solid #5a4a2c;
+
+  .rf-tab {
+    flex: 1 1 0;
+    min-width: 0;
+    height: 21px;
+    line-height: 21px;
+    padding: 0 4px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    color: #a8a8a8;
+    background: linear-gradient(#3a2f1c, #1c160c);
+    border: 1px solid #7a6334;
+    border-bottom: none;
+    border-radius: 4px 4px 0 0;
+    box-sizing: border-box;
+
+    &:hover {
+      color: #fff;
+    }
+
+    &.active {
+      color: #ffd927;
+      background: linear-gradient(#5a4520, #2a200e);
+      border-color: #c9a55a;
+    }
+  }
+
+  .rf-pip {
+    display: inline-block;
+    width: 5px;
+    height: 5px;
+    margin-left: 4px;
+    vertical-align: middle;
+    border-radius: 3px;
+    background: #6ee05a;
+  }
+}
+
+.rf-table-head {
+  display: flex;
+  width: 100%;
+  box-sizing: border-box;
+  height: 16px;
+  line-height: 16px;
+  color: #ffd927;
+  font-weight: bold;
+  border-bottom: 1px solid #8a6a36;
+  white-space: nowrap;
+
+  .rf-col {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-sizing: border-box;
+    padding: 0 2px;
+
+    &.clickable {
+      cursor: pointer;
+
+      &:hover {
+        color: #fff;
+      }
+    }
+  }
+}
+
+.rf-list {
+  width: 100%;
+  box-sizing: border-box;
+  background: rgba(0, 0, 0, 0.43);
+  border: 1px solid #5a4a2c;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+// A list row: the columns of the head above it.
+.rf-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+  white-space: nowrap;
+
+  &:hover {
+    background: rgba(210, 160, 70, 0.27);
+  }
+
+  > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-sizing: border-box;
+    padding: 0 2px;
+  }
+}
+
+.rf-footer {
+  width: 100%;
+  height: 16px;
+  line-height: 16px;
+  margin-top: 4px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #a8a8a8;
+}
+
+.rf-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+// Buttons: 96x29 (64 small), the reforge button look.
+.acct-btn.rf-btn {
+  flex: 0 0 auto;
+  width: 96px;
+  height: 29px;
+  line-height: 25px;
+  box-sizing: border-box;
+  padding: 0 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  &.rf-small {
+    width: 64px;
+  }
+
+  &.rf-close {
+    margin: 6px auto 0;
+  }
+}

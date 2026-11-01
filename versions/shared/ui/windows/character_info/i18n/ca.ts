@@ -35,4 +35,7 @@ export default {
   'charInfo.attackSpeed': 'Velocitat d\'atac: {value}',
   'charInfo.defenseRatePvpBonus': 'Taxa de defensa: {value} (+{bonus})',
   'charInfo.curseSpellRate': 'Maledicció: {min} ~ {max}(+{rate})',
+  'charInfo.plateAddStatsTip': 'Gasta molts punts de nivell alhora, o deixa que el servidor els gasti per tu.',
+  'charInfo.plateResetTip': 'Torna a començar el personatge a un nivell més baix i suma un reset al teu compte.',
+  'charInfo.plateGrandResetTip': 'Canvia una tanda completa de resets per un gran reset i els torna a començar.',
 } satisfies Partial<Record<keyof typeof en, string>>;

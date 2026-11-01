@@ -21,6 +21,9 @@ windows themselves are content in `versions/shared/ui/` (see
   scale and z-order, Escape closes the top window, `closeAll()` is the original's `HideAll` (every
   open flag drops, then every stacked closer runs with the interface sounds off, `quietUiSounds`; the
   closers of the windows that hiding the interface unmounted are kept for it until the interface is back).
+  `sizeToStage(id)` (or `useWindowChrome(id, { scaleBy: 'stage' })`): a window laid out in 640x480
+  stage units, as our client's RmlUi panels are, drawn at the stage scale (capped at `STAGE_SCALE_CAP`,
+  2) times the interface scale instead of a saved scale; the Mu Reforge shell uses it.
 - `components/`: shared widgets. Frames and text: `mu_window` (item window, table frame),
   `mu_frame`, `msg_box_frame` (`top` takes the NPC menus' title bar art, `MSGBOX_TOP_TITLEBAR_SPRITE`), `mu_text`, `mu_number`,
   `mu_button`, `mu_sprite`, `mu_logo`, `mu_flag`. Items: `item_icon`, `item_search` (the grid, the

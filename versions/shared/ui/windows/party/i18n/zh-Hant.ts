@@ -13,4 +13,8 @@ export default {
   'party.notInParty': '你不在隊伍中。',
   'party.invite': '邀請',
   'party.shop': '商店',
+  'party.find': '尋找',
+  'party.settings': '設定',
+  'party.giveLead': '移交隊長?',
+  'party.giveLeadConfirm': '再點一次',
 } satisfies Partial<Record<keyof typeof en, string>>;

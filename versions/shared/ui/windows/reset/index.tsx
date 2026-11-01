@@ -1,12 +1,10 @@
 import { useEffect, useState } from 'react';
+import { observable, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import { t, type TextKey } from '@/i18n';
 import { MuWindows } from '@/controllers/interface/windowManager';
-import { ModuleWindowFrame } from '@/controllers/interface/components/module_window';
-import { moduleOn } from '@/modules/module';
 import { Hero } from '@/modules/hero';
 import {
-  ADD_STATS_WINDOW,
   PaidResetResult,
   Payment,
   RESET_WINDOW,
@@ -16,13 +14,11 @@ import {
   canPaidReset,
   type PaidReset,
 } from '@/modules/resets';
-import { SOUL_WINDOW } from '@/modules/soul_points';
+import { ReforgeShell, RfButton, RfButtons } from '../_shared/reforgeShell';
 import {
-  AccountBody,
   AccountButton,
   AccountConfirm,
   AccountRow,
-  AccountTabStrip,
   amount,
 } from '../_shared/accountWidgets';
 import './style.less';
@@ -80,9 +76,9 @@ const ResetSection = observer(({ section, loadingHeading, button, okText, onRese
       <div className={`acct-message${section.canReset ? ' good' : ''}`}>
         {section.canReset ? okText : t(REASON[section.reason] ?? 'resetWin.failOther')}
       </div>
-      <div className="acct-buttons">
-        <AccountButton label={button} disabled={!section.canReset} onClick={onReset} />
-      </div>
+      <RfButtons>
+        <RfButton label={button} disabled={!section.canReset} onClick={onReset} />
+      </RfButtons>
     </div>
   );
 });
@@ -98,9 +94,9 @@ const PaidPanel = observer(({ reset, onBack }: { reset: PaidReset; onBack: () =>
         <div className="acct-heading">{title}</div>
         <div className="acct-hint">{t('resetWin.loading')}</div>
         {answer !== null && <div className={`acct-message${answer === PaidResetResult.Success ? ' good' : ''}`}>{t(RESULT[answer])}</div>}
-        <div className="acct-buttons">
-          <AccountButton label={t('resetWin.back')} onClick={onBack} />
-        </div>
+        <RfButtons>
+          <RfButton label={t('resetWin.back')} onClick={onBack} />
+        </RfButtons>
       </div>
     );
   }
@@ -130,32 +126,44 @@ const PaidPanel = observer(({ reset, onBack }: { reset: PaidReset; onBack: () =>
         <AccountButton label={wcoinPrice} disabled={!can || !canAfford(info, Payment.WCoin)} onClick={() => Resets.payPaid(reset, Payment.WCoin)} />
         <AccountButton label={jewelPrice} disabled={!can || !canAfford(info, Payment.Jewels)} onClick={() => Resets.payPaid(reset, Payment.Jewels)} />
       </div>
-      <div className="acct-buttons">
-        <AccountButton label={t('resetWin.back')} onClick={onBack} />
-      </div>
+      <RfButtons>
+        <RfButton label={t('resetWin.back')} onClick={onBack} />
+      </RfButtons>
     </div>
   );
 });
 
+/** The paid page the window shows, if any: module state, so the character window can open it. */
+const paidPage = observable.box<PaidReset | null>(null);
+const setPaid = (which: PaidReset | null) => runInAction(() => paidPage.set(which));
+
+/** Opens the Reset window on a paid reset (PaidResetDialog.cpp) and asks the server for its prices. */
+export function openPaidReset(which: PaidReset): void {
+  setPaid(which);
+  MuWindows.setOpen(RESET_WINDOW, true);
+  Resets.requestPaid(which);
+}
+
 /**
- * `CResetWindow` (UI/Reset/ResetWindow.cpp, reforge_reset.rml): the next character reset or the next
- * grand reset, one at a time (`Resets.showGrand`), confirmed before the chat command goes out, and the
- * two paid resets our client offers from its character window (PaidResetDialog.cpp) on a second page.
+ * `CResetWindow` (UI/Reset/ResetWindow.cpp, reforge_reset.rml): 230 wide, as high as its one section:
+ * the next character reset or the next grand reset (`Resets.showGrand`), confirmed before the chat
+ * command goes out, then Close. The two paid resets our client opens from its character window
+ * (PaidResetDialog.cpp) stay on a second page here, reached by two small buttons or `openPaidReset`.
  */
 export const ResetWindow = observer(() => {
   const open = MuWindows.isOpen(RESET_WINDOW);
   const showGrand = Resets.showGrand;
   const [confirm, setConfirm] = useState<'reset' | 'grand' | null>(null);
-  const [paid, setPaid] = useState<PaidReset | null>(null);
+  const paid = paidPage.get();
 
   useEffect(() => {
     if (!open) {
       // The next open without a kind (the N menu) is the character reset.
       Resets.setShowGrand(false);
+      setPaid(null);
       return;
     }
     setConfirm(null);
-    setPaid(null);
     Resets.requestInfo(showGrand);
   }, [open, showGrand]);
 
@@ -165,10 +173,41 @@ export const ResetWindow = observer(() => {
     setPaid(which);
     Resets.requestPaid(which);
   };
+  const paidTitle = paid === 'stats' ? 'resetWin.statsTitle' : 'resetWin.masterTitle';
 
   return (
-    <ModuleWindowFrame id={RESET_WINDOW} title={t(showGrand ? 'resetWin.grandTitle' : 'resetWin.title')}>
-      <AccountBody className="reset-body">
+    <ReforgeShell
+      id={RESET_WINDOW}
+      title={t(paid ? paidTitle : showGrand ? 'resetWin.grandTitle' : 'resetWin.title')}
+      className="reset-body"
+      onClose={() => {
+        if (confirm) setConfirm(null);
+        else MuWindows.setOpen(RESET_WINDOW, false);
+      }}
+      overlay={
+        confirm && (
+          <AccountConfirm
+            lines={[
+              { text: t(confirm === 'grand' ? 'resetWin.grandTitle' : 'resetWin.characterTitle'), bold: true },
+              { text: t(confirm === 'grand' ? 'resetWin.confirmGrand' : 'resetWin.confirmReset') },
+              { text: `${t('resetWin.cost')}: ${zen((confirm === 'grand' ? grand : reset)?.requiredZen ?? 0)}` },
+            ]}
+            buttons={[
+              {
+                label: t(confirm === 'grand' ? 'resetWin.grandTitle' : 'resetWin.reset'),
+                onClick: () => {
+                  // Only the reset the window shows (`ConfirmReset`): a switch under an open confirm drops it.
+                  if ((confirm === 'grand') === Resets.showGrand) Resets.doReset(confirm === 'grand');
+                  setConfirm(null);
+                  MuWindows.setOpen(RESET_WINDOW, false);
+                },
+              },
+              { label: t('resetWin.cancel'), onClick: () => setConfirm(null) },
+            ]}
+          />
+        )
+      }
+    >
         {paid ? (
           <PaidPanel reset={paid} onBack={() => setPaid(null)} />
         ) : (
@@ -199,69 +238,28 @@ export const ResetWindow = observer(() => {
                 onReset={() => setConfirm('reset')}
               />
             )}
-            <div className="acct-buttons">
-              <AccountButton label={t('resetWin.statsTitle')} title={t('resetWin.statsTooltip')} onClick={() => openPaid('stats')} />
-              <AccountButton label={t('resetWin.masterTitle')} onClick={() => openPaid('master')} />
-            </div>
+            <RfButtons className="reset-paid-links">
+              <RfButton small label={t('resetWin.statsTitle')} title={t('resetWin.statsTooltip')} onClick={() => openPaid('stats')} />
+              <RfButton small label={t('resetWin.masterTitle')} title={t('resetWin.masterTitle')} onClick={() => openPaid('master')} />
+            </RfButtons>
           </>
         )}
-      </AccountBody>
-      {confirm && (
-        <AccountConfirm
-          lines={[
-            { text: t(confirm === 'grand' ? 'resetWin.grandTitle' : 'resetWin.characterTitle'), bold: true },
-            { text: t(confirm === 'grand' ? 'resetWin.confirmGrand' : 'resetWin.confirmReset') },
-            { text: `${t('resetWin.cost')}: ${zen((confirm === 'grand' ? grand : reset)?.requiredZen ?? 0)}` },
-          ]}
-          buttons={[
-            {
-              label: t(confirm === 'grand' ? 'resetWin.grandTitle' : 'resetWin.reset'),
-              onClick: () => {
-                // Only the reset the window shows (`ConfirmReset`): a switch under an open confirm drops it.
-                if ((confirm === 'grand') === Resets.showGrand) Resets.doReset(confirm === 'grand');
-                setConfirm(null);
-                MuWindows.setOpen(RESET_WINDOW, false);
-              },
-            },
-            { label: t('resetWin.cancel'), onClick: () => setConfirm(null) },
-          ]}
-        />
-      )}
-    </ModuleWindowFrame>
+    </ReforgeShell>
   );
 });
 
-const toggle = (id: string) => MuWindows.setOpen(id, !MuWindows.isOpen(id));
-
 /**
- * ReforgeCharacterButtons.cpp `OpenReset`: shows the Reset window on that reset, or switches an open
- * one to it. The button of the reset already shown closes it, as the other tabs do.
+ * The page the Reset window shows, for the character window's plates (UI/Reforge/ReforgeCharacterButtons.cpp):
+ * a paid reset, the character reset or the grand reset; null while it is closed.
  */
-function toggleReset(grand: boolean): void {
-  if (MuWindows.isOpen(RESET_WINDOW) && Resets.showGrand === grand) {
-    MuWindows.setOpen(RESET_WINDOW, false);
-    return;
-  }
+export function resetWindowPage(): PaidReset | 'reset' | 'grand' | null {
+  if (!MuWindows.isOpen(RESET_WINDOW)) return null;
+  return paidPage.get() ?? (Resets.showGrand ? 'grand' : 'reset');
+}
+
+/** ReforgeCharacterButtons.cpp `OpenReset`: the Reset window on that reset, off any paid page. */
+export function openResetPage(grand: boolean): void {
+  setPaid(null);
   Resets.setShowGrand(grand);
   MuWindows.setOpen(RESET_WINDOW, true);
 }
-
-/**
- * Our client's buttons on the character window (UI/Reforge/ReforgeCharacterButtons.cpp): Add Stats,
- * the Reset window on the character reset or on the grand reset, and the Soul Point window. Drawn as
- * tabs over the character window's frame; only on a world with the module on.
- */
-export const ResetCharacterButtons = observer(() => {
-  if (!moduleOn('resets')) return null;
-  const resetOpen = MuWindows.isOpen(RESET_WINDOW);
-  return (
-    <AccountTabStrip>
-      <AccountButton label={t('resetWin.addStats')} active={MuWindows.isOpen(ADD_STATS_WINDOW)} onClick={() => toggle(ADD_STATS_WINDOW)} />
-      <AccountButton label={t('resetWin.title')} active={resetOpen && !Resets.showGrand} onClick={() => toggleReset(false)} />
-      <AccountButton label={t('resetWin.grandTitle')} active={resetOpen && Resets.showGrand} onClick={() => toggleReset(true)} />
-      {moduleOn('soul_points') && (
-        <AccountButton label={t('resetWin.soul')} active={MuWindows.isOpen(SOUL_WINDOW)} onClick={() => toggle(SOUL_WINDOW)} />
-      )}
-    </AccountTabStrip>
-  );
-});

@@ -58,4 +58,11 @@ export default {
   'guild.kickHint': "หากต้องการขับตัวละคร '{name}' ออก",
   'guild.enterSecurityCode': 'กรุณากรอกรหัสความปลอดภัยของบัญชีคุณ',
   'guild.securityCode': 'รหัส',
+  'guild.plateWars': 'สงครามกิลด์',
+  'guild.plateWarsTip': 'ดูรายชื่อกิลด์และประกาศสงคราม',
+  'guild.plateAlliance': 'พันธมิตรกิลด์',
+  'guild.plateAllianceTip': 'ขอเป็นพันธมิตรกับกิลด์อื่น',
+  'guild.platePositionTip': 'มอบยศให้สมาชิกที่เลือก',
+  'guild.noticePlaceholder': 'ประกาศ...',
+  'guild.noticeSend': 'ตั้งประกาศ',
 } satisfies Partial<Record<keyof typeof en, string>>;

@@ -56,4 +56,11 @@ export default {
   'guild.kickHint': 'برای بیرون کردن کاراکتر «{name}»،',
   'guild.enterSecurityCode': 'لطفاً کد امنیتی حساب خود را وارد کنید.',
   'guild.securityCode': 'کد',
+  'guild.plateWars': 'جنگ‌های انجمن',
+  'guild.plateWarsTip': 'انجمن‌ها را ببین و اعلان جنگ کن',
+  'guild.plateAlliance': 'اتحاد انجمن',
+  'guild.plateAllianceTip': 'از انجمن دیگری درخواست اتحاد کن',
+  'guild.platePositionTip': 'به عضو انتخاب‌شده یک رتبه بده',
+  'guild.noticePlaceholder': 'اطلاعیه...',
+  'guild.noticeSend': 'ثبت اطلاعیه',
 } satisfies Partial<Record<keyof typeof en, string>>;

@@ -75,6 +75,8 @@ function cutNoticeText(text: string): [string, string] {
 
 export const Notices = new (class _Notices {
   lines: NoticeLine[] = [];
+  /** The last guild announcement (type 2): our server sends it on entering the game and on each change. */
+  guildNotice = '';
   private timer: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
@@ -100,6 +102,7 @@ export const Notices = new (class _Notices {
    * addresses stay text: a clickable "claim your reward" link in every member's banner is phishing.
    */
   createGuildNotice(text: string): void {
+    this.guildNotice = text;
     this.create(t(GUILD_NOTICE_FORMAT).replace('%s', text), NoticeColor.Guild, false);
   }
 

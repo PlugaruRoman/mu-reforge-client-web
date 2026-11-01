@@ -89,4 +89,5 @@ export default {
   'eventTimer.where.swampOfPeace': 'Swamp of Peace',
   'eventTimer.where.raklion': 'Raklion',
   'eventTimer.where.raklionBossRoom': 'Raklion Boss Room',
+  'eventTimer.column.starts': 'Hasiera',
 } satisfies Partial<Record<keyof typeof en, string>>;

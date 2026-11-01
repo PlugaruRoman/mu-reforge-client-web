@@ -1,0 +1,224 @@
+// The guild browsers (our client's themes/legacy/reforge_guild_browser.rcss) in the reforge shell, in dp.
+.gw-shell {
+  // The content box is 365 high; the rcss stacks its parts without the shell's 2 px gap.
+  .rf-content {
+    gap: 0;
+  }
+
+  .gw-plate {
+    flex: 0 0 34px;
+    width: 34px;
+    height: 24px;
+    margin-left: 3px;
+
+    &:hover {
+      filter: brightness(1.25);
+    }
+
+    &:active {
+      filter: brightness(0.8);
+    }
+
+    &.disabled {
+      filter: none;
+    }
+  }
+
+  // The banner: the own state on two lines, the plates at its right end.
+  .gw-banner {
+    display: flex;
+    width: 100%;
+    height: 36px;
+    margin-bottom: 4px;
+    padding: 2px 4px;
+    box-sizing: border-box;
+    background: rgba(0, 0, 0, 0.51);
+    border: 1px solid #5a4a2c;
+
+    &.state-incoming {
+      border-color: #ffcd3c;
+    }
+
+    &.state-war {
+      border-color: #e66b57;
+    }
+
+    &.state-allied {
+      border-color: #6b9ef2;
+    }
+
+    .gw-plate {
+      margin-top: 3px;
+    }
+  }
+
+  .gw-banner-text {
+    flex: 1 1 0;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .gw-banner-line1,
+  .gw-banner-line2 {
+    height: 15px;
+    line-height: 15px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .gw-banner-line1 {
+    color: #ffd927;
+    font-weight: bold;
+  }
+
+  .gw-banner-line2 {
+    color: #a8a8a8;
+  }
+
+  // The search field and the refresh plate (36 x 29 art drawn 30 x 24).
+  .gw-search-row {
+    display: flex;
+    width: 100%;
+    height: 24px;
+    margin-bottom: 4px;
+  }
+
+  .acct-field.gw-search {
+    flex: 1 1 0;
+    min-width: 0;
+    height: 22px;
+    margin-top: 1px;
+    box-sizing: border-box;
+    font-size: 11px;
+    text-align: left;
+  }
+
+  .gw-refresh {
+    flex: 0 0 30px;
+    width: 30px;
+    height: 24px;
+    margin-left: 4px;
+    overflow: hidden;
+
+    > * {
+      transform: scale(0.8333);
+      transform-origin: 0 0;
+    }
+
+    &:hover {
+      filter: brightness(1.25);
+    }
+
+    &:active {
+      filter: brightness(0.8);
+    }
+  }
+
+  // One line: the emblem, the name (what is left), members online and score - or, for a busy guild, who
+  // it is busy with across both - and the action plate.
+  .gw-head,
+  .gw-row {
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+
+    > span {
+      flex-shrink: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      box-sizing: border-box;
+    }
+
+    .gw-mark {
+      width: 12px;
+      height: 12px;
+      margin: 0 3px;
+
+      img {
+        display: block;
+        width: 12px;
+        height: 12px;
+        image-rendering: pixelated;
+      }
+    }
+
+    .gw-name {
+      flex: 1 1 0;
+      min-width: 0;
+      padding: 0 2px;
+      color: #e6e2c8;
+    }
+
+    .gw-online {
+      width: 52px;
+      text-align: right;
+      color: #afafb4;
+    }
+
+    .gw-score {
+      width: 48px;
+      text-align: right;
+      color: #ffcd3c;
+    }
+
+    .gw-other {
+      width: 100px;
+      text-align: right;
+      color: #e66b57;
+    }
+
+    .gw-action-gap {
+      width: 37px;
+    }
+  }
+
+  .gw-head {
+    .gw-mark {
+      height: 1px;
+    }
+
+    .gw-name,
+    .gw-online,
+    .gw-score {
+      color: #ffd927;
+    }
+  }
+
+  .gw-row {
+    height: 26px;
+    line-height: 26px;
+
+    &:nth-child(even) {
+      background: rgba(0, 0, 0, 0.31);
+    }
+
+    &.busy .gw-name {
+      color: #808080;
+    }
+
+    &.ally .gw-name,
+    &.ally .gw-other {
+      color: #7ad685;
+    }
+
+    .gw-plate {
+      margin-top: 0;
+    }
+  }
+
+  .gw-list {
+    flex: 0 0 auto;
+  }
+
+  .gw-footer {
+    height: 16px;
+  }
+
+  .acct-btn.rf-btn.gw-typed {
+    width: 100%;
+    height: 20px;
+    line-height: 16px;
+    margin-top: 4px;
+  }
+}

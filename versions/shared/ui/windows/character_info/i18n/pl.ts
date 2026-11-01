@@ -35,4 +35,7 @@ export default {
   'characterInfo.quest': 'Zadanie (T)',
   'characterInfo.pet': 'Zwierzak',
   'characterInfo.masterTree': 'Drzewko mistrzowskie (A)',
+  'charInfo.plateAddStatsTip': 'Wydaj wiele punktów poziomu naraz albo pozwól, by serwer wydał je za ciebie.',
+  'charInfo.plateResetTip': 'Zaczyna postać od nowa na niższym poziomie i dodaje jeden do licznika resetów.',
+  'charInfo.plateGrandResetTip': 'Wymienia pełną serię resetów na jeden wielki reset i zaczyna je od nowa.',
 } satisfies Partial<Record<keyof typeof en, string>>;

@@ -2,12 +2,7 @@ import './style.less';
 import { useEffect, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { t, type TextKey } from '@/i18n';
-import { MuWindows } from '@/controllers/interface';
 import { serverNow } from '@/controllers/net/serverTime';
-import { ModuleWindowFrame } from '@/controllers/interface/components/module_window';
-import { MuButton } from '@/controllers/interface/components/mu_button';
-import { MuText, TEXT_COLOR } from '@/controllers/interface/components/mu_text';
-import { playUiSound } from '@/controllers/sound/sfx';
 import {
   countdownText,
   timerRows,
@@ -15,14 +10,15 @@ import {
   type TimerRow,
   type TimerTab,
 } from '@/modules/event_list';
+import { ReforgeShell, RfFooter, RfList, RfTableHead, RfTabs } from '../_shared/reforgeShell';
 import { Invasions, findRunning, isTownInvasion, requestInvasionStatus, secondsSinceDefeat } from '@/modules/invasions';
 
 /**
  * The Event Timer (H): the server's scheduled events and invasions with live countdowns, in two tabs.
  * Running events come first and count down to their end; a beaten invasion shows who slew it. Our
- * C++ client's UI/EventTimer/EventTimerWindow.cpp (reforge_event_timer.rml), drawn in the item window
- * frame. The rows are `modules/event_list/timetable.ts`; the boss status `modules/invasions`, asked
- * every five seconds while the window is open.
+ * C++ client's UI/EventTimer/EventTimerWindow.cpp (reforge_event_timer.rml), in the reforge shell. The
+ * rows are `modules/event_list/timetable.ts`; the boss status `modules/invasions`, asked every five
+ * seconds while the window is open.
  */
 
 export const EVENT_TIMER_WINDOW = 'event_timer';
@@ -113,17 +109,11 @@ function hoverDetail({ entry, state }: TimerRow, nowMs: number): string {
   return t('eventTimer.footer.detail', { where, cadence: cadence(entry), span: span(entry.timetable.durationMinutes) });
 }
 
-const TONE_COLOR: Record<Shown['tone'], string> = {
-  live: 'rgb(120, 230, 120)',
-  beaten: 'rgb(150, 150, 150)',
-  elsewhere: 'rgb(140, 170, 255)',
-  soon: 'rgb(255, 90, 70)',
-  next: TEXT_COLOR.brightOrange,
-  wait: TEXT_COLOR.brightGray,
-};
+/** reforge_event_timer.rcss: the Starts and Time columns. */
+const WHEN_WIDTH = 58;
+const TIME_WIDTH = 54;
 
 const TABS: readonly TimerTab[] = ['events', 'invasions'];
-const TAB_BUTTON = { width: 64, height: 29 };
 
 /** The whole second on the shared clock, re-read once a second while mounted. */
 function useNow(): number {
@@ -134,7 +124,6 @@ function useNow(): number {
   }, []);
   return now;
 }
-
 const Body = observer(() => {
   const now = useNow();
   const [tab, setTab] = useState<TimerTab>('events');
@@ -165,50 +154,50 @@ const Body = observer(() => {
     : t('eventTimer.clocks', { local: hhmm(local.secondOfDay), utc: hhmm(Math.floor(now / 1000) % 86_400) });
 
   return (
-    <div className="reforge-event-timer">
-      <div className="reforge-event-timer-tabs">
-        {TABS.map(id => (
-          <MuButton
-            key={id}
-            file="newui_btn_empty_small.OZT"
-            width={TAB_BUTTON.width}
-            height={TAB_BUTTON.height}
-            frames={tab === id ? { up: 2, active: 2, down: 2 } : { up: 0, active: 1, down: 2 }}
-            color={live[id] ? 'rgb(120, 230, 120)' : TEXT_COLOR.brightGray}
-            activeColor={TEXT_COLOR.white}
-            label={t(id === 'events' ? 'eventTimer.tab.events' : 'eventTimer.tab.invasions')}
-            labelStyle={{ fontSize: 11 }}
-            onClick={() => {
-              playUiSound('click');
-              setTab(id);
-              setHovered(-1);
-            }}
-          />
-        ))}
-      </div>
-      <div className="reforge-event-timer-head">
-        <MuText text={t('eventTimer.column.event')} color={TEXT_COLOR.orange} />
-        <MuText text={t('eventTimer.column.time')} color={TEXT_COLOR.orange} />
-      </div>
-      <div className="reforge-event-timer-rows" data-no-drag="true" onPointerLeave={() => setHovered(-1)}>
-        {shown.map((row, i) => (
-          <div key={rows[i].entry.id} className={`reforge-event-timer-row${hovered === i ? ' hovered' : ''}`} onPointerEnter={() => setHovered(i)}>
-            <div className="reforge-event-timer-line">
-              <MuText className="reforge-event-timer-name" text={row.name} color={TONE_COLOR[row.tone]} />
-              <MuText className="reforge-event-timer-time" text={row.time} color={TONE_COLOR[row.tone]} />
-            </div>
-            <MuText className="reforge-event-timer-when" text={row.when} color={row.tone === 'live' ? TONE_COLOR.live : 'rgb(170, 170, 170)'} />
-          </div>
-        ))}
-      </div>
-      <MuText className="reforge-event-timer-footer" text={footer} color={TEXT_COLOR.brightYellow} />
-    </div>
+    <>
+      <RfTabs
+        tabs={TABS.map(id => ({ id, label: t(id === 'events' ? 'eventTimer.tab.events' : 'eventTimer.tab.invasions'), live: live[id] }))}
+        active={tab}
+        onSelect={id => {
+          setTab(id);
+          setHovered(-1);
+        }}
+      />
+      <RfTableHead
+        className="et-head"
+        columns={[
+          { label: t('eventTimer.column.event') },
+          { label: t('eventTimer.column.starts'), width: WHEN_WIDTH },
+          { label: t('eventTimer.column.time'), width: TIME_WIDTH, align: 'right' },
+        ]}
+      />
+      <RfList height={206} className="et-list">
+        <div onPointerLeave={() => setHovered(-1)}>
+          {shown.map((row, i) => {
+            const { entry, state } = rows[i];
+            const duration = entry.timetable.durationMinutes * 60;
+            return (
+              <div key={entry.id} className={`rf-row et-row ${row.tone}${hovered === i ? ' hovered' : ''}`} onPointerEnter={() => setHovered(i)}>
+                <span className="et-gem" />
+                <span className="et-name">{row.name}</span>
+                <span className="et-when" style={{ flex: `0 0 ${WHEN_WIDTH}px` }}>{row.when}</span>
+                <span className="et-time" style={{ flex: `0 0 ${TIME_WIDTH}px` }}>{row.time}</span>
+                {row.tone === 'live' && duration > 0 && (
+                  <span className="et-drain" style={{ width: `${Math.min(100, (state.run.secondsToEnd / duration) * 100)}%` }} />
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </RfList>
+      <RfFooter className="et-footer" title={footer}>{footer}</RfFooter>
+    </>
   );
 });
 
-/** Registered by `window.ts`. */
+/** `CEventTimerWindow`: 260 x 362, tabs, the Event | Starts | Time list (206 high), the footer, Close. */
 export const EventTimerWindow = observer(() => (
-  <ModuleWindowFrame id={EVENT_TIMER_WINDOW} title={t('eventTimer.title')} hotKey={HOT_KEY}>
-    {MuWindows.isOpen(EVENT_TIMER_WINDOW) && <Body />}
-  </ModuleWindowFrame>
+  <ReforgeShell id={EVENT_TIMER_WINDOW} title={t('eventTimer.title')} hotKey={HOT_KEY} width={260} height={362} className="reforge-event-timer">
+    <Body />
+  </ReforgeShell>
 ));

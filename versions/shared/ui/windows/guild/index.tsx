@@ -40,6 +40,8 @@ import {
 } from '@/controllers/interface/components/msg_window';
 import { useNearbyPlayers } from '../_shared/nearby_players';
 import { GuildReforgeButtons } from '../guild_bank';
+import { GuildNoticeField, GuildPositionPlate, GuildRankMenu, guildReforge, rankLabelKey } from './reforgeParts';
+import { Notices } from '@/modules/chat/notices';
 
 /**
  * `CNewUIGuildInfoWindow` (Guild/NewUIGuildInfoWindow.cpp) - the three tabs
@@ -81,6 +83,8 @@ const MARK_PX = 39;
 const STATS_BOX = { x: 10, y: 159, width: 171, height: 70 };
 const NOTICE_BOX = { x: 10, y: 260, width: 171, height: 88 };
 const NOTICE_TAB = { x: 11, y: 237, width: 63, height: 25 };
+/** [reforge] The list under the master's announcement field (guild_info.rcss: top 290, 54 high). */
+const NOTICE_LIST_UNDER_FIELD = { y: 290, height: 54 };
 const STATS_X = 22;
 const STATS_Y = 169;
 const STATS_STEP = 13;
@@ -92,6 +96,10 @@ const NEARBY_BOX = { x: 13, y: 262, width: 160, height: 86 };
 const BUTTON = { width: 64, height: 29 };
 const BUTTON_ROW_Y = 360;
 const UNION_BUTTON_Y = 230;
+/** [reforge] guild_info.rcss `#btn_free_position` / `#btn_get_out`: Dissolve and Release under the list. */
+const REFORGE_MEMBER_ROW_Y = 362;
+const REFORGE_DISSOLVE_X = 26;
+const REFORGE_RELEASE_X = 100;
 const EXIT_BUTTON = { x: 13, y: 392, width: 36, height: 29 };
 
 const EXIT_SPRITE = 'newui_exit_00.OZT';
@@ -107,6 +115,12 @@ const ROLE_LABEL_KEYS: Record<number, TextKey> = {
   [GuildMemberRoleEnum.BattleMaster]: 'guild.role.battleMaster',
   [GuildMemberRoleEnum.NormalMember]: 'guild.role.member',
 };
+
+/** The member list's position; our server's ranks below the officers have their own names. */
+function roleLabel(role: number): string {
+  const key = ROLE_LABEL_KEYS[role] ?? (guildReforge() ? rankLabelKey(role) : undefined);
+  return key ? t(key) : '';
+}
 
 /** GlobalText 180 / 1330 / 1352. */
 const TABS: { key: GuildTab; labelKey: TextKey }[] = [
@@ -210,6 +224,8 @@ const InfoTab = observer(() => {
   const guild = GuildMarks.get(mine.id);
   const logo = guild?.logo ?? [];
   const war = Social.guildWar;
+  const reforge = guildReforge();
+  const noticeField = reforge && Social.isGuildMaster;
 
   const lines = [
     // GlobalText 1332 has no value in OpenMU's GuildList, so it prints the
@@ -263,14 +279,17 @@ const InfoTab = observer(() => {
         <span>{t('guild.notice')}</span>
       </MuSpriteFrame>
       {frameOf(NOTICE_BOX)}
+      {/* [reforge] the guild master's announcement field on the box's first row; the list starts under it
+          (guild_info.rcss `#gi_notice_list.reforge-with-notice-input`). */}
+      {noticeField && <GuildNoticeField />}
       <div
         className="guild-notice"
         data-no-drag="true"
         style={{
           left: NOTICE_BOX.x + 6,
-          top: NOTICE_BOX.y + 8,
+          top: noticeField ? NOTICE_LIST_UNDER_FIELD.y : NOTICE_BOX.y + 8,
           width: NOTICE_BOX.width - 12,
-          height: NOTICE_BOX.height - 16,
+          height: noticeField ? NOTICE_LIST_UNDER_FIELD.height : NOTICE_BOX.height - 16,
         }}
       >
         {war ? (
@@ -283,6 +302,9 @@ const InfoTab = observer(() => {
               {war.ownScore} : {war.enemyScore}
             </div>
           </>
+        ) : reforge ? (
+          // Our server sends the announcement (type 2) on entering the game and on each change.
+          Notices.guildNotice && <div className="guild-announcement">{Notices.guildNotice}</div>
         ) : (
           <div className="guild-hint">{t('guild.noAnnouncement')}</div>
         )}
@@ -305,6 +327,10 @@ const MembersTab = observer(() => {
   const [selected, setSelected] = useState('');
   const row = Social.guildMembers.find(m => m.name === selected);
   const canAct = master && !!row && row.name !== me;
+  // [reforge] Position is a plate off the left edge that opens a menu of every rank
+  // (ReforgeGuildButtons.cpp `OpenRankMenu`); Dissolve and Release share the row under the list.
+  const reforge = guildReforge();
+  const [rankMenu, setRankMenu] = useState(false);
 
   return (
     <>
@@ -337,13 +363,16 @@ const MembersTab = observer(() => {
               className={`guild-row${selected === m.name ? ' selected' : ''}${
                 online ? '' : ' offline'
               }`}
-              onClick={uiClick(() => setSelected(m.name))}
+              onClick={uiClick(() => {
+                setSelected(m.name);
+                setRankMenu(false);
+              })}
             >
               <span className={`guild-row-name${m.name === me ? ' me' : ''}`}>
                 {m.name}
               </span>
               <span className="guild-row-role">
-                {ROLE_LABEL_KEYS[m.role] ? t(ROLE_LABEL_KEYS[m.role]) : ''}
+                {roleLabel(m.role)}
               </span>
               <span className="guild-row-server">{online ? m.server : '-'}</span>
             </div>
@@ -352,19 +381,30 @@ const MembersTab = observer(() => {
       </div>
 
       {/* GlobalText 1307 / 1308 / 1309: appoint, demote, kick. */}
+      {reforge ? (
+        master && (
+          <GuildPositionPlate
+            active={rankMenu}
+            onClick={() => {
+              if (row && canAct && row.role !== GuildMemberRoleEnum.GuildMaster) setRankMenu(!rankMenu);
+            }}
+          />
+        )
+      ) : (
+        <GuildButton
+          x={3}
+          y={BUTTON_ROW_Y}
+          label={t('guild.position')}
+          title={t('guild.appointAssistant')}
+          disabled={!canAct}
+          onClick={() =>
+            Social.guildAssignRole(selected, GuildMemberRoleEnum.AssistantMaster)
+          }
+        />
+      )}
       <GuildButton
-        x={3}
-        y={BUTTON_ROW_Y}
-        label={t('guild.position')}
-        title={t('guild.appointAssistant')}
-        disabled={!canAct}
-        onClick={() =>
-          Social.guildAssignRole(selected, GuildMemberRoleEnum.AssistantMaster)
-        }
-      />
-      <GuildButton
-        x={64}
-        y={BUTTON_ROW_Y}
+        x={reforge ? REFORGE_DISSOLVE_X : 64}
+        y={reforge ? REFORGE_MEMBER_ROW_Y : BUTTON_ROW_Y}
         label={t('guild.dissolve')}
         title={t('guild.cannotAppoint')}
         disabled={!canAct}
@@ -373,8 +413,8 @@ const MembersTab = observer(() => {
         }
       />
       <GuildButton
-        x={125}
-        y={BUTTON_ROW_Y}
+        x={reforge ? REFORGE_RELEASE_X : 125}
+        y={reforge ? REFORGE_MEMBER_ROW_Y : BUTTON_ROW_Y}
         label={t('guild.release')}
         title={t('guild.kick', {
           name: selected || t('guild.selectedMember'),
@@ -382,7 +422,10 @@ const MembersTab = observer(() => {
         disabled={!canAct}
         onClick={() => Social.promptGuildKick(selected)}
       />
-      {master && (
+      {rankMenu && row && canAct && (
+        <GuildRankMenu name={row.name} role={row.role} onClose={() => setRankMenu(false)} />
+      )}
+      {master && !reforge && (
         <GuildButton
           x={3}
           y={BUTTON_ROW_Y - 31}
@@ -617,8 +660,11 @@ export const GuildWindow = observer(() => {
           {tab === 'members' && <MembersTab />}
           {tab === 'alliance' && <AllianceTab />}
           {/* [reforge] GuildInfoWindow.cpp: the master's Position on every tab; off Members it opens
-              that tab, where the member is picked. */}
-          {Social.isGuildMaster && tab !== 'members' && (
+              that tab, where the member is picked. A plate off the left edge on our worlds. */}
+          {Social.isGuildMaster && tab !== 'members' && guildReforge() && (
+            <GuildPositionPlate onClick={() => selectTab('members')} />
+          )}
+          {Social.isGuildMaster && tab !== 'members' && !guildReforge() && (
             <GuildButton
               x={3}
               y={BUTTON_ROW_Y}

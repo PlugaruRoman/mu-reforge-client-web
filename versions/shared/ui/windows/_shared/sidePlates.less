@@ -1,0 +1,71 @@
+// Plates beside a classic window (sidePlates.tsx). The tooltip opens away from the window, to the
+// plate's left, so it never covers the window it belongs to.
+.side-plate {
+  position: absolute;
+  z-index: 3;
+  pointer-events: auto;
+
+  &:hover > div {
+    filter: brightness(1.25);
+  }
+
+  // mu_helper_config.rcss `#btn_reforge_offexp`: 0.78 until hovered.
+  &.dim {
+    opacity: 0.78;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+
+  // A plate inside the window: its tip opens above it (the store's bottom row) or below it (the
+  // master tree's Reset Tree, at the sheet's top).
+  &.tip-above .side-plate-tip,
+  &.tip-below .side-plate-tip {
+    right: auto;
+    left: 0;
+    transform: none;
+  }
+
+  &.tip-above .side-plate-tip {
+    top: auto;
+    bottom: 100%;
+    margin: 0 0 4px;
+  }
+
+  &.tip-below .side-plate-tip {
+    top: 100%;
+    margin: 4px 0 0;
+  }
+
+  .side-plate-tip {
+    display: none;
+    position: absolute;
+    right: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    margin-right: 4px;
+    width: max-content;
+    max-width: 170px;
+    padding: 2px 5px;
+    background-color: #000000d9;
+    border: 1px solid #6a6a6a;
+    color: #fff;
+    font-size: 10px;
+    line-height: 1.25;
+    white-space: normal;
+    text-align: left;
+    pointer-events: none;
+  }
+
+  &:hover .side-plate-tip {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .side-plate-title {
+    color: #ffd927;
+    font-weight: bold;
+  }
+}

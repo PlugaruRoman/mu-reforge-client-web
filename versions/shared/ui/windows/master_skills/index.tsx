@@ -34,6 +34,9 @@ import {
   WIN_WIDTH,
 } from '@/controllers/interface/components/msg_window';
 import { MasterSkillsWindowState, toggleMasterSkillsWindow } from './windowState';
+import { moduleOn } from '@/modules/module';
+import { SidePlate } from '../_shared/sidePlates';
+import { openPaidReset } from '../reset';
 import {
   ARROWS,
   BACK_LEFT_SPRITE,
@@ -55,6 +58,8 @@ import {
   EXP_TIP,
   HEADER_Y,
   ICON_GREY_SPRITE,
+  RESET_TREE,
+  RESET_TREE_SPRITE,
   ICON_INSET_X,
   ICON_INSET_Y,
   ICON_SPRITE,
@@ -407,6 +412,26 @@ export const MasterSkillsWindow = observer(() => {
             onClick={() => toggleMasterSkillsWindow(false)}
           />
         </div>
+
+        {/* [reforge] master_level.rcss `#reforge_reset_tree`: the paid master tree reset
+            (ReforgeCharacterButtons.cpp `OpenMasterReset`). Its page is the Reset window's, which this
+            sheet would cover, so the sheet steps aside for it. */}
+        {moduleOn('resets') && (
+          <SidePlate
+            left={RESET_TREE.x}
+            top={RESET_TREE.y}
+            width={RESET_TREE.width}
+            height={RESET_TREE.height}
+            className="tip-below"
+            file={RESET_TREE_SPRITE}
+            title={t('master.resetTree')}
+            description={t('resetWin.confirmMaster')}
+            onClick={() => {
+              toggleMasterSkillsWindow(false);
+              openPaidReset('master');
+            }}
+          />
+        )}
 
         <Text x={CLASS_NAME_X} y={HEADER_Y}>
           {text.className}

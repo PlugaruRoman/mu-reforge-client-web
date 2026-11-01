@@ -37,4 +37,7 @@ export default {
   'characterInfo.quest': '任务（T）',
   'characterInfo.pet': '宠物',
   'characterInfo.masterTree': '大师技能树（A）',
+  'charInfo.plateAddStatsTip': '一次分配大量升级点数，或让服务器替你分配。',
+  'charInfo.plateResetTip': '让角色从较低等级重新开始，并使重置次数加一。',
+  'charInfo.plateGrandResetTip': '用一整轮重置换取一次大重置，并重新开始计算。',
 } satisfies Partial<Record<keyof typeof en, string>>;

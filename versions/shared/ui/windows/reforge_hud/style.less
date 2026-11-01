@@ -18,134 +18,223 @@
   }
 }
 
-.rh-title {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 12px;
-}
-
-.rh-tabs {
-  position: absolute;
-  left: 16px;
-  top: 36px;
-  width: 158px;
-  display: flex;
-  gap: 2px;
-  pointer-events: auto;
-
-  .rh-tab {
-    flex: 1;
-    padding: 3px 0;
-    font-size: 11px;
-    text-align: center;
-    color: #aaa;
-    background: rgba(0, 0, 0, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    cursor: pointer;
-
-    &.active {
-      color: #ffd927;
-      border-color: rgba(255, 210, 60, 0.8);
-    }
-  }
-}
-
-.rh-body {
-  position: absolute;
-  left: 16px;
-  top: 60px;
-  width: 158px;
-  max-height: 310px;
-  overflow-y: auto;
-  font-size: 11px;
-  color: #e2e2e2;
-  text-shadow: 1px 1px 0 #000;
-  pointer-events: auto;
-
-  .rh-line {
-    display: block;
-    margin: 3px 0;
-    text-align: center;
-    white-space: normal;
+// Guest Access in the reforge shell (reforge_guest_access.rcss, 230 x 404).
+.guest-access {
+  .ga-heading {
+    margin-bottom: 3px;
   }
 
-  .rh-row {
+  .ga-perms {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 4px;
-    margin: 2px 0;
-    white-space: nowrap;
-  }
-
-  .rh-perms {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1px 4px;
-  }
-
-  .rh-perm {
-    display: flex;
-    align-items: center;
-    gap: 2px;
-    white-space: nowrap;
-    cursor: pointer;
-
-    input {
-      margin: 0;
-      width: 11px;
-      height: 11px;
-    }
-  }
-
-  .rh-stepper {
-    display: flex;
-    gap: 6px;
-    align-items: center;
-  }
-
-  .rh-step,
-  .rh-link {
-    cursor: pointer;
-    color: #ffd927;
-  }
-
-  .rh-link.danger {
-    color: rgb(255, 90, 70);
-  }
-
-  .rh-input {
-    box-sizing: border-box;
+    flex-wrap: wrap;
     width: 100%;
-    font-size: 11px;
-    color: #fff;
-    background: rgba(0, 0, 0, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    padding: 2px 4px;
+    margin-bottom: 4px;
   }
 
-  .rh-session,
-  .rh-confirm {
-    margin: 3px 0;
-    padding: 3px 5px;
-    background: rgba(0, 0, 0, 0.35);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-  }
-
-  .rh-button {
-    flex: 1;
-    margin: 3px 0;
-    padding: 4px 2px;
-    text-align: center;
-    border: 1px solid rgba(255, 210, 120, 0.35);
-    background: linear-gradient(#3a3226, #1d1912);
+  .ga-perm {
+    display: flex;
+    align-items: center;
+    width: 50%;
+    height: 17px;
     cursor: pointer;
+    color: #a8a8a8;
 
     &:hover {
       color: #fff;
-      border-color: rgba(255, 210, 60, 0.9);
     }
+
+    &.checked {
+      color: #e2e2e2;
+
+      .acct-box {
+        background: #ffd927;
+      }
+    }
+
+    .acct-box {
+      flex: none;
+      width: 9px;
+      height: 9px;
+      border: 1px solid #a08850;
+      background: rgba(0, 0, 0, 0.6);
+    }
+  }
+
+  .ga-perm-label {
+    padding-left: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .ga-line {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    height: 20px;
+    margin-bottom: 2px;
+  }
+
+  .ga-label {
+    color: rgb(127, 178, 255);
+    white-space: nowrap;
+  }
+
+  .ga-duration {
+    margin-bottom: 6px;
+  }
+
+  .ga-stepper {
+    display: flex;
+    align-items: center;
+  }
+
+  .ga-step {
+    width: 16px;
+    height: 15px;
+    line-height: 13px;
+    box-sizing: border-box;
+    text-align: center;
+    cursor: pointer;
+    color: #ffd927;
+    background: linear-gradient(#3a2f1c, #1c160c);
+    border: 1px solid #7a6334;
+
+    &:hover {
+      border-color: #c9a55a;
+    }
+  }
+
+  .ga-step-value {
+    width: 34px;
+    text-align: center;
+    color: #ffd927;
+    font-weight: bold;
+  }
+
+  .acct-field.ga-name-field {
+    width: 110px;
+    height: 16px;
+    box-sizing: border-box;
+    text-align: left;
+  }
+
+  .ga-password {
+    width: 110px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #a8a8a8;
+
+    &.shown {
+      color: #ffd23c;
+      font-weight: bold;
+      user-select: text;
+    }
+
+    &.failed {
+      color: #ff6060;
+    }
+  }
+
+  .ga-buttons {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+    margin-top: 4px;
+  }
+
+  .ga-columns {
+    padding-right: 56px;
+  }
+
+  .ga-empty {
+    padding-top: 20px;
+    text-align: center;
+    color: #a8a8a8;
+  }
+
+  .ga-row {
+    height: 32px;
+
+    &:nth-child(even) {
+      background: rgba(0, 0, 0, 0.31);
+    }
+
+    &.expired .ga-col-time {
+      color: #ff6060;
+    }
+  }
+
+  .ga-row-text {
+    flex: 1 1 0;
+    min-width: 0;
+    height: 30px;
+    overflow: hidden;
+  }
+
+  .ga-cols {
+    display: flex;
+    height: 15px;
+    line-height: 15px;
+  }
+
+  .ga-col-name {
+    flex: 1 1 0;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-left: 3px;
+    color: #e6e2c8;
+  }
+
+  .ga-col-time {
+    flex: 0 0 64px;
+    text-align: right;
+    padding-right: 3px;
+    color: #ffcd3c;
+  }
+
+  .ga-row-password {
+    height: 15px;
+    line-height: 15px;
+    padding-left: 3px;
+    color: #96c4fa;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    &.missing {
+      color: #808080;
+    }
+  }
+
+  .acct-btn.ga-icon {
+    flex: none;
+    width: 24px;
+    min-width: 0;
+    height: 19px;
+    line-height: 15px;
+    margin-right: 2px;
+    padding: 0;
+    box-sizing: border-box;
+    font-size: 9px;
+    overflow: hidden;
+
+    &.hidden {
+      visibility: hidden;
+    }
+
+    &.ga-delete {
+      color: rgb(255, 120, 100);
+    }
+  }
+
+  .rf-footer.ga-footer {
+    height: 28px;
+    line-height: 14px;
+    white-space: normal;
   }
 }
 

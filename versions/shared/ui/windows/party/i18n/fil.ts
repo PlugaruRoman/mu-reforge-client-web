@@ -13,4 +13,8 @@ export default {
   'party.notInParty': 'Wala sa isang party.',
   'party.invite': 'Imbitahan',
   'party.shop': 'Tindahan',
+  'party.find': 'Hanapin',
+  'party.settings': 'Mga setting',
+  'party.giveLead': 'Ibigay ang pamumuno?',
+  'party.giveLeadConfirm': 'I-click ulit',
 } satisfies Partial<Record<keyof typeof en, string>>;

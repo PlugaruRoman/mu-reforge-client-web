@@ -37,4 +37,7 @@ export default {
   'characterInfo.quest': 'เควส (T)',
   'characterInfo.pet': 'สัตว์เลี้ยง',
   'characterInfo.masterTree': 'ผังสกิลมาสเตอร์ (A)',
+  'charInfo.plateAddStatsTip': 'ใช้แต้มเลเวลอัปจำนวนมากในครั้งเดียว หรือให้เซิร์ฟเวอร์ใช้แทนคุณ',
+  'charInfo.plateResetTip': 'เริ่มตัวละครใหม่ที่เลเวลต่ำลงและเพิ่มจำนวนรีเซ็ตหนึ่งครั้ง',
+  'charInfo.plateGrandResetTip': 'แลกรีเซ็ตครบหนึ่งรอบเป็นแกรนด์รีเซ็ตหนึ่งครั้ง แล้วเริ่มนับใหม่',
 } satisfies Partial<Record<keyof typeof en, string>>;

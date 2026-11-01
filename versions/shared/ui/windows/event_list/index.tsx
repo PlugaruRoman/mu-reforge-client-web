@@ -1,14 +1,8 @@
 import './style.less';
 import { useEffect, useState } from 'react';
 import { observer } from 'mobx-react-lite';
-import { runInAction } from 'mobx';
 import { t, type TextKey } from '@/i18n';
-import { MuWindows } from '@/controllers/interface';
 import { serverNow } from '@/controllers/net/serverTime';
-import { ModuleWindowFrame } from '@/controllers/interface/components/module_window';
-import { MuButton } from '@/controllers/interface/components/mu_button';
-import { MuText, TEXT_COLOR } from '@/controllers/interface/components/mu_text';
-import { playUiSound } from '@/controllers/sound/sfx';
 import {
   EventList,
   EventState,
@@ -23,12 +17,13 @@ import {
   secondsUntilStart,
   type EventListEntry,
 } from '@/modules/event_list';
+import { ReforgeShell, RfFooter, RfList } from '../_shared/reforgeShell';
 
 /**
  * The Event List (B): one card per mini-game event the server reports (C1 97): open, running or
  * waiting, the countdown to its next start, the players inside and the character's daily entries
  * left. Hovering a card names its entrance. Our C++ client's UI/EventList/EventListWindow.cpp
- * (reforge_event_list.rml), drawn in the item window frame. It asks again every five seconds while
+ * (reforge_event_list.rml), in the reforge shell. It asks again every five seconds while
  * open (C1 9F), as the old client did: a stale player count is the most misleading thing it can show.
  */
 
@@ -66,12 +61,13 @@ function stateText(entry: EventListEntry, seconds: number | null): string {
   return seconds === null ? '--:--' : countdownText(seconds);
 }
 
-function stateColor(entry: EventListEntry, seconds: number | null): string {
-  if (entry.state === EventState.Open) return 'rgb(120, 230, 120)';
-  if (entry.state === EventState.Running) return TEXT_COLOR.brightOrange;
-  if (entry.state === EventState.Ended || seconds === null) return 'rgb(150, 150, 150)';
-  if (seconds < IMMINENT_SECONDS) return 'rgb(255, 90, 70)';
-  return seconds < SOON_SECONDS ? TEXT_COLOR.orange : TEXT_COLOR.brightGray;
+/** reforge_event_list.rcss's state classes: what colours the card. */
+function stateClass(entry: EventListEntry, seconds: number | null): string {
+  if (entry.state === EventState.Open) return 'open';
+  if (entry.state === EventState.Running) return 'running';
+  if (entry.state === EventState.Ended || seconds === null) return 'ended';
+  if (seconds < IMMINENT_SECONDS) return 'imminent';
+  return seconds < SOON_SECONDS ? 'soon' : '';
 }
 
 const Card = observer(({ entry, nowMs, onHover }: { entry: EventListEntry; nowMs: number; onHover: (hint: string) => void }) => {
@@ -79,24 +75,23 @@ const Card = observer(({ entry, nowMs, onHover }: { entry: EventListEntry; nowMs
   const left = entriesLeft(entry);
   const name = NAME[entry.type];
   const hint = ENTRANCE[entry.type];
+  const classes = ['rf-row', 'el-card', stateClass(entry, seconds), isSpent(entry) ? 'spent' : '', isFull(entry) ? 'full' : '']
+    .filter(Boolean)
+    .join(' ');
   return (
-    <div
-      className={`event-list-card${isSpent(entry) ? ' spent' : ''}`}
-      onPointerEnter={() => onHover(hint ? t(hint) : '')}
-    >
-      <div className="event-list-line">
-        <MuText face="bold" text={name ? t(name) : `#${entry.type}`} color={TEXT_COLOR.brightYellow} />
-        <MuText face="bold" text={stateText(entry, seconds)} color={stateColor(entry, seconds)} />
+    <div className={classes} onPointerEnter={() => onHover(hint ? t(hint) : '')}>
+      <div className="el-line">
+        <span className="el-name">{name ? t(name) : `#${entry.type}`}</span>
+        <span className="el-state">{stateText(entry, seconds)}</span>
       </div>
-      <div className="event-list-bar">
-        <div className={`event-list-fill${isFull(entry) ? ' full' : ''}`} style={{ width: `${occupancy(entry) * 100}%` }} />
-      </div>
-      <div className="event-list-line">
-        <MuText text={`${entry.currentPlayers}/${entry.maxPlayers}`} color={TEXT_COLOR.brightGray} />
-        <MuText
-          text={left === null ? t('eventList.noLimit') : t('eventList.left', { n: left })}
-          color={left === 0 ? 'rgb(255, 90, 70)' : TEXT_COLOR.brightGray}
-        />
+      <div className="el-line">
+        <span className="el-capacity">
+          <span style={{ width: `${occupancy(entry) * 100}%` }} />
+        </span>
+        <span className="el-players">{`${entry.currentPlayers}/${entry.maxPlayers}`}</span>
+        <span className={`el-entries${left === null ? ' unlimited' : ''}`}>
+          {left === null ? t('eventList.noLimit') : t('eventList.left', { n: left })}
+        </span>
       </div>
     </div>
   );
@@ -119,37 +114,23 @@ const Body = observer(() => {
   const placeholder = EventList.receivedAtMs === null ? t('eventList.loading') : entries.length ? '' : t('eventList.empty');
 
   return (
-    <div className="event-list">
-      <div className="event-list-cards" data-no-drag="true" onPointerLeave={() => setHint('')}>
-        {placeholder && <MuText className="event-list-placeholder" text={placeholder} color={TEXT_COLOR.brightGray} />}
-        {entries.map(entry => (
-          <Card key={entry.type} entry={entry} nowMs={now} onHover={setHint} />
-        ))}
-      </div>
-      <MuText className="event-list-footer" text={hint || t('eventList.resetHint')} color={TEXT_COLOR.brightYellow} />
-      <div className="event-list-timer" data-no-drag="true">
-        <MuButton
-          file="newui_btn_empty.OZT"
-          width={108}
-          height={29}
-          frames={{ up: 0, active: 1, down: 2 }}
-          color={TEXT_COLOR.brightGray}
-          activeColor={TEXT_COLOR.white}
-          label={t('eventList.timer')}
-          labelStyle={{ fontSize: 11 }}
-          onClick={() => {
-            playUiSound('click');
-            runInAction(() => MuWindows.setOpen('event_timer', true));
-          }}
-        />
-      </div>
-    </div>
+    <>
+      <RfList height={152} className="el-list">
+        <div onPointerLeave={() => setHint('')}>
+          {placeholder && <div className="el-placeholder">{placeholder}</div>}
+          {entries.map(entry => (
+            <Card key={entry.type} entry={entry} nowMs={now} onHover={setHint} />
+          ))}
+        </div>
+      </RfList>
+      <RfFooter className="el-footer">{hint || t('eventList.resetHint')}</RfFooter>
+    </>
   );
 });
 
-/** Registered by `window.ts`. */
+/** `CEventListWindow`: 230 x 264, the card list (152 high), the footer, Close. */
 export const EventListWindow = observer(() => (
-  <ModuleWindowFrame id={WINDOW} title={t('eventList.title')} hotKey={HOT_KEY}>
-    {MuWindows.isOpen(WINDOW) && <Body />}
-  </ModuleWindowFrame>
+  <ReforgeShell id={WINDOW} title={t('eventList.title')} hotKey={HOT_KEY} height={264} className="event-list">
+    <Body />
+  </ReforgeShell>
 ));

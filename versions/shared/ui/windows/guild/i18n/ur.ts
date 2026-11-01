@@ -57,4 +57,11 @@ export default {
   'guild.kickHint': 'کردار \'{name}\' کو گلڈ سے نکالنے کے لیے،',
   'guild.enterSecurityCode': 'براہ کرم اپنے اکاؤنٹ کا حفاظتی کوڈ درج کریں۔',
   'guild.securityCode': 'کوڈ',
+  'guild.plateWars': 'گلڈ جنگیں',
+  'guild.plateWarsTip': 'گلڈز دیکھیں اور جنگ کا اعلان کریں',
+  'guild.plateAlliance': 'گلڈ اتحاد',
+  'guild.plateAllianceTip': 'کسی دوسرے گلڈ سے اتحاد کی درخواست کریں',
+  'guild.platePositionTip': 'منتخب رکن کو عہدہ دیں',
+  'guild.noticePlaceholder': 'اعلان...',
+  'guild.noticeSend': 'اعلان مقرر کریں',
 } satisfies Partial<Record<keyof typeof en, string>>;

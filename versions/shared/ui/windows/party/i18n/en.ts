@@ -11,6 +11,10 @@ const en = {
   'party.notInParty': 'Not in a party.',
   'party.invite': 'Invite',
   'party.shop': 'Shop',
+  'party.find': 'Find',
+  'party.settings': 'Settings',
+  'party.giveLead': 'Give lead?',
+  'party.giveLeadConfirm': 'Click again',
 };
 
 export default en;

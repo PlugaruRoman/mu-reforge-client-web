@@ -1,0 +1,85 @@
+@import (reference) '@/controllers/interface/components/mu_text/style.less';
+// Our client's Menu (N) launcher (reforge_menu_launcher.rcss) and HUD toggle column
+// (reforge_hud_toggles.rcss), at the right edge of the world above the bottom bar.
+.reforge-launcher,
+.reforge-toggles {
+  .mu-font();
+  position: absolute;
+  transform-origin: 0 0;
+  pointer-events: auto;
+  user-select: none;
+  font-size: 11px;
+  text-shadow: 1px 1px 0 #000;
+}
+
+// 68 x 20 on the small empty button art (idle / hover / pressed, one above the other).
+.reforge-launcher {
+  width: 68px;
+  height: 20px;
+  line-height: 20px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  cursor: pointer;
+  color: #e2e2e2;
+  background-size: 100% 300%;
+  background-position: 0 0;
+  image-rendering: pixelated;
+
+  &:hover {
+    color: #fff;
+    background-position: 0 50%;
+  }
+
+  &:active,
+  &.open {
+    color: #ffd927;
+    background-position: 0 100%;
+  }
+}
+
+.reforge-toggles {
+  width: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+// A skill box plate, lit by the selected-skill frame while on; the glyph 16 x 16 at (3, 5).
+.reforge-toggle {
+  position: relative;
+  width: 22px;
+  height: 26px;
+  cursor: pointer;
+  background-size: 100% 100%;
+  filter: brightness(0.65);
+
+  &:hover {
+    filter: brightness(0.9);
+  }
+
+  &.on {
+    filter: none;
+  }
+
+  > div {
+    position: absolute;
+    pointer-events: none;
+    background-size: 100% 100%;
+  }
+
+  .reforge-toggle-frame {
+    inset: 0;
+  }
+
+  .reforge-toggle-glyph {
+    left: 3px;
+    top: 5px;
+    width: 16px;
+    height: 16px;
+  }
+
+  &:active .reforge-toggle-glyph {
+    top: 6px;
+  }
+}

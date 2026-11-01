@@ -1,76 +1,244 @@
-// The Soul Point window (our client's reforge_soul_points.rcss): balance, category tabs, the four
-// attributes of the category and the selected one's detail, on the item window.
+// The Soul Point window (our client's reforge_soul_points.rcss, 284 x 432) in the reforge shell:
+// balance, the four-column attribute tree, the selected attribute's panel and the actions.
 .soul-body {
-  gap: 3px;
-
   .soul-balance {
     display: flex;
-    justify-content: space-between;
-    color: rgb(127, 178, 255);
-    white-space: nowrap;
+    width: 100%;
+    height: 30px;
+    margin-bottom: 4px;
+  }
 
-    b {
-      color: #ffd927;
-      font-weight: normal;
+  .soul-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1 1 0;
+    min-width: 0;
+    height: 30px;
+    margin: 0 1px;
+    padding: 0 3px;
+    box-sizing: border-box;
+    white-space: nowrap;
+    background: rgba(0, 0, 0, 0.51);
+    border: 1px solid #5a4a2c;
+  }
+
+  .soul-cell-label {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #a8a8a8;
+  }
+
+  .soul-cell-value {
+    color: #ffd927;
+    font-weight: bold;
+  }
+
+  .soul-pending .soul-cell-value {
+    color: #7ef074;
+  }
+
+  .soul-tree {
+    display: flex;
+    width: 100%;
+    height: 178px;
+  }
+
+  .soul-column {
+    flex: 1 1 0;
+    min-width: 0;
+    margin: 0 1px;
+    background: rgba(0, 0, 0, 0.35);
+    border-top: 2px solid #8a6a36;
+
+    &.category-0 {
+      border-top-color: #e66b57;
     }
 
-    .soul-pending b {
-      color: rgb(150, 235, 150);
+    &.category-1 {
+      border-top-color: #6b9ef2;
+    }
+
+    &.category-2 {
+      border-top-color: #7ad685;
+    }
+
+    &.category-3 {
+      border-top-color: #ebc761;
     }
   }
 
-  .soul-tabs .acct-btn {
-    flex: 1 1 0;
-    min-width: 0;
-    padding: 2px 1px;
+  .soul-column-name {
+    height: 13px;
+    line-height: 13px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #ffd927;
   }
 
   .soul-node {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    padding: 2px 4px;
+    height: 41px;
+    text-align: center;
     cursor: pointer;
-    pointer-events: auto;
-    background: rgba(0, 0, 0, 0.45);
-    border: 1px solid rgba(120, 100, 60, 0.5);
 
-    &.selected {
-      border-color: #ffd927;
+    &:hover .soul-slot {
+      border-color: #ffcc66;
+    }
+
+    &.invested {
+      .soul-slot {
+        border-color: #9e7a3a;
+      }
+
+      .soul-node-points {
+        color: #e6e2c8;
+      }
+    }
+
+    &.milestone-1 .soul-slot {
+      border-color: #b48c46;
+    }
+
+    &.milestone-2 .soul-slot {
+      border-color: #d8aa50;
+    }
+
+    &.milestone-3 .soul-slot,
+    &.maxed .soul-slot {
+      border-color: #ffd23c;
     }
 
     &.pending .soul-node-points {
-      color: rgb(150, 235, 150);
+      color: #7ef074;
     }
 
     &.maxed .soul-node-points {
-      color: #ffd927;
+      color: #ffd23c;
     }
 
-    .soul-node-name {
-      flex: 1;
-    }
-
-    .soul-node-milestone {
-      color: #ffb400;
-      min-width: 16px;
-    }
-
-    .soul-node-points {
-      color: #fff;
+    &.selected .soul-slot {
+      border-color: #fff;
+      background: #3a2a10;
     }
   }
 
-  .soul-line {
-    white-space: normal;
+  .soul-slot {
+    width: 22px;
+    height: 30px;
+    margin: 0 auto;
+    box-sizing: border-box;
+    background: #000;
+    border: 1px solid #6a5030;
+
+    .soul-icon {
+      width: 20px;
+      height: 28px;
+    }
+  }
+
+  .soul-node-points {
+    height: 11px;
     line-height: 11px;
+    font-size: 9px;
+    white-space: nowrap;
+    color: #a8a8a8;
+  }
+
+  .soul-detail {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-top: 4px;
+    padding: 2px 4px;
+    box-sizing: border-box;
+    background: rgba(30, 24, 16, 0.78);
+    border: 1px solid #6a5030;
+  }
+
+  .soul-detail-head {
+    display: flex;
+    height: 13px;
+    line-height: 13px;
+  }
+
+  .soul-detail-name {
+    flex: 1 1 0;
+    color: #ffcc66;
+    font-weight: bold;
+  }
+
+  .soul-bar {
+    position: relative;
+    height: 4px;
+    margin: 1px 0 2px;
+    background: #000;
+
+    > div {
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 4px;
+    }
+
+    .soul-bar-planned {
+      background: #6ee05a;
+    }
+
+    .soul-bar-committed {
+      background: #5a82c8;
+    }
+  }
+
+  .soul-detail-line {
+    min-height: 11px;
+    line-height: 11px;
+    white-space: normal;
+  }
+
+  .soul-now {
+    color: #8cbeff;
   }
 
   .soul-milestone {
-    color: #ffb400;
+    color: #ffd23c;
   }
 
   .soul-next {
     color: #a8a8a8;
+  }
+
+  .soul-steps {
+    display: flex;
+    justify-content: center;
+    margin-top: 2px;
+
+    .acct-btn.soul-step {
+      width: 42px;
+      min-width: 0;
+      height: 20px;
+      line-height: 16px;
+      margin: 0 2px;
+      padding: 0;
+      box-sizing: border-box;
+    }
+  }
+
+  .soul-message {
+    color: #ff8c7a;
+
+    &.good {
+      color: #7ef074;
+    }
+  }
+
+  .soul-actions {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 4px;
   }
 }

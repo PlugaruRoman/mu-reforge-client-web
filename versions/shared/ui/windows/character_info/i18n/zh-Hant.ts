@@ -35,4 +35,7 @@ export default {
   'characterInfo.quest': '任務（T）',
   'characterInfo.pet': '寵物',
   'characterInfo.masterTree': '大師技能樹（A）',
+  'charInfo.plateAddStatsTip': '一次分配大量升級點數，或讓伺服器替你分配。',
+  'charInfo.plateResetTip': '讓角色從較低等級重新開始，並使重置次數加一。',
+  'charInfo.plateGrandResetTip': '用一整輪重置換取一次大重置，並重新開始計算。',
 } satisfies Partial<Record<keyof typeof en, string>>;

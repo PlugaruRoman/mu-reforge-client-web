@@ -3,6 +3,7 @@ import { defineWindow, registerWindows, type WindowDef } from '@/controllers/int
 import { MsgWindow } from '@/controllers/interface/components/msg_window';
 import { PickedItemCursor } from './components/picked_item';
 import { loadVersionUi } from '@/version';
+import { applyDockOrder } from './windows/_shared/dockOrder';
 
 // Every window and HUD element under windows/ and hud/ registers itself from its
 // window.ts: adding one is adding its folder. A version replaces one by
@@ -18,4 +19,7 @@ registerWindows([
 ]);
 
 // The running version's own windows replace the shared ones with the same id.
-void loadVersionUi().then(ui => registerWindows(ui.windows ?? []));
+void loadVersionUi().then(ui => {
+  registerWindows(ui.windows ?? []);
+  applyDockOrder();
+});

@@ -58,4 +58,11 @@ export default {
   'guild.kickHint': "Ca să excluzi personajul '{name}',",
   'guild.enterSecurityCode': 'introdu codul de securitate al contului tău.',
   'guild.securityCode': 'Cod',
+  'guild.plateWars': 'Războaie de breaslă',
+  'guild.plateWarsTip': 'Răsfoiește breslele și declară război',
+  'guild.plateAlliance': 'Alianță de bresle',
+  'guild.plateAllianceTip': 'Propune o alianță altei bresle',
+  'guild.platePositionTip': 'Dă un rang membrului selectat',
+  'guild.noticePlaceholder': 'Anunț...',
+  'guild.noticeSend': 'Setează anunțul',
 } satisfies Partial<Record<keyof typeof en, string>>;

@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { t, type TextKey } from '@/i18n';
 import { MuWindows } from '@/controllers/interface/windowManager';
-import { ModuleWindowFrame } from '@/controllers/interface/components/module_window';
 import { ALL_INCLUSIVE, DURATION_DAYS, TIER_COUNT, VIP_WINDOW, Vip, VipBuyResult } from '@/modules/vip';
-import { AccountBody, AccountButton, AccountConfirm, amount, type ConfirmLine } from '../_shared/accountWidgets';
+import { AccountConfirm, amount, type ConfirmLine } from '../_shared/accountWidgets';
+import { ReforgeShell, RfButton, RfFooter, RfList } from '../_shared/reforgeShell';
 import './style.less';
 
 /** Our client's key K (UI/Reforge/ReforgeHotkeys.cpp); Babylon's skill list holds K unless rebound. */
@@ -91,8 +91,14 @@ const Card = observer(({ tier, now, onBuy }: { tier: number; now: number; onBuy:
         <span className="vip-card-name">{tierName(tier)}</span>
         <span className="vip-card-badge">{badge}</span>
       </div>
-      <div className="vip-card-line">{tierDesc(tier, 1)}</div>
-      <div className="vip-card-line">{tierDesc(tier, 2)}</div>
+      <div className="vip-card-line">
+        <span className="vip-bullet" />
+        {tierDesc(tier, 1)}
+      </div>
+      <div className="vip-card-line">
+        <span className="vip-bullet" />
+        {tierDesc(tier, 2)}
+      </div>
       <div className="vip-card-foot">
         <div className="vip-card-cost">
           <div className="vip-card-price">
@@ -100,22 +106,24 @@ const Card = observer(({ tier, now, onBuy }: { tier: number; now: number; onBuy:
           </div>
           {hint && <div className="vip-card-reason">{hint}</div>}
         </div>
-        <AccountButton
+        <RfButton
+          className="vip-buy"
           label={t(active ? 'vipShop.extend' : 'vipShop.buy')}
           disabled={!!hint || Vip.buyPending}
+          // A refused click still answers with the reason (`vip_buy`).
+          onRefused={() => hint && onBuy(tier)}
           onClick={() => onBuy(tier)}
         />
       </div>
-      {active && (
-        <div className="acct-bar">
-          <div style={{ width: `${progress * 100}%` }} />
-        </div>
-      )}
+      {active && <div className="vip-time" style={{ width: `${progress * 100}%` }} />}
     </div>
   );
 });
 
-/** `CVipShopWindow` (UI/Vip/VipShopWindow.cpp, reforge_vip_shop.rml): the W Coin balance, the running tiers and one card per tier. */
+/**
+ * `CVipShopWindow` (UI/Vip/VipShopWindow.cpp, reforge_vip_shop.rml), 300 x 452: the W Coin balance and the
+ * running tiers, the duration hint, one card per tier in the sunken list, the message line, Close.
+ */
 export const VipShopWindow = observer(() => {
   const open = MuWindows.isOpen(VIP_WINDOW);
   const [now, setNow] = useState(() => Date.now());
@@ -154,40 +162,60 @@ export const VipShopWindow = observer(() => {
   };
 
   return (
-    <ModuleWindowFrame id={VIP_WINDOW} title={t('vipShop.title')} hotKey={HOT_KEY}>
-      <AccountBody className="vip-body">
-        <div className="vip-status">
-          <span>
-            {t('vipShop.wcoin')}: <b>{amount(Vip.wcoin)}</b>
-          </span>
-          <span>
-            {t('vipShop.active')}: <b>{activeSummary(now)}</b>
-          </span>
-        </div>
-        <div className="acct-hint">{t('vipShop.durationHint')}</div>
-        {Array.from({ length: TIER_COUNT }, (_, tier) => (
-          <Card key={tier} tier={tier} now={now} onBuy={tier => {
-            onBuy(tier);
-            setNow(Date.now());
-          }} />
-        ))}
-        <div className={`acct-message${message?.good ? ' good' : ''}`}>{message?.text ?? ''}</div>
-      </AccountBody>
-      {confirm !== null && (
-        <AccountConfirm
-          lines={confirmLines(confirm, now)}
-          buttons={[
-            {
-              label: t('vipShop.ok'),
-              onClick: () => {
-                Vip.buy(confirm);
-                setConfirm(null);
+    <ReforgeShell
+      id={VIP_WINDOW}
+      title={t('vipShop.title')}
+      hotKey={HOT_KEY}
+      width={300}
+      height={452}
+      className="vip-body"
+      onClose={() => {
+        if (confirm !== null) setConfirm(null);
+        else MuWindows.setOpen(VIP_WINDOW, false);
+      }}
+      overlay={
+        confirm !== null && (
+          <AccountConfirm
+            lines={confirmLines(confirm, now)}
+            buttons={[
+              {
+                label: t('vipShop.ok'),
+                onClick: () => {
+                  Vip.buy(confirm);
+                  setConfirm(null);
+                },
               },
-            },
-            { label: t('vipShop.cancel'), onClick: () => setConfirm(null) },
-          ]}
-        />
-      )}
-    </ModuleWindowFrame>
+              { label: t('vipShop.cancel'), onClick: () => setConfirm(null) },
+            ]}
+          />
+        )
+      }
+    >
+      <div className="vip-status">
+        <span className="vip-status-cell">
+          <span className="vip-status-label">{t('vipShop.wcoin')}</span>
+          <span className="vip-status-value vip-wcoin">{amount(Vip.wcoin)}</span>
+        </span>
+        <span className="vip-status-cell vip-status-right">
+          <span className="vip-status-label">{t('vipShop.active')}</span>
+          <span className="vip-status-value">{activeSummary(now)}</span>
+        </span>
+      </div>
+      <div className="vip-hint">{t('vipShop.durationHint')}</div>
+      <RfList height={314} className="vip-cards">
+        {Array.from({ length: TIER_COUNT }, (_, tier) => (
+          <Card
+            key={tier}
+            tier={tier}
+            now={now}
+            onBuy={tier => {
+              onBuy(tier);
+              setNow(Date.now());
+            }}
+          />
+        ))}
+      </RfList>
+      <RfFooter className={`vip-message${message?.good ? ' good' : ''}`}>{message?.text ?? ''}</RfFooter>
+    </ReforgeShell>
   );
 });

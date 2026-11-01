@@ -48,7 +48,7 @@ One folder per in-game window. A window draws; its state and actions belong to i
 | `economy_prompts` | trade_prompt (340), economy_prompts (350) | trade request; zen, pin and price prompts | economy, items, inventory |
 | `system_menu` | system_menu (365) | Escape's five-button box in the world (`CSystemMenuMsgBox`); `labelFit.ts`, its labels on one line (the shrink is `menuLabelFit`); `pregame.tsx`, the server list's and character screen's `CSysMenuWin` (drawn by `src/app/App.tsx`, opened by Escape, `openPregameMenu` in `ecs/systems/keyboardInputSystem.ts`, and the character screen's Menu button) | session |
 | `window_menu` | window_menu (362) | the main frame's fifth button and U (`CNewUIWindowMenu`): System, Help, Guild, Move, Map, Gens Info; Help and Gens do nothing yet, except that with `reforge_hud` on the Gens row is the Mu Reforge menu. While up it shields every click above the main frame, whose button stays pressed (`pressed` in `hud/bottom_bar/mainFrameButtons.ts`) | session, social |
-| `reforge_menu` | reforge_menu (363) | our client's Mu Reforge menu (N, the window menu's Gens row): one button per Mu Reforge window and the requests switch (`entries.ts`); module `reforge_hud` | resets, jewel_bank, vip, soul_points, olympiad, reforge_hud, hunt_log, reforge_market, item_collections |
+| `reforge_menu` | reforge_menu (363) | our client's Mu Reforge menu (N, the HUD's Menu (N) button, the window menu's Gens row): two tabs of tiles, Windows and View & HUD (`entries.ts`: each tile's window or web setting, icon, key and footer line); module `reforge_hud` | resets, jewel_bank, vip, soul_points, olympiad, reforge_hud, hunt_log, reforge_market, item_collections |
 | `events` | events (400) | event entry windows, Chaos Castle prompt, timers, results | events, items |
 | `balgass_entry` | balgass_entry (410) | third class quest entry boxes | quests |
 | `lahap` | lahap (415) | Lahap's jewel combination boxes (`CGemIntegration*MsgBox`) | chaos_mix |
@@ -59,10 +59,30 @@ One folder per in-game window. A window draws; its state and actions belong to i
 | `credits` | - | the server list's Credit screen (`CCreditWin`): illustrations, the `credit.bmd` staff roll, logo, deco; no `window.ts`, drawn by `src/app/App.tsx` | servers |
 | `options` | - | options window; no `window.ts`, drawn by `src/app/App.tsx` | options and more |
 | `project_credits` | - | the project credits (hidden, Ctrl+F8 on every page): the special thanks, contributors with commits, bug reporters with reports, playtesters, from GitHub; no `window.ts`, drawn by `src/app/App.tsx` | credits |
-| `_shared` | - | `nearby_players.ts`: `useNearbyPlayers` for party and guild | social |
+| `_shared` | - | `nearby_players.ts`: `useNearbyPlayers` for party and guild; `reforgeShell.tsx`: the Mu Reforge window shell (below); `accountWidgets.tsx`: its rows, fields and confirm box | social |
 
 Other ids in the same stack: msg_window (360) and picked_item (500) from the interface
 controller, and the HUD elements in `../hud`.
+
+## The Mu Reforge shell
+
+Our client's Mu Reforge windows share one shell (template `window_shell`, `reforge_window.rcss`):
+`_shared/reforgeShell.tsx` is it, and the way to build a reforge window.
+
+- `ReforgeShell { id, title, width?, height?, hotKey?, onClose?, closeButton?, overlay? }`: the message
+  box art at any width (its corner ornaments keep their size, the bars between stretch), the title
+  banner, a content column 18 in from the sides, 35 under the top and 24 over the bottom, then a
+  centred Close. Sizes are our client's dp (one px of the 640x480 stage): the window opens centred,
+  is dragged from its frame and draws at the stage scale, capped at 2, times the interface scale
+  (`MuWindows.sizeToStage`). Without `height` it grows with its content. It hides while its id is
+  closed (`open` overrides) and its hot key toggles it; Escape runs `onClose`.
+- Parts, in the content column: `RfTabs` (22 high, 6 over what follows; `live` adds the green pip),
+  `RfTableHead` (gold captions; `columnStyle` sizes the cells under a column), `RfList` (the sunken
+  list, `height` at most, scrolls), `.rf-row` (a row, hover lit), `RfFooter` (16 high, muted),
+  `RfButton` (96 x 29, `small` 64; `disabled` dims and answers a click through `onRefused`),
+  `RfButtons` (a centred row), `RfClose`.
+- The desktop's size of each window is in its component's doc comment; Market and Item Collections
+  keep their own 564 x 440 and 546 x 404 table panels (also stage-scaled), the Hunting Log is a HUD box.
 
 ## Depends on / used by
 - uses: `src/modules/*` (through their doors), `Ecs.world`, `src/controllers/interface` (registry, widgets, hooks)

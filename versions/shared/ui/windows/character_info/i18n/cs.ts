@@ -35,4 +35,7 @@ export default {
   'charInfo.attackSpeed': 'Rychlost útoku: {value}',
   'charInfo.defenseRatePvpBonus': 'Úspěšnost obrany: {value} (+{bonus})',
   'charInfo.curseSpellRate': 'Poškození kletbou: {min} ~ {max}(+{rate})',
+  'charInfo.plateAddStatsTip': 'Utrať mnoho bodů za úroveň najednou, nebo je nech utratit server za tebe.',
+  'charInfo.plateResetTip': 'Začne postavu znovu na nižší úrovni a přičte jeden reset.',
+  'charInfo.plateGrandResetTip': 'Vymění celou řadu resetů za jeden grand reset a začne je znovu.',
 } satisfies Partial<Record<keyof typeof en, string>>;

@@ -1,68 +1,139 @@
-@import (reference) '@/controllers/interface/components/mu_text/style.less';
-// The Event Timer (H): tabs, a scrolled list of two-line rows and a footer, inside the item window frame.
-// `reforge-` prefixed: upstream's in-event countdown is `.event-timer` (windows/events), and its
-// `.event-timer .event-timer-line { position: absolute }` stacked our two-line rows on each other.
+// The Event Timer (H) in the reforge shell: our client's reforge_event_timer.rcss (260 x 362).
+// `reforge-` / `et-` prefixed: upstream's in-event countdown is `.event-timer` (windows/events).
 .reforge-event-timer {
-  position: absolute;
-  left: 16px;
-  top: 34px;
-  width: 158px;
-  height: 386px;
-  font-size: 11px;
-  user-select: none;
-  text-shadow: 1px 1px 0 #000;
-
-  .reforge-event-timer-tabs {
-    display: flex;
-    justify-content: center;
-    gap: 4px;
+  .et-head .rf-col:first-child {
+    padding-left: 11px;
   }
 
-  .reforge-event-timer-head,
-  .reforge-event-timer-line {
-    display: flex;
-    justify-content: space-between;
-    white-space: nowrap;
-  }
+  .et-row {
+    height: 17px;
+    line-height: 17px;
 
-  .reforge-event-timer-head {
-    margin: 4px 4px 2px;
-  }
-
-  .reforge-event-timer-rows {
-    height: 288px;
-    overflow-y: auto;
-    scrollbar-width: thin;
-    pointer-events: auto;
-  }
-
-  .reforge-event-timer-row {
-    padding: 2px 4px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    &:nth-child(even) {
+      background: rgba(0, 0, 0, 0.31);
+    }
 
     &.hovered {
-      background: rgba(255, 255, 255, 0.08);
+      background: rgba(210, 160, 70, 0.27);
+    }
+
+    .et-gem {
+      flex: 0 0 4px;
+      width: 4px;
+      height: 4px;
+      margin: 0 0 0 4px;
+      padding: 0;
+      background: #8a6a36;
+    }
+
+    .et-name {
+      flex: 1 1 0;
+      min-width: 0;
+      padding-left: 3px;
+      color: #e6e2c8;
+    }
+
+    .et-when {
+      color: #afafb4;
+    }
+
+    .et-time {
+      text-align: right;
+      padding-right: 3px;
+      color: #ffcd3c;
+      font-weight: bold;
+    }
+
+    .et-drain {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      height: 2px;
+      padding: 0;
+      background: #7ef074;
+    }
+
+    &.next {
+      background: rgba(120, 90, 30, 0.35);
+
+      .et-gem {
+        background: #ffd23c;
+      }
+    }
+
+    &.soon {
+      .et-gem {
+        background: #ff6060;
+      }
+
+      .et-time {
+        color: #ff6060;
+      }
+    }
+
+    &.live {
+      background: rgba(40, 110, 40, 0.43);
+
+      .et-gem {
+        background: #7ef074;
+      }
+
+      .et-name {
+        color: #c6f8be;
+      }
+
+      .et-when,
+      .et-time {
+        color: #7ef074;
+      }
+    }
+
+    &.beaten {
+      background: rgba(90, 20, 16, 0.47);
+
+      .et-gem {
+        flex-basis: 6px;
+        width: 6px;
+        height: 6px;
+        border-radius: 3px;
+        background: #ee5446;
+      }
+
+      .et-name {
+        color: #a8968c;
+      }
+
+      .et-when {
+        color: #ee5446;
+        font-weight: bold;
+      }
+
+      .et-time {
+        color: #aaa096;
+        font-weight: normal;
+      }
+    }
+
+    &.elsewhere {
+      .et-gem {
+        background: #82b4f0;
+      }
+
+      .et-name {
+        color: #c8cedc;
+      }
+
+      .et-when {
+        color: #82b4f0;
+      }
+
+      .et-time {
+        color: #96c4fa;
+      }
     }
   }
 
-  .reforge-event-timer-name {
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .reforge-event-timer-when {
-    display: block;
-    font-size: 10px;
-  }
-
-  .reforge-event-timer-footer {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    min-height: 28px;
-    text-align: center;
-    white-space: normal;
-    line-height: 13px;
+  .et-footer {
+    color: #9696a2;
   }
 }

@@ -57,4 +57,11 @@ export default {
   'guild.kickHint': 'Για να αποβάλετε τον χαρακτήρα «{name}»,',
   'guild.enterSecurityCode': 'εισαγάγετε τον κωδικό ασφαλείας του λογαριασμού σας.',
   'guild.securityCode': 'Κωδικός',
+  'guild.plateWars': 'Πόλεμοι συντεχνιών',
+  'guild.plateWarsTip': 'Δες τις συντεχνίες και κήρυξε πόλεμο',
+  'guild.plateAlliance': 'Συμμαχία συντεχνιών',
+  'guild.plateAllianceTip': 'Πρότεινε συμμαχία σε άλλη συντεχνία',
+  'guild.platePositionTip': 'Δώσε βαθμό στο επιλεγμένο μέλος',
+  'guild.noticePlaceholder': 'Ανακοίνωση...',
+  'guild.noticeSend': 'Όρισε ανακοίνωση',
 } satisfies Partial<Record<keyof typeof en, string>>;

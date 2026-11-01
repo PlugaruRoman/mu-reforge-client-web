@@ -53,6 +53,8 @@ import offlineModes from './offline_modes/module';
 import vaultPages from './vault_pages/module';
 import reforgeMix from './reforge_mix/module';
 import questBoard from './quest_board/module';
+import guildBrowser from './guild_browser/module';
+import partySearch from './party_search/module';
 import gm from './gm/module';
 import credits from './credits/module';
 
@@ -109,6 +111,8 @@ export const MODULES: readonly ModuleDef[] = [
   vaultPages,
   reforgeMix,
   questBoard,
+  guildBrowser,
+  partySearch,
   gm,
   credits,
 ];

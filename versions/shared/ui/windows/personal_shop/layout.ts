@@ -74,6 +74,14 @@ export const EXIT_BUTTON_X = 13;
 export const OPEN_BUTTON_X = 53;
 export const CLOSE_BUTTON_X = 93;
 
+/**
+ * [reforge] my_shop.rcss: OFF STORE is a fourth plate after Close, and four at the 40 px pitch ran
+ * the last into the corner ornament, so the row takes the inventory's 37 px pitch (13 / 50 / 87 / 124).
+ */
+export const REFORGE_OPEN_BUTTON_X = 50;
+export const REFORGE_CLOSE_BUTTON_X = 87;
+export const OFF_STORE_BUTTON_X = 124;
+
 export const EXIT_SPRITE = 'newui_exit_00.OZT';
 export const OPEN_SPRITE = 'newui_Bt_openshop.OZT';
 export const CLOSE_SPRITE = 'newui_Bt_closeshop.OZT';

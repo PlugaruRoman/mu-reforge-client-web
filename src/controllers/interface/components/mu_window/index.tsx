@@ -1,5 +1,6 @@
 import './style.less';
-import { useCallback, type CSSProperties } from 'react';
+import { useCallback, useEffect, type CSSProperties } from 'react';
+import { observable, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import { MuSpriteFrame, useMuSprite } from '../mu_sprite';
 import { MuResizeGrip, useWindowChrome } from './useWindowChrome';
@@ -26,6 +27,55 @@ const BOTTOM_BAR_HEIGHT = 51;
 export const BOTTOM_BAR_ID = 'bottom-bar';
 export const bottomBarScreenHeight = () => BOTTOM_BAR_HEIGHT * MuWindows.scaleOf(BOTTOM_BAR_ID);
 
+/**
+ * The classic windows that are open, by id, with the column they dock to. A window the player
+ * dragged away is in it too; `dockedLeftOf` leaves those out.
+ */
+const dockedColumns = observable.map<string, number>();
+
+/**
+ * True while another classic window is docked left of `id` (on a higher column): the Mu Reforge
+ * plates hanging off that window's left edge stand down, as our client's do
+ * (InventoryShortcutColumn.cpp `FollowInventory`).
+ */
+export function dockedLeftOf(id: string): boolean {
+  const column = dockedColumns.get(id);
+  if (column === undefined || !docked(id)) return false;
+  for (const [other, otherColumn] of dockedColumns) {
+    if (other !== id && otherColumn > column && docked(other)) return true;
+  }
+  return false;
+}
+
+/**
+ * The order the open classic windows pack in from the right edge, with no gap, or null (the default)
+ * for each window's own fixed column. A version that docks like our client's workspace sets it
+ * (versions/shared/ui/windows/_shared/dockOrder.ts); a window not in it keeps the column it asks for.
+ */
+let dockOrder: readonly string[] | null = null;
+
+export function setDockOrder(order: readonly string[] | null): void {
+  dockOrder = order;
+}
+
+/** The column `id` packs to, or undefined when it does not take part in the packing. */
+function packedColumn(id: string): number | undefined {
+  const at = dockOrder?.indexOf(id) ?? -1;
+  if (!dockOrder || at < 0) return undefined;
+  let column = 0;
+  for (let i = 0; i < at; i++) {
+    const other = dockOrder[i];
+    if (dockedColumns.has(other) && docked(other)) column++;
+  }
+  return column;
+}
+
+/** Still on its column: never dragged (useWindowChrome's `anchored`). */
+function docked(id: string): boolean {
+  const { x, y } = MuWindows.placement(id);
+  return x === null || y === null;
+}
+
 type MuItemWindowProps = {
   id: string;
   column?: number;
@@ -42,7 +92,8 @@ type MuItemWindowProps = {
 };
 
 export const MuItemWindow = observer(
-  ({ id, column = 0, className, style, label, onClose, children }: MuItemWindowProps) => {
+  ({ id, column: askedColumn = 0, className, style, label, onClose, children }: MuItemWindowProps) => {
+    const column = packedColumn(id) ?? askedColumn;
     const back = useMuSprite(BACK_SPRITE);
     const chrome = useWindowChrome(id, {
       width: WINDOW_WIDTH,
@@ -50,6 +101,10 @@ export const MuItemWindow = observer(
       onClose,
     });
     const stackRef = chrome.ref as (el: HTMLElement | null) => void;
+    useEffect(() => {
+      runInAction(() => dockedColumns.set(id, column));
+      return () => runInAction(() => void dockedColumns.delete(id));
+    }, [id, column]);
     // Joins the stack and takes the focus, so the window is the keyboard's
     // target the moment it opens (and Escape scopes to it).
     const ref = useCallback(

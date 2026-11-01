@@ -37,4 +37,7 @@ export default {
   'characterInfo.quest': 'Misiune (T)',
   'characterInfo.pet': 'Însoțitor',
   'characterInfo.masterTree': 'Arborele de maestru (A)',
+  'charInfo.plateAddStatsTip': 'Cheltuie multe puncte de nivel deodată sau lasă serverul să le cheltuie pentru tine.',
+  'charInfo.plateResetTip': 'Reia personajul de la un nivel mai mic și adaugă unu la numărul de reseturi.',
+  'charInfo.plateGrandResetTip': 'Schimbă o serie completă de reseturi pe un grand reset și le reia de la capăt.',
 } satisfies Partial<Record<keyof typeof en, string>>;

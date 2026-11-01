@@ -1,171 +1,88 @@
 // The guild bank (the vault's twin), its message boxes and the guild settings window.
 .guild-bank,
 .guild-settings {
-  font-size: 11px;
-
-  .window-title {
-    position: absolute;
-    left: 0;
-    right: 0;
+  .gs-legend {
+    width: 100%;
+    height: 16px;
+    line-height: 16px;
+    margin-top: 2px;
     text-align: center;
-    font-weight: bold;
-    color: #d8d8d8;
-    text-shadow: 1px 1px 0 #000;
-  }
-
-  .head-close {
-    position: absolute;
-    cursor: pointer;
-  }
-}
-
-.guild-bank {
-  .gb-hint {
-    position: absolute;
-    left: 12px;
-    right: 12px;
-    text-align: center;
-    font-size: 10px;
-    color: #ffd927;
-    text-shadow: 1px 1px 0 #000;
     white-space: nowrap;
     overflow: hidden;
+    text-overflow: ellipsis;
+    color: #a8a8a8;
   }
 
-  .gb-grid {
-    position: absolute;
-  }
-
-  .gb-locked {
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 45%;
-    text-align: center;
-    font-weight: bold;
-    color: #f04040;
-    text-shadow: 1px 1px 0 #000;
-    pointer-events: none;
-  }
-
-  .gb-money {
-    position: absolute;
-    text-align: right;
-    font-weight: bold;
-    text-shadow: 1px 1px 0 #000;
+  .gs-columns,
+  .gs-row {
+    display: flex;
+    width: 100%;
+    height: 22px;
+    line-height: 22px;
     white-space: nowrap;
   }
 
-  .gb-pager {
-    position: absolute;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    color: #e2e2e2;
-    text-shadow: 1px 1px 0 #000;
+  .gs-columns {
+    margin-top: 4px;
   }
 
-  .gb-page-btn {
-    width: 14px;
-    text-align: center;
-    font-weight: bold;
-    color: #ffd927;
-    cursor: pointer;
-    pointer-events: auto;
-
-    &.disabled {
-      color: #6a6a6a;
-      cursor: default;
-    }
-  }
-
-  .window-button {
-    position: absolute;
-
-    &.disabled {
-      opacity: 0.5;
-    }
-
-    .button-tooltip {
-      display: none;
-      position: absolute;
-      top: 100%;
-      left: 50%;
-      transform: translateX(-50%);
-      margin-top: 2px;
-      padding: 1px 4px;
-      background-color: #000000cc;
-      border: 1px solid #6a6a6a;
-      color: #fff;
-      font-size: 10px;
-      white-space: nowrap;
-      pointer-events: none;
-    }
-
-    &:hover .button-tooltip {
-      display: block;
-    }
-  }
-}
-
-.guild-settings {
-  .gs-section,
-  .gs-legend,
-  .gs-status {
-    position: absolute;
-    left: 14px;
-    right: 14px;
-    text-align: center;
-    text-shadow: 1px 1px 0 #000;
-  }
-
-  .gs-section {
-    font-weight: bold;
-    color: #ffd927;
-  }
-
-  .gs-legend {
-    color: #e2e2e2;
-  }
-
-  .gs-status {
-    font-size: 10px;
-
-    &.note {
-      color: #a0a0a0;
-    }
-    &.unsaved {
-      color: #ffb400;
-    }
-    &.saved {
-      color: #7fdc6a;
-    }
-  }
-
-  .gs-row {
-    position: absolute;
-    left: 18px;
-    right: 18px;
-    height: 18px;
-    display: flex;
-    align-items: center;
-    color: #e2e2e2;
-    text-shadow: 1px 1px 0 #000;
-
-    &.gs-head {
-      color: #ffd927;
-      font-weight: bold;
-    }
+  .gs-row:nth-child(even) {
+    background: rgba(0, 0, 0, 0.24);
   }
 
   .gs-rank {
-    flex: 1;
+    flex: 1 1 0;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-left: 6px;
   }
 
-  .gs-col {
-    width: 36px;
+  .gs-cell {
+    flex: 0 0 44px;
     display: flex;
     justify-content: center;
+    align-items: center;
+    padding: 0;
+  }
+
+  .gs-head {
+    color: #ffd927;
+    font-weight: bold;
+    cursor: pointer;
+
+    &:hover {
+      color: #fff;
+    }
+
+    &.locked {
+      cursor: default;
+
+      &:hover {
+        color: #ffd927;
+      }
+    }
+  }
+
+  .gs-status {
+    &.note {
+      color: #a0a0a0;
+    }
+
+    &.unsaved {
+      color: #ffcd3c;
+    }
+
+    &.saved {
+      color: #7ef074;
+    }
+  }
+
+  .gs-actions {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 6px;
   }
 
   .gs-check {

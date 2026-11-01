@@ -16,4 +16,5 @@ export default {
   'huntLog.nextLevelIn': 'До уровня {n}',
   'huntLog.maxLevelIn': 'До макс. уровня',
   'huntLog.resetAvailable': 'Ресет доступен!',
+  'huntLog.foldHint': 'Щелчок сворачивает или разворачивает, перетаскивание двигает',
 } satisfies Partial<Record<keyof typeof en, string>>;

@@ -34,6 +34,9 @@ const en = {
   'characterInfo.quest': 'Quest(T)',
   'characterInfo.pet': 'Pet',
   'characterInfo.masterTree': 'Master skill tree (A)',
+  'charInfo.plateAddStatsTip': 'Spend many level up points at once, or let the server spend them for you.',
+  'charInfo.plateResetTip': 'Starts the character over at a lower level and adds one to your reset count.',
+  'charInfo.plateGrandResetTip': 'Trades a full run of resets for one grand reset, and starts them again.',
 };
 
 export default en;

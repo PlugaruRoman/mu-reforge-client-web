@@ -1,12 +1,40 @@
-// The Reset window's sections (our client's reforge_reset.rcss), on the item window.
+// The Reset window's section (our client's reforge_reset.rcss), in the reforge shell.
 .reset-body {
-  gap: 5px;
+  .acct-section {
+    margin-bottom: 10px;
+    padding: 4px 6px;
+    background: rgba(0, 0, 0, 0.35);
+    border: none;
+  }
+
+  .acct-heading {
+    margin: 0 0 4px;
+    color: rgb(255, 238, 161);
+  }
+
+  .acct-row {
+    line-height: 15px;
+  }
+
+  .acct-message {
+    margin: 4px 0;
+    white-space: normal;
+  }
+
+  .rf-buttons {
+    margin-top: 2px;
+  }
 
   .reset-payment {
     margin-top: 4px;
   }
 
+  // The paid pages' price buttons: one per line, as wide as the section.
   .reset-pay {
     flex-direction: column;
+  }
+
+  .reset-paid-links {
+    margin: 0;
   }
 }

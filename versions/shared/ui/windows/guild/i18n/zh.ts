@@ -56,4 +56,11 @@ export default {
   'guild.kickHint': '要开除角色「{name}」，',
   'guild.enterSecurityCode': '请输入你的账号安全码。',
   'guild.securityCode': '安全码',
+  'guild.plateWars': '公会战争',
+  'guild.plateWarsTip': '浏览公会并宣战',
+  'guild.plateAlliance': '公会同盟',
+  'guild.plateAllianceTip': '向其他公会提出同盟',
+  'guild.platePositionTip': '给予选定成员一个阶级',
+  'guild.noticePlaceholder': '公告...',
+  'guild.noticeSend': '设置公告',
 } satisfies Partial<Record<keyof typeof en, string>>;

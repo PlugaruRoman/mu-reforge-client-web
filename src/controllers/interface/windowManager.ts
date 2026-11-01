@@ -27,6 +27,9 @@ const DEFAULT_SCALES: Record<string, number> = {
 const defaultScaleOf = (id: string): number =>
   DEFAULT_SCALES[id] ?? DEFAULT_SCALE;
 
+/** Our client's panel scale cap (UITransform.cpp): a stage-sized window grows with the screen up to this. */
+export const STAGE_SCALE_CAP = 2;
+
 /** At least this many screen pixels of a window stay reachable on every side. */
 const EDGE_MARGIN = 32;
 
@@ -63,10 +66,13 @@ export const MuWindows = new (class _MuWindows {
   private sizes = new Map<string, WindowSize>();
   /** Observable mirror of the stage size, so scales re-fit on resize. */
   private viewport = getUiViewport();
+  /** Windows laid out in the 640x480 stage's units (the Mu Reforge shell): drawn at the stage scale. */
+  private stageSized = new Set<string>();
 
   constructor() {
-    makeAutoObservable(this, {
+    makeAutoObservable<this, 'stageSized'>(this, {
       order: true,
+      stageSized: false,
     });
     this.load();
     // The interface is back: its windows mount and register again.
@@ -117,7 +123,8 @@ export const MuWindows = new (class _MuWindows {
    * scale from the options, capped so the whole window still fits.
    */
   scaleOf(id: string): number {
-    const wanted = this.placement(id).scale * uiScaleFactor(GameOptions.uiScale);
+    const base = this.stageSized.has(id) ? Math.min(this.viewport.scale, STAGE_SCALE_CAP) : this.placement(id).scale;
+    const wanted = base * uiScaleFactor(GameOptions.uiScale);
     return Math.min(wanted, this.fitScaleOf(id));
   }
 
@@ -127,6 +134,14 @@ export const MuWindows = new (class _MuWindows {
       this.placements = {};
     });
     this.save();
+  }
+
+  /**
+   * `id` is sized in stage units (desktop dp): its scale is the stage's (`min(w/640, h/480)`, capped at
+   * `STAGE_SCALE_CAP`) times the interface scale, as our client scales its RmlUi panels, not a saved one.
+   */
+  sizeToStage(id: string): void {
+    this.stageSized.add(id);
   }
 
   // ---- open state ---------------------------------------------------------

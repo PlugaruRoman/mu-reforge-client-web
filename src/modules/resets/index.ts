@@ -8,6 +8,7 @@ export {
   ADD_STATS_WINDOW,
   MIN_INTERVAL,
   MAX_INTERVAL,
+  MAX_AMOUNT_PER_REQUEST,
   canAfford,
   canPaidReset,
   clampAuto,

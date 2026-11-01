@@ -35,4 +35,7 @@ export default {
   'characterInfo.quest': 'مأموریت(T)',
   'characterInfo.pet': 'همراه',
   'characterInfo.masterTree': 'درخت مهارت استادی (A)',
+  'charInfo.plateAddStatsTip': 'امتیازهای زیادی را یک‌جا خرج کن یا بگذار سرور به جای تو خرجشان کند.',
+  'charInfo.plateResetTip': 'شخصیت را از سطح پایین‌تری دوباره شروع می‌کند و یکی به تعداد ریست‌هایت اضافه می‌کند.',
+  'charInfo.plateGrandResetTip': 'یک دور کامل ریست را با یک ریست بزرگ عوض می‌کند و آن‌ها را از نو شروع می‌کند.',
 } satisfies Partial<Record<keyof typeof en, string>>;

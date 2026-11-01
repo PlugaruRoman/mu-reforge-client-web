@@ -1,10 +1,104 @@
-// The Mu Reforge menu's rows (our client's reforge_main_menu.rcss), one button a row on the item window.
-.reforge-menu-body {
-  gap: 2px;
-  overflow-y: auto;
+// The Mu Reforge menu (our client's reforge_main_menu.rcss, 340 x 398): two columns of tiles in the
+// sunken list, each the icon plate, the name with its key chip and the state under it.
+.reforge-menu {
+  .rm-tiles {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-content: flex-start;
+    padding: 3px;
+  }
 
-  .reforge-menu-row {
-    flex: 0 0 auto;
-    text-align: center;
+  .rm-tile {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 49.4%;
+    min-height: 31px;
+    margin-bottom: 3px;
+    box-sizing: border-box;
+    cursor: pointer;
+
+    &:hover {
+      background: rgba(210, 160, 70, 0.24);
+
+      .rm-label {
+        color: #fff;
+      }
+    }
+
+    &.open {
+      background: rgba(120, 90, 30, 0.35);
+
+      .rm-state {
+        color: #ffcd3c;
+      }
+    }
+
+    &.setting .rm-state {
+      color: #9a9aa2;
+    }
+
+    &.setting.on .rm-state {
+      color: #7ef074;
+    }
+
+    &.disabled {
+      cursor: default;
+
+      &:hover {
+        background: transparent;
+      }
+
+      .rm-icon {
+        filter: grayscale(1) brightness(0.6);
+      }
+
+      .rm-label,
+      .rm-key {
+        color: #808080;
+      }
+    }
+  }
+
+  .rm-icon {
+    flex: none;
+    margin-left: 1px;
+  }
+
+  .rm-text {
+    flex: 1 1 0;
+    min-width: 0;
+    margin: 1px 3px 1px 5px;
+  }
+
+  .rm-label {
+    line-height: 13px;
+    color: #e6e2c8;
+  }
+
+  .rm-key {
+    margin-left: 5px;
+    padding: 0 3px;
+    font-size: 9px;
+    white-space: nowrap;
+    color: #d8c58a;
+    background: rgba(0, 0, 0, 0.59);
+    border: 1px solid #6a5530;
+  }
+
+  .rm-state {
+    line-height: 11px;
+    font-size: 9px;
+    white-space: nowrap;
+    color: #a8a8a8;
+  }
+
+  .rm-footer {
+    color: #9696a2;
+
+    &.unavailable {
+      color: #ff7a60;
+    }
   }
 }

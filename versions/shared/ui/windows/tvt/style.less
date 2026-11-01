@@ -1,61 +1,101 @@
 @import (reference) '@/controllers/interface/components/mu_text/style.less';
-// Team vs Team: the Battle Master's window inside the item window frame, and the arena's score board.
-.tvt-title {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 12px;
-}
-
-.tvt-body {
-  position: absolute;
-  left: 20px;
-  top: 44px;
-  width: 150px;
-  font-size: 11px;
-  user-select: none;
-  text-shadow: 1px 1px 0 #000;
-  text-align: center;
-
-  .tvt-caption,
-  .tvt-status,
-  .tvt-section,
-  .tvt-line {
-    display: block;
-    white-space: normal;
-  }
-
+// Team vs Team: the Battle Master's window in the reforge shell (reforge_tvt.rcss, 230 x 330), and the
+// arena's score board.
+.tvt-window {
   .tvt-status {
-    margin: 2px 0 12px;
-    font-size: 14px;
-    line-height: 18px;
+    width: 100%;
+    box-sizing: border-box;
+    height: 38px;
+    margin-bottom: 6px;
+    padding-top: 3px;
+    text-align: center;
+    background: rgba(0, 0, 0, 0.43);
+    border: 1px solid #5a4a2c;
+
+    &.open {
+      .tvt-status-caption {
+        color: #96eb96;
+        font-weight: bold;
+      }
+
+      .tvt-status-value {
+        color: #c8c8cd;
+        font-weight: normal;
+      }
+    }
   }
 
-  .tvt-section {
-    margin: 10px 0 4px;
+  .tvt-status-caption {
+    height: 15px;
+    line-height: 15px;
+    color: #afafb4;
   }
 
-  .tvt-slots {
+  .tvt-status-value {
+    height: 16px;
+    line-height: 16px;
+    color: #ffcd3c;
+    font-weight: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .tvt-schedule {
     display: flex;
     flex-wrap: wrap;
-    justify-content: center;
-    gap: 4px;
+    margin-bottom: 6px;
+    padding: 1px 0;
   }
 
   .tvt-slot {
-    padding: 1px 4px;
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    width: 50%;
+    height: 19px;
+    line-height: 19px;
+    text-align: center;
+    color: #dcd8c8;
 
     &.next {
-      border-color: rgba(255, 210, 60, 0.8);
+      color: #ffcd3c;
+      font-weight: bold;
     }
   }
-}
 
-.tvt-join {
-  position: absolute;
-  left: 41px;
-  top: 350px;
+  .tvt-arena {
+    width: 100%;
+    box-sizing: border-box;
+    height: 48px;
+    padding-top: 3px;
+    text-align: center;
+    background: rgba(0, 0, 0, 0.43);
+    border: 1px solid #5a4a2c;
+  }
+
+  .tvt-arena-line {
+    height: 14px;
+    line-height: 14px;
+    color: #c8c8d2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .tvt-requirement {
+    color: #ffaa6e;
+    font-weight: bold;
+  }
+
+  .tvt-actions {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 8px;
+  }
+
+  .acct-btn.tvt-join {
+    color: #ffeea1;
+    font-weight: bold;
+  }
 }
 
 .tvt-score {

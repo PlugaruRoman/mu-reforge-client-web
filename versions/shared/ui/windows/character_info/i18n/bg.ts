@@ -37,4 +37,7 @@ export default {
   'characterInfo.quest': 'Мисия (T)',
   'characterInfo.pet': 'Питомец',
   'characterInfo.masterTree': 'Дърво на майсторството (A)',
+  'charInfo.plateAddStatsTip': 'Разпредели много точки наведнъж или остави сървъра да го направи вместо теб.',
+  'charInfo.plateResetTip': 'Започва героя отначало на по-ниско ниво и добавя едно към броя ресети.',
+  'charInfo.plateGrandResetTip': 'Заменя пълна серия ресети с един гранд ресет и ги започва отново.',
 } satisfies Partial<Record<keyof typeof en, string>>;

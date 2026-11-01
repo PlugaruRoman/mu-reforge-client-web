@@ -1,54 +1,89 @@
-@import (reference) '@/controllers/interface/components/mu_text/style.less';
-// Captain Slough's quest board inside the item window frame.
-.quest-board-title {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 12px;
-}
-
-.quest-board-body {
-  position: absolute;
-  left: 20px;
-  top: 44px;
-  width: 150px;
-  font-size: 11px;
-  user-select: none;
-  text-shadow: 1px 1px 0 #000;
-  text-align: center;
-
-  .quest-board-step,
-  .quest-board-name,
-  .quest-board-line,
-  .quest-board-section {
-    display: block;
-    white-space: normal;
+// Captain Slough's quest board in the reforge shell (reforge_quest_board.rcss, 230 x 214).
+.quest-board {
+  .qb-quest,
+  .qb-empty {
+    width: 100%;
+    box-sizing: border-box;
+    height: 112px;
+    text-align: center;
   }
 
-  .quest-board-name {
-    margin: 4px 0 8px;
-    font-size: 13px;
+  .qb-step {
+    height: 14px;
+    line-height: 14px;
+    color: #b4b4b4;
   }
 
-  .quest-board-section {
-    margin: 12px 0 4px;
+  .qb-name {
+    height: 18px;
+    line-height: 18px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #ffd278;
+    font-weight: bold;
   }
 
-  .quest-board-bar {
+  .qb-progress {
+    height: 26px;
+    margin: 2px 8px 4px;
+
+    &.done {
+      .qb-progress-text {
+        color: #78eb78;
+      }
+
+      .qb-bar > div {
+        background: #6ee05a;
+      }
+    }
+  }
+
+  .qb-progress-text {
+    height: 14px;
+    line-height: 14px;
+    color: #dcdcdc;
+  }
+
+  .qb-bar {
+    width: 100%;
+    box-sizing: border-box;
     height: 6px;
-    margin: 4px 0;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    background: rgba(0, 0, 0, 0.5);
+    margin-top: 2px;
+    background: #000;
+    border: 1px solid #6a5030;
+
+    > div {
+      height: 100%;
+      background: #c89632;
+    }
   }
 
-  .quest-board-fill {
-    height: 100%;
-    background: rgb(220, 170, 40);
+  .qb-reward-label {
+    height: 14px;
+    line-height: 14px;
+    color: #ffd927;
+    font-weight: bold;
   }
-}
 
-.quest-board-actions {
-  position: absolute;
-  left: 41px;
-  top: 350px;
+  .qb-reward {
+    line-height: 13px;
+    color: #c8c8ff;
+  }
+
+  .qb-empty {
+    padding-top: 44px;
+    color: #c8c8c8;
+
+    &.done {
+      color: #78eb78;
+    }
+  }
+
+  .qb-actions {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 6px;
+  }
 }

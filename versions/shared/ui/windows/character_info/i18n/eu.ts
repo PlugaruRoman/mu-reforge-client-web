@@ -35,4 +35,7 @@ export default {
   'charInfo.attackSpeed': 'Eraso-abiadura: {value}',
   'charInfo.defenseRatePvpBonus': 'Defentsa-tasa: {value} (+{bonus})',
   'charInfo.curseSpellRate': 'Madarikazio-kaltea: {min} ~ {max}(+{rate})',
+  'charInfo.plateAddStatsTip': 'Gastatu maila-puntu asko batera, edo utzi zerbitzariari zure ordez gastatzen.',
+  'charInfo.plateResetTip': 'Pertsonaia maila baxuago batetik hasten du berriz eta reset bat gehitzen dizu.',
+  'charInfo.plateGrandResetTip': 'Reset sorta oso bat grand reset baten truke aldatzen du, eta berriz hasten ditu.',
 } satisfies Partial<Record<keyof typeof en, string>>;

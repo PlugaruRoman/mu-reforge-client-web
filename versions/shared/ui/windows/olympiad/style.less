@@ -1,148 +1,358 @@
-// The Battle Statue window and the Death Records, inside the item window frame (190 x 429).
-.ol-title {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 12px;
-}
-
-.ol-body {
-  position: absolute;
-  left: 16px;
-  top: 38px;
-  width: 158px;
-  max-height: 290px;
-  overflow: hidden;
-  font-size: 11px;
-  user-select: none;
-  text-shadow: 1px 1px 0 #000;
-
-  .ol-line {
-    display: block;
-    margin: 2px 0;
-    white-space: normal;
-    text-align: center;
+// The Battle Statue window (250 x 420, reforge_olympiad.rcss) and the Death Records (316 x 392,
+// reforge_death_records.rcss), in the reforge shell.
+.olympiad {
+  .ol-panel {
+    width: 100%;
+    box-sizing: border-box;
+    margin: 2px 0 4px;
+    padding: 3px 8px;
+    background: rgba(0, 0, 0, 0.43);
+    border: 1px solid #5a4a2c;
   }
 
-  .ol-panel {
-    margin: 4px 0;
-    padding: 3px 5px;
-    background: rgba(0, 0, 0, 0.35);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+  .ol-panel-title {
+    height: 16px;
+    line-height: 16px;
+    margin-bottom: 2px;
+    text-align: center;
+    font-weight: bold;
+    color: #ffe196;
+    border-bottom: 1px solid #8a6a36;
+  }
 
-    .ol-panel-title {
-      display: block;
-      text-align: center;
-      margin-bottom: 2px;
-    }
+  .ol-status .ol-line {
+    font-weight: bold;
   }
 
   .ol-row {
     display: flex;
-    justify-content: space-between;
+    height: 14px;
+    line-height: 14px;
     white-space: nowrap;
-    margin: 1px 0;
   }
 
-  .ol-table {
-    margin: 4px 0;
-    pointer-events: auto;
-    color: #e2e2e2;
-  }
-
-  .ol-table-row {
-    display: grid;
-    grid-template-columns: 1fr 26px 30px 26px 14px;
-    gap: 2px;
-    padding: 1px 3px;
-    white-space: nowrap;
+  .ol-label {
+    flex: 1 1 0;
+    min-width: 0;
     overflow: hidden;
+    text-overflow: ellipsis;
+    color: #afafb4;
+  }
 
-    span {
+  .ol-value {
+    flex-shrink: 0;
+    padding-left: 4px;
+    font-weight: bold;
+  }
+
+  .ol-line {
+    width: 100%;
+    min-height: 14px;
+    line-height: 14px;
+    text-align: center;
+    white-space: normal;
+  }
+
+  .ol-heroes,
+  .ol-shop {
+    width: 100%;
+    margin-bottom: 4px;
+  }
+
+  .ol-hero-columns {
+    display: flex;
+    width: 100%;
+    height: 15px;
+    line-height: 15px;
+    white-space: nowrap;
+
+    > span {
+      flex-shrink: 0;
       overflow: hidden;
       text-overflow: ellipsis;
-    }
+      padding-left: 4px;
+      text-align: right;
+      box-sizing: border-box;
 
-    &.head {
-      color: #ffb400;
-    }
-
-    &.certified {
-      color: #ffd927;
-    }
-
-    &.shop {
-      grid-template-columns: 1fr 40px;
-    }
-
-    &.dr {
-      grid-template-columns: 1fr 36px 30px;
-    }
-
-    &.buy {
-      cursor: pointer;
-      background: rgba(0, 0, 0, 0.3);
-      margin-bottom: 1px;
-
-      &:hover {
-        background: rgba(255, 210, 60, 0.15);
+      &:nth-child(1) {
+        flex: 1 1 0;
+        min-width: 0;
+        padding-left: 0;
+        text-align: left;
       }
 
-      &.disabled {
-        color: #888;
-        cursor: default;
+      &:nth-child(2) {
+        width: 30px;
       }
 
-      &.selected {
-        background: rgba(255, 210, 60, 0.2);
+      &:nth-child(3) {
+        width: 38px;
+      }
+
+      &:nth-child(4) {
+        width: 34px;
+      }
+
+      &:nth-child(5) {
+        width: 22px;
       }
     }
   }
 
-  .dr-table {
-    max-height: 170px;
-    overflow-y: auto;
+  .ol-hero {
+    color: #b4b4b4;
+
+    &.certified {
+      color: #ffcd3c;
+    }
+  }
+
+  .ol-shop-columns {
+    display: flex;
+    width: 100%;
+    height: 18px;
+    line-height: 18px;
+    white-space: nowrap;
+  }
+
+  .ol-shop-name {
+    flex: 1 1 0;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-left: 4px;
+  }
+
+  .ol-shop-price {
+    flex: 0 0 50px;
+    text-align: right;
+    padding-right: 4px;
+    font-weight: bold;
+  }
+
+  .ol-shop-row {
+    color: #e6e2c8;
+    cursor: pointer;
+
+    .ol-shop-price {
+      color: #ffcd3c;
+    }
+
+    &:nth-child(even) {
+      background: rgba(0, 0, 0, 0.3);
+    }
+
+    &.locked,
+    &.locked .ol-shop-price {
+      color: #82828a;
+      cursor: default;
+    }
+  }
+
+  .ol-shop-empty {
+    height: 18px;
+    line-height: 18px;
+    text-align: center;
+    color: #a0a0aa;
+  }
+
+  .ol-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+    margin-top: 6px;
+
+    .acct-btn.rf-btn.ol-btn {
+      width: 47%;
+      margin: 1px 1%;
+
+      &.wide {
+        width: 96%;
+      }
+    }
   }
 }
 
-.ol-buttons {
-  position: absolute;
-  left: 16px;
-  width: 158px;
-  bottom: 52px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 3px;
-  pointer-events: auto;
-
-  .ol-button {
-    flex: 1 1 calc(50% - 2px);
+.death-records {
+  .dr-summary {
+    display: flex;
+    width: 100%;
     box-sizing: border-box;
-    padding: 4px 2px;
-    font-size: 11px;
+    height: 34px;
+    margin-bottom: 6px;
+    background: rgba(0, 0, 0, 0.43);
+    border: 1px solid #5a4a2c;
+  }
+
+  .dr-stat {
+    flex: 1 1 0;
+    min-width: 0;
+    padding-top: 2px;
     text-align: center;
-    color: #e2e2e2;
-    text-shadow: 1px 1px 0 #000;
     white-space: nowrap;
     overflow: hidden;
+
+    & + .dr-stat {
+      border-left: 1px solid rgba(158, 143, 107, 0.5);
+    }
+  }
+
+  .dr-stat-label {
+    height: 14px;
+    line-height: 14px;
+    color: #afafb4;
+  }
+
+  .dr-stat-value {
+    height: 15px;
+    line-height: 15px;
+    font-weight: bold;
+    overflow: hidden;
     text-overflow: ellipsis;
-    border: 1px solid rgba(255, 210, 120, 0.35);
-    background: linear-gradient(#3a3226, #1d1912);
-    cursor: pointer;
+  }
+
+  .dr-stat-deaths .dr-stat-value {
+    color: #ff7878;
+  }
+
+  .dr-stat-kills .dr-stat-value {
+    color: #8ceb8c;
+  }
+
+  .dr-stat-kd .dr-stat-value {
+    color: #ffcd3c;
+  }
+
+  .dr-stat-kd.ahead .dr-stat-value {
+    color: #8ceb8c;
+  }
+
+  .dr-stat-nemesis .dr-stat-value {
+    color: #a0a0aa;
+  }
+
+  .dr-stat-nemesis.has-nemesis .dr-stat-value {
+    color: #ff6e5a;
+  }
+
+  // The list keeps its scrollbar's width; the captions leave the same gap so the columns line up.
+  .dr-head {
+    padding-right: 15px;
+  }
+
+  .dr-list {
+    overflow-y: scroll;
+  }
+
+  .dr-row {
+    height: 17px;
+    line-height: 17px;
+    text-align: center;
+
+    &:nth-child(even) {
+      background: rgba(0, 0, 0, 0.3);
+    }
+
+    .dr-killer {
+      color: #96cdff;
+    }
+
+    .dr-where {
+      color: #e6e2c8;
+    }
+
+    .dr-when {
+      color: #a5a5af;
+    }
 
     &:hover {
-      color: #fff;
-      border-color: rgba(255, 210, 60, 0.9);
+      .dr-killer {
+        color: #c8e6ff;
+      }
+
+      .dr-where {
+        color: #fff;
+      }
     }
 
-    &.wide {
-      flex-basis: 100%;
-    }
+    &.nemesis {
+      background: rgba(140, 31, 31, 0.5);
 
-    &.disabled {
-      color: #777;
-      border-color: rgba(255, 255, 255, 0.1);
-      cursor: default;
+      .dr-killer {
+        color: #ff8c78;
+        font-weight: bold;
+      }
     }
+  }
+
+  .dr-guild {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    &.no-guild .dr-guild-name {
+      color: #78787d;
+    }
+  }
+
+  .dr-mark {
+    flex: none;
+    width: 9px;
+    height: 9px;
+    margin-right: 2px;
+    image-rendering: pixelated;
+  }
+
+  .dr-guild-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #ffdc8c;
+  }
+
+  .dr-deaths {
+    color: #ff7878;
+    font-weight: bold;
+  }
+
+  .dr-sep {
+    color: #96969b;
+  }
+
+  .dr-kills {
+    color: #8ceb8c;
+    font-weight: bold;
+  }
+
+  .dr-empty {
+    padding-top: 70px;
+    text-align: center;
+  }
+
+  .dr-empty-title {
+    color: #c8c8d2;
+    font-weight: bold;
+  }
+
+  .dr-empty-hint {
+    margin-top: 6px;
+    color: #96969b;
+  }
+
+  .dr-footer {
+    color: #c8bea0;
+  }
+
+  .dr-footer-detail {
+    margin-top: 0;
+    color: #9696a2;
+  }
+
+  .dr-actions {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 4px;
   }
 }

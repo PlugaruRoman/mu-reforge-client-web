@@ -35,4 +35,7 @@ export default {
   'charInfo.attackSpeed': 'Támadási sebesség: {value}',
   'charInfo.defenseRatePvpBonus': 'Védési arány: {value} (+{bonus})',
   'charInfo.curseSpellRate': 'Átoksebzés: {min} ~ {max}(+{rate})',
+  'charInfo.plateAddStatsTip': 'Költs el egyszerre sok szintpontot, vagy hagyd, hogy a szerver költse el helyetted.',
+  'charInfo.plateResetTip': 'Alacsonyabb szintről újrakezdi a karaktert, és eggyel növeli a resetjeid számát.',
+  'charInfo.plateGrandResetTip': 'Egy teljes reset-sorozatot egy grand resetre cserél, és újrakezdi őket.',
 } satisfies Partial<Record<keyof typeof en, string>>;

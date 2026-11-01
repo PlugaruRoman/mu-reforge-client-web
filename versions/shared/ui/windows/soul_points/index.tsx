@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { t, type TextKey } from '@/i18n';
 import { MuWindows } from '@/controllers/interface/windowManager';
-import { ModuleWindowFrame } from '@/controllers/interface/components/module_window';
+import { MuSpriteFrame } from '@/controllers/interface/components/mu_sprite';
 import { playUiSound } from '@/controllers/sound/sfx';
 import {
   MILESTONE_COUNT,
@@ -15,7 +15,8 @@ import {
   primaryValue,
   reachedMilestone,
 } from '@/modules/soul_points';
-import { AccountBody, AccountButton, AccountConfirm, AccountRow, amount, type ConfirmLine } from '../_shared/accountWidgets';
+import { AccountButton, AccountConfirm, amount, type ConfirmLine } from '../_shared/accountWidgets';
+import { ReforgeShell, RfButton, RfFooter } from '../_shared/reforgeShell';
 import './style.less';
 
 /** Our client's key S (UI/Reforge/ReforgeHotkeys.cpp); Babylon's bag sort holds S unless rebound. */
@@ -75,13 +76,25 @@ const PAYMENTS: readonly { payment: SoulPayment; name: TextKey; unit: TextKey }[
 type Message = { text: string; good: boolean } | null;
 
 /**
- * `CSoulPointWindow` (UI/SoulPoints/SoulPointWindow.cpp, reforge_soul_points.rml): the balance, the 16
- * attributes in their four categories, the selected one's bonus and milestones with the step
- * buttons. Invest sends the plan after a confirmation; Reset offers the paid reset.
+ * Each attribute's node icon (reforge_soul_points.rcss `icon-N`): the 20x28 cell of the buff that does
+ * the same thing, on newui_statusicon (1) or newui_statusicon2 (2).
+ */
+const ICONS: readonly (readonly [1 | 2, number, number])[] = [
+  [1, 0, 0], [2, 180, 0], [2, 160, 0], [1, 100, 112],
+  [1, 20, 0], [1, 0, 196], [1, 140, 0], [1, 60, 0],
+  [1, 20, 168], [1, 40, 168], [1, 80, 112], [2, 40, 56],
+  [1, 0, 112], [1, 180, 84], [2, 0, 56], [2, 120, 0],
+];
+const ICON_FILE = { 1: 'newui_statusicon.OZJ', 2: 'newui_statusicon2.OZJ' } as const;
+
+/**
+ * `CSoulPointWindow` (UI/SoulPoints/SoulPointWindow.cpp, reforge_soul_points.rml), 284 x 432: the balance,
+ * the 16 attributes as a tree of four columns (attack, defense, support, misc), the selected one's bonus
+ * and milestones with the step buttons, the message line, then Reset | Invest | Close. Invest sends the
+ * plan after a confirmation; Reset offers the paid reset.
  */
 export const SoulPointWindow = observer(() => {
   const open = MuWindows.isOpen(SOUL_WINDOW);
-  const [category, setCategory] = useState(0);
   const [selected, setSelected] = useState(0);
   const [message, setMessage] = useState<Message>(null);
   const [dialog, setDialog] = useState<'invest' | 'reset' | null>(null);
@@ -127,125 +140,160 @@ export const SoulPointWindow = observer(() => {
     { text: t('soul.freeingCosts') },
   ];
 
+  const detailHint = [
+    t('soul.highestOnly'),
+    definition.multiplies ? t('soul.multiplies') : '',
+    committed > 0 ? t('soul.lockedIn', { points: committed }) : '',
+  ]
+    .filter(Boolean)
+    .join('\n');
+
   return (
-    <ModuleWindowFrame id={SOUL_WINDOW} title={t('soul.title')} hotKey={HOT_KEY}>
-      <AccountBody className="soul-body">
-        <div className="soul-balance">
-          <span>
-            {t('soul.available')} <b>{amount(SoulPoints.left)}</b>
-          </span>
-          <span>
-            {t('soul.invested')} <b>{amount(SoulPoints.investedTotal)}</b>
-          </span>
-          <span className="soul-pending">
-            {t('soul.pending')} <b>{amount(SoulPoints.pendingTotal)}</b>
-          </span>
-        </div>
-        <div className="acct-buttons soul-tabs">
-          {CATEGORIES.map((key, c) => (
-            <AccountButton
-              key={key}
-              label={t(key)}
-              active={category === c}
-              onClick={() => {
-                setCategory(c);
-                setSelected(c * PER_CATEGORY);
-              }}
+    <ReforgeShell
+      id={SOUL_WINDOW}
+      title={t('soul.title')}
+      hotKey={HOT_KEY}
+      width={284}
+      height={432}
+      closeButton={false}
+      className="soul-body"
+      onClose={() => {
+        if (dialog) setDialog(null);
+        else MuWindows.setOpen(SOUL_WINDOW, false);
+      }}
+      overlay={
+        <>
+          {dialog === 'invest' && (
+            <AccountConfirm
+              lines={investLines()}
+              buttons={[
+                {
+                  label: t('soul.invest'),
+                  onClick: () => {
+                    SoulPoints.invest();
+                    setDialog(null);
+                  },
+                },
+                { label: t('soul.cancel'), onClick: () => setDialog(null) },
+              ]}
             />
+          )}
+          {dialog === 'reset' && (
+            <AccountConfirm
+              lines={[
+                { text: t('soul.resetTitle'), bold: true },
+                { text: t('soul.resetFrees', { points: SoulPoints.investedTotal }) },
+                { text: t('soul.howToPay') },
+              ]}
+              buttons={[
+                ...PAYMENTS.map(({ payment, name, unit }) => ({
+                  label: `${t(name)}: ${amount(SoulPoints.costs[payment])} ${t(unit)}`,
+                  title: t(payment === SoulPayment.Bless ? 'soul.youHaveBank' : 'soul.youHave', { amount: amount(SoulPoints.balances[payment]) }),
+                  disabled: SoulPoints.balances[payment] < SoulPoints.costs[payment],
+                  onClick: () => {
+                    SoulPoints.reset(payment);
+                    setDialog(null);
+                  },
+                })),
+                { label: t('soul.cancel'), onClick: () => setDialog(null) },
+              ]}
+            />
+          )}
+        </>
+      }
+    >
+      <div className="soul-balance">
+        <div className="soul-cell">
+          <span className="soul-cell-label">{t('soul.available')}</span>
+          <span className="soul-cell-value">{amount(SoulPoints.left)}</span>
+        </div>
+        <div className="soul-cell">
+          <span className="soul-cell-label">{t('soul.invested')}</span>
+          <span className="soul-cell-value">{amount(SoulPoints.investedTotal)}</span>
+        </div>
+        <div className="soul-cell soul-pending">
+          <span className="soul-cell-label">{t('soul.pending')}</span>
+          <span className="soul-cell-value">{amount(SoulPoints.pendingTotal)}</span>
+        </div>
+      </div>
+      <div className="soul-tree">
+        {CATEGORIES.map((key, c) => (
+          <div key={key} className={`soul-column category-${c}`}>
+            <div className="soul-column-name">{t(key)}</div>
+            {Array.from({ length: PER_CATEGORY }, (_, i) => c * PER_CATEGORY + i).map(a => {
+              const points = SoulPoints.planned[a];
+              const milestone = reachedMilestone(a, points);
+              const [file, x, y] = ICONS[a];
+              const classes = [
+                'soul-node',
+                selected === a ? 'selected' : '',
+                SoulPoints.allocated[a] > 0 ? 'invested' : '',
+                points > SoulPoints.allocated[a] ? 'pending' : '',
+                points >= SoulPoints.caps[a] ? 'maxed' : '',
+                milestone >= 0 ? `milestone-${milestone + 1}` : '',
+              ]
+                .filter(Boolean)
+                .join(' ');
+              return (
+                <div
+                  key={a}
+                  className={classes}
+                  title={attrName(a)}
+                  onClick={() => {
+                    if (selected !== a) playUiSound('click');
+                    setSelected(a);
+                  }}
+                >
+                  <div className="soul-slot">
+                    <MuSpriteFrame file={ICON_FILE[file]} x={x} y={y} width={20} height={28} className="soul-icon" />
+                  </div>
+                  <div className="soul-node-points">
+                    {points}/{SoulPoints.caps[a]}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+      <div className="soul-detail" title={detailHint}>
+        <div className="soul-detail-head">
+          <span className="soul-detail-name">{attrName(selected)}</span>
+          <span className="soul-detail-points">{`${planned} / ${cap}`}</span>
+        </div>
+        <div className="soul-bar">
+          <div className="soul-bar-planned" style={{ width: `${(planned / Math.max(1, cap)) * 100}%` }} />
+          <div className="soul-bar-committed" style={{ width: `${(committed / Math.max(1, cap)) * 100}%` }} />
+        </div>
+        <div className="soul-detail-line soul-now">{t('soul.now', { bonus: primaryText(selected, planned), what: attrWhat(selected) })}</div>
+        <div className="soul-detail-line soul-milestone">
+          {reached >= 0 ? t('soul.milestoneActive', { bonus: milestoneText(selected, reached), what: milestoneWhat(selected) }) : ''}
+        </div>
+        <div className="soul-detail-line soul-next">{nextMilestone(selected, planned)}</div>
+        <div className="soul-steps">
+          {STEPS.map(delta => (
+            <AccountButton key={delta} className="soul-step" label={delta > 0 ? `+${delta}` : String(delta)} onClick={() => stepBy(delta)} />
           ))}
         </div>
-        {Array.from({ length: PER_CATEGORY }, (_, i) => category * PER_CATEGORY + i).map(a => {
-          const points = SoulPoints.planned[a];
-          const milestone = reachedMilestone(a, points);
-          return (
-            <div
-              key={a}
-              className={`soul-node${selected === a ? ' selected' : ''}${points > SoulPoints.allocated[a] ? ' pending' : ''}${points >= SoulPoints.caps[a] ? ' maxed' : ''}`}
-              data-no-drag="true"
-              onClick={() => {
-                if (selected !== a) playUiSound('click');
-                setSelected(a);
-              }}
-            >
-              <span className="soul-node-name">{attrName(a)}</span>
-              <span className={`soul-node-milestone m${milestone + 1}`}>{'*'.repeat(milestone + 1)}</span>
-              <span className="soul-node-points">
-                {points} / {SoulPoints.caps[a]}
-              </span>
-            </div>
-          );
-        })}
-        <div className="acct-section soul-detail" title={t('soul.highestOnly')}>
-          <AccountRow label={attrName(selected)} value={`${planned} / ${cap}`} />
-          <div className="acct-bar">
-            <div style={{ width: `${(planned / Math.max(1, cap)) * 100}%` }} />
-          </div>
-          <div className="soul-line">{t('soul.now', { bonus: primaryText(selected, planned), what: attrWhat(selected) })}</div>
-          <div className="soul-line soul-milestone">
-            {reached >= 0 ? t('soul.milestoneActive', { bonus: milestoneText(selected, reached), what: milestoneWhat(selected) }) : ''}
-          </div>
-          <div className="soul-line soul-next">{nextMilestone(selected, planned)}</div>
-          {definition.multiplies && <div className="soul-line acct-hint">{t('soul.multiplies')}</div>}
-          {committed > 0 && <div className="soul-line acct-hint">{t('soul.lockedIn', { points: committed })}</div>}
-          <div className="acct-buttons fill">
-            {STEPS.map(delta => (
-              <AccountButton key={delta} label={delta > 0 ? `+${delta}` : String(delta)} onClick={() => stepBy(delta)} />
-            ))}
-          </div>
-        </div>
-        <div className={`acct-message${message?.good ? ' good' : ''}`}>{message?.text ?? ''}</div>
-        <div className="acct-buttons">
-          <AccountButton
-            label={t('soul.reset')}
-            disabled={SoulPoints.investedTotal === 0}
-            onRefused={() => setMessage({ text: t('soul.nothingInvested'), good: false })}
-            onClick={() => setDialog('reset')}
-          />
-          <AccountButton
-            label={t('soul.invest')}
-            disabled={!SoulPoints.known || SoulPoints.pendingTotal === 0}
-            onRefused={() => setMessage({ text: t('soul.nothingSpent'), good: false })}
-            onClick={() => setDialog('invest')}
-          />
-        </div>
-      </AccountBody>
-      {dialog === 'invest' && (
-        <AccountConfirm
-          lines={investLines()}
-          buttons={[
-            {
-              label: t('soul.invest'),
-              onClick: () => {
-                SoulPoints.invest();
-                setDialog(null);
-              },
-            },
-            { label: t('soul.cancel'), onClick: () => setDialog(null) },
-          ]}
+      </div>
+      <RfFooter className={`soul-message${message?.good ? ' good' : ''}`}>{message?.text ?? ''}</RfFooter>
+      <div className="soul-actions">
+        <RfButton
+          small
+          label={t('soul.reset')}
+          disabled={SoulPoints.investedTotal === 0}
+          onRefused={() => setMessage({ text: t('soul.nothingInvested'), good: false })}
+          onClick={() => setDialog('reset')}
         />
-      )}
-      {dialog === 'reset' && (
-        <AccountConfirm
-          lines={[
-            { text: t('soul.resetTitle'), bold: true },
-            { text: t('soul.resetFrees', { points: SoulPoints.investedTotal }) },
-            { text: t('soul.howToPay') },
-          ]}
-          buttons={[
-            ...PAYMENTS.map(({ payment, name, unit }) => ({
-              label: `${t(name)}: ${amount(SoulPoints.costs[payment])} ${t(unit)}`,
-              title: t(payment === SoulPayment.Bless ? 'soul.youHaveBank' : 'soul.youHave', { amount: amount(SoulPoints.balances[payment]) }),
-              disabled: SoulPoints.balances[payment] < SoulPoints.costs[payment],
-              onClick: () => {
-                SoulPoints.reset(payment);
-                setDialog(null);
-              },
-            })),
-            { label: t('soul.cancel'), onClick: () => setDialog(null) },
-          ]}
+        <RfButton
+          small
+          label={t('soul.invest')}
+          disabled={!SoulPoints.known || SoulPoints.pendingTotal === 0}
+          onRefused={() => setMessage({ text: t('soul.nothingSpent'), good: false })}
+          onClick={() => setDialog('invest')}
         />
-      )}
-    </ModuleWindowFrame>
+        <RfButton small label={t('common.close')} onClick={() => MuWindows.setOpen(SOUL_WINDOW, false)} />
+      </div>
+    </ReforgeShell>
   );
 });
-

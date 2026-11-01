@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { t, type TextKey } from '@/i18n';
 import { MuWindows } from '@/controllers/interface/windowManager';
-import { ModuleWindowFrame } from '@/controllers/interface/components/module_window';
 import { Hero } from '@/modules/hero';
 import { BaseClass, getBaseClass } from '@/modules/hero/characterStats';
 import {
@@ -16,7 +15,8 @@ import {
   pointsPerTrigger,
   type AutoStatSettings,
 } from '@/modules/resets';
-import { AccountBody, AccountButton, AccountRow, amount } from '../_shared/accountWidgets';
+import { AccountRow, amount } from '../_shared/accountWidgets';
+import { ReforgeShell, RfButton, RfButtons, RfTabs } from '../_shared/reforgeShell';
 import './style.less';
 
 const STAT_KEYS: readonly TextKey[] = ['addStats.str', 'addStats.agi', 'addStats.vit', 'addStats.ene', 'addStats.cmd'];
@@ -80,10 +80,10 @@ const BulkTab = observer(() => {
         </div>
       ))}
       <div className={`acct-message${plan.status === 'ready' ? ' good' : ''}`}>{status}</div>
-      <div className="acct-buttons">
-        <AccountButton label={t('addStats.clear')} onClick={() => (setTyped(['', '', '', '', '']), setFull(-1))} />
-        <AccountButton label={t('addStats.add')} disabled={plan.status !== 'ready'} onClick={add} />
-      </div>
+      <RfButtons>
+        <RfButton width={90} label={t('addStats.clear')} onClick={() => (setTyped(['', '', '', '', '']), setFull(-1))} />
+        <RfButton width={90} label={t('addStats.add')} disabled={plan.status !== 'ready'} onClick={add} />
+      </RfButtons>
     </>
   );
 });
@@ -115,11 +115,13 @@ const AutoTab = observer(() => {
 
   return (
     <>
-      <Check checked={draft.enabled} label={t('addStats.enable')} onClick={() => setDraft({ ...draft, enabled: !draft.enabled })} />
+      <div className="add-stats-enable">
+        <Check checked={draft.enabled} label={t('addStats.enable')} onClick={() => setDraft({ ...draft, enabled: !draft.enabled })} />
+      </div>
       <div className="add-stats-row">
         <span className="acct-label">{t('addStats.every')}</span>
         <input
-          className="acct-field"
+          className="acct-field add-stats-interval"
           data-no-drag="true"
           inputMode="numeric"
           value={draft.interval}
@@ -132,7 +134,7 @@ const AutoTab = observer(() => {
         <div key={key} className="add-stats-row">
           <span className="acct-label">{t(key)}</span>
           <input
-            className="acct-field"
+            className="acct-field add-stats-percent"
             data-no-drag="true"
             inputMode="numeric"
             value={draft.percents[stat]}
@@ -147,14 +149,14 @@ const AutoTab = observer(() => {
         {total > 100 ? t('addStats.totalOver', { total }) : t('addStats.total', { total })}
       </div>
       <div className={`acct-message${dirty ? '' : ' good'}`}>{status}</div>
-      <div className="acct-buttons">
-        <AccountButton label={t('addStats.save')} disabled={!canSave} onClick={() => Resets.saveAuto(settings)} />
-      </div>
+      <RfButtons>
+        <RfButton width={90} label={t('addStats.save')} disabled={!canSave} onClick={() => Resets.saveAuto(settings)} />
+      </RfButtons>
     </>
   );
 });
 
-/** `CAddStatsWindow` (UI/Character/AddStatsWindow.cpp, reforge_add_stats.rml): two tabs, the bulk add and Auto Add. */
+/** `CAddStatsWindow` (UI/Character/AddStatsWindow.cpp, reforge_add_stats.rml): 230 wide, height of its rows; two tabs, the bulk add and Auto Add. */
 export const AddStatsWindow = observer(() => {
   const open = MuWindows.isOpen(ADD_STATS_WINDOW);
   const [tab, setTab] = useState(0);
@@ -164,14 +166,16 @@ export const AddStatsWindow = observer(() => {
   }, [open]);
 
   return (
-    <ModuleWindowFrame id={ADD_STATS_WINDOW} title={t('addStats.title')}>
-      <AccountBody className="add-stats-body">
-        <div className="acct-buttons">
-          <AccountButton label={t('addStats.tabAdd')} active={tab === 0} onClick={() => setTab(0)} />
-          <AccountButton label={t('addStats.tabAuto')} active={tab === 1} onClick={() => setTab(1)} />
-        </div>
-        {tab === 0 ? <BulkTab /> : <AutoTab />}
-      </AccountBody>
-    </ModuleWindowFrame>
+    <ReforgeShell id={ADD_STATS_WINDOW} title={t('addStats.title')} className="add-stats-body">
+      <RfTabs
+        tabs={[
+          { id: 0, label: t('addStats.tabAdd') },
+          { id: 1, label: t('addStats.tabAuto') },
+        ]}
+        active={tab}
+        onSelect={setTab}
+      />
+      {tab === 0 ? <BulkTab /> : <AutoTab />}
+    </ReforgeShell>
   );
 });

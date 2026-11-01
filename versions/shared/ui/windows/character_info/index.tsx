@@ -22,7 +22,7 @@ import { MuSpriteFrame } from '@/controllers/interface/components/mu_sprite';
 import { MuButton } from '@/controllers/interface/components/mu_button';
 import { playUiSound } from '@/controllers/sound/sfx';
 import { toggleMasterSkillsWindow } from '../master_skills/windowState';
-import { ResetCharacterButtons } from '../reset';
+import { CharacterPlates, StatPointPrompt, closeStatPrompt, openStatPrompt, statPromptOn } from './reforgePlates';
 import { togglePetInfoWindow } from '../pet_info/windowState';
 import {
   MuItemWindow,
@@ -176,7 +176,9 @@ const StatRow = observer(
   }) => {
     const points = Hero.points;
     const hasPoints = points > 0;
-    const amounts = GameOptions.statPointAmounts;
+    // [reforge] the `+` asks how many points instead (ReforgeCharacterButtons.cpp), so no amount box.
+    const prompt = statPromptOn();
+    const amounts = GameOptions.statPointAmounts && !prompt;
 
     const run = StatAllocation.run;
     const mine = run !== null && run.stat === stat;
@@ -188,6 +190,10 @@ const StatRow = observer(
     const held = useRef({ shift: false, ctrl: false });
 
     const press = () => {
+      if (prompt) {
+        openStatPrompt(stat);
+        return;
+      }
       if (!amounts) {
         Hero.increaseStatRequest(stat);
         return;
@@ -414,6 +420,7 @@ export const CharacterInfo = observer(() => {
       return;
     }
     StatAllocation.cancel();
+    closeStatPrompt();
     if (asking()) MsgBox.closeMsgWin();
   }, [open]);
 
@@ -794,7 +801,8 @@ export const CharacterInfo = observer(() => {
         disabled={!isMasterClass(playerData.charClass)}
         onClick={() => toggleMasterSkillsWindow()}
       />
-      <ResetCharacterButtons />
+      <CharacterPlates />
+      <StatPointPrompt />
     </MuItemWindow>
   );
 });

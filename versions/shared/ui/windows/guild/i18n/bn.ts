@@ -57,4 +57,11 @@ export default {
   'guild.kickHint': '\'{name}\' নামের চরিত্রকে বের করতে,',
   'guild.enterSecurityCode': 'অনুগ্রহ করে আপনার অ্যাকাউন্টের নিরাপত্তা কোড লিখুন।',
   'guild.securityCode': 'কোড',
+  'guild.plateWars': 'গিল্ড যুদ্ধ',
+  'guild.plateWarsTip': 'গিল্ডগুলো দেখো এবং যুদ্ধ ঘোষণা করো',
+  'guild.plateAlliance': 'গিল্ড জোট',
+  'guild.plateAllianceTip': 'অন্য গিল্ডকে জোটের প্রস্তাব দাও',
+  'guild.platePositionTip': 'নির্বাচিত সদস্যকে একটি পদ দাও',
+  'guild.noticePlaceholder': 'ঘোষণা...',
+  'guild.noticeSend': 'ঘোষণা দাও',
 } satisfies Partial<Record<keyof typeof en, string>>;

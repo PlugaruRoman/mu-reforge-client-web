@@ -13,4 +13,8 @@ export default {
   'party.notInParty': 'パーティに入っていません。',
   'party.invite': '招待',
   'party.shop': '露店',
+  'party.find': '検索',
+  'party.settings': '設定',
+  'party.giveLead': 'リーダーを譲る?',
+  'party.giveLeadConfirm': 'もう一度クリック',
 } satisfies Partial<Record<keyof typeof en, string>>;

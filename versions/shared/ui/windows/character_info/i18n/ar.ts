@@ -35,4 +35,7 @@ export default {
   'charInfo.attackSpeed': 'سرعة الهجوم: {value}',
   'charInfo.defenseRatePvpBonus': 'نسبة نجاح الدفاع: {value} (+{bonus})',
   'charInfo.curseSpellRate': 'ضرر اللعنة: {min} ~ {max}(+{rate})',
+  'charInfo.plateAddStatsTip': 'أنفق نقاط ترقية كثيرة دفعة واحدة، أو دع الخادم ينفقها عنك.',
+  'charInfo.plateResetTip': 'يعيد الشخصية إلى مستوى أدنى ويضيف واحدًا إلى عدد إعاداتك.',
+  'charInfo.plateGrandResetTip': 'يستبدل سلسلة كاملة من الإعادات بإعادة كبرى واحدة، ثم يبدأها من جديد.',
 } satisfies Partial<Record<keyof typeof en, string>>;

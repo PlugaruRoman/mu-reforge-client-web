@@ -1,32 +1,33 @@
-// The jewel bank's rows (our client's reforge_jewel_bank.rcss), on the item window.
+// The jewel bank's rows (our client's reforge_jewel_bank.rcss), in the reforge shell (240 x 440).
 .jewel-bank-body {
-  gap: 1px;
-
-  // Over the name column (after the 18 px icon and its gap) and the count (before the button).
+  // Over the name (after the icon box) and the count (before the take button).
   .jewel-bank-head {
-    display: flex;
-    justify-content: space-between;
-    padding: 0 30px 0 24px;
-    color: #ffd927;
+    padding: 0 22px 0 25px;
   }
 
   .jewel-bank-row {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    height: 20px;
-    padding: 0 2px;
-    background: rgba(0, 0, 0, 0.35);
-    color: #a8a8a8;
+    height: 19px;
+    line-height: 19px;
+    color: rgb(200, 200, 200);
+
+    &:nth-child(even) {
+      background: rgba(255, 255, 255, 0.04);
+    }
 
     &.stored {
       color: #fff;
+
+      .jewel-bank-count {
+        color: rgb(255, 220, 150);
+        font-weight: bold;
+      }
     }
 
     .jewel-bank-icon {
       position: relative;
-      width: 18px;
-      height: 18px;
+      width: 17px;
+      height: 17px;
+      margin: 0 4px 0 2px;
       flex: none;
       // The icon's fit transform zooms the model render; it stays in its square.
       overflow: hidden;
@@ -39,20 +40,33 @@
     }
 
     .jewel-bank-name {
-      flex: 1;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      flex: 1 1 0;
+      min-width: 0;
+      padding: 0;
     }
 
     .jewel-bank-count {
-      min-width: 36px;
+      flex: 0 0 70px;
       text-align: right;
+      color: rgb(150, 150, 150);
     }
 
-    .acct-btn {
+    .acct-btn.jewel-bank-take {
+      flex: none;
+      width: 16px;
       min-width: 16px;
-      padding: 0 4px;
+      height: 15px;
+      line-height: 13px;
+      margin: 0 3px;
+      padding: 0;
+      box-sizing: border-box;
     }
+  }
+
+  .rf-footer.jewel-bank-hint {
+    height: 28px;
+    line-height: 14px;
+    white-space: normal;
+    color: rgb(170, 170, 170);
   }
 }

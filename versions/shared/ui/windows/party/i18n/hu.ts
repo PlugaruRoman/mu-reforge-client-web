@@ -13,4 +13,8 @@ export default {
   'party.notInParty': 'Nem vagy csapatban.',
   'party.invite': 'Meghívás',
   'party.shop': 'Bolt',
+  'party.find': 'Keresés',
+  'party.settings': 'Beállítások',
+  'party.giveLead': 'Átadod a vezetést?',
+  'party.giveLeadConfirm': 'Kattints újra',
 } satisfies Partial<Record<keyof typeof en, string>>;

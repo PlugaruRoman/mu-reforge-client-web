@@ -43,7 +43,9 @@ import { MuButton } from '@/controllers/interface/components/mu_button';
 import { MuItemWindow, MuTableFrame } from '@/controllers/interface/components/mu_window';
 import { playUiSound } from '@/controllers/sound/sfx';
 import { INVENTORY_QUEST, quests } from '@/modules/quests';
-import { InventoryShortcuts, depositFromBag } from '../jewel_bank';
+import { depositFromBag } from '../jewel_bank';
+import { InventoryShortcuts } from './reforgeShortcuts';
+import { BagPurchaseConfirm, askBagPrice, bagPurchaseOn } from './bagPurchase';
 import {
   BUTTON_FRAMES,
   BUTTON_HEIGHT,
@@ -715,20 +717,23 @@ export const Inventory = observer(() => {
         data-no-drag="true"
         style={{ left: EXPAND_BUTTON_X, top: BUTTON_Y }}
       >
+        {/* [reforge] buys one more bag (bagPurchase.tsx); the original's expanded inventory is not here. */}
         <MuButton
           file={EXPAND_SPRITE}
           width={BUTTON_WIDTH}
           height={BUTTON_HEIGHT}
           frames={BUTTON_FRAMES}
-          disabled
+          disabled={!bagPurchaseOn()}
+          onClick={askBagPrice}
         >
-          <span className="button-tooltip">{t(EXPAND_TOOLTIP)}</span>
+          <span className="button-tooltip">{t(bagPurchaseOn() ? 'inventory.bagClickToBuy' : EXPAND_TOOLTIP)}</span>
         </MuButton>
       </div>
 
       {}
       {}
-      <InventoryShortcuts />
+      <InventoryShortcuts windowId={WINDOW_ID} />
+      {bagPurchaseOn() && <BagPurchaseConfirm />}
     </MuItemWindow>
   );
 });

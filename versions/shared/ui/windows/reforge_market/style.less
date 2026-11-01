@@ -1,14 +1,24 @@
-// The market board (our client's reforge_market.rcss): the message box plate in the item table
-// frame, a gold title, dark wells for the search, the offers and the boards.
+@import (reference) '@/controllers/interface/components/mu_text/style.less';
+// The market board (our client's reforge_market.rcss, 564 x 440 in stage units): the message box
+// plate in the item table frame, every part at our client's place. The look stays the web's.
 .reforge-market {
+  .mu-font();
   position: absolute;
-  left: 140px;
-  top: 40px;
   pointer-events: auto;
   user-select: none;
   font-size: 11px;
+  line-height: 13px;
   color: #e2e2e2;
+  text-shadow: 1px 1px 0 #000;
   outline: none;
+
+  .mk-bg {
+    position: absolute;
+    inset: 3px;
+    background-color: rgba(0, 0, 0, 0.9);
+    background-size: 100% 100%;
+    pointer-events: none;
+  }
 
   .mu-table-frame {
     position: absolute;
@@ -19,145 +29,255 @@
     font: inherit;
     color: inherit;
     cursor: pointer;
+    text-shadow: inherit;
+    box-sizing: border-box;
+    padding: 0;
   }
 
   .mk-title {
     position: absolute;
     left: 0;
     right: 0;
-    top: 10px;
+    top: 11px;
     text-align: center;
-    color: rgb(255, 204, 26);
-    text-shadow: 1px 1px 0 #000;
+    font-weight: bold;
+    white-space: nowrap;
+    color: rgb(255, 200, 80);
+    pointer-events: none;
   }
 
-  .mk-close {
-    position: absolute;
-    right: 12px;
-    top: 7px;
-    width: 14px;
-    height: 14px;
-    line-height: 12px;
-    text-align: center;
-    cursor: pointer;
-    color: #c8b080;
-    &:hover {
-      color: #fff;
-    }
-  }
-
-  .mk-btn,
+  .mk-icon-btn,
   .mk-filter,
   .mk-sort,
-  .mk-chip {
-    background: rgba(40, 30, 15, 0.85);
-    border: 1px solid #6b5631;
-    padding: 1px 6px;
+  .mk-chip,
+  .mk-page-btn,
+  .mk-walk {
+    background: rgba(0, 0, 0, 0.55);
+    border: 1px solid rgb(110, 90, 50);
+
     &:hover:not(:disabled) {
-      border-color: #c8a24a;
+      border-color: rgb(200, 160, 80);
       color: #fff;
     }
+
     &:disabled {
-      opacity: 0.4;
+      opacity: 0.35;
       cursor: default;
     }
   }
 
-  .active,
-  .open {
-    border-color: #ffcc1a;
-    color: rgb(255, 204, 26);
-  }
-
+  // The search line at (18, 32): the field 458 wide, Find at 463 and Reset at 498, 30 x 26 each.
   .mk-search {
     position: absolute;
-    left: 14px;
-    right: 14px;
-    top: 30px;
-    display: flex;
-    gap: 4px;
+    left: 18px;
+    top: 32px;
+    width: 528px;
+    height: 26px;
 
     input {
-      flex: 1;
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 458px;
+      height: 26px;
+      box-sizing: border-box;
+      padding: 0 6px 0 8px;
       font: inherit;
       color: #fff;
-      background: rgba(0, 0, 0, 0.7);
-      border: 1px solid #6b5631;
-      padding: 1px 4px;
+      background: rgba(0, 0, 0, 0.67);
+      border: 1px solid rgb(110, 90, 50);
       outline: none;
+    }
+
+    .mk-icon-btn {
+      position: absolute;
+      top: 0;
+      width: 30px;
+      height: 26px;
+      overflow: hidden;
+      white-space: nowrap;
+      font-size: 9px;
+    }
+
+    .mk-find {
+      left: 463px;
+    }
+
+    .mk-reset {
+      left: 498px;
     }
   }
 
-  .mk-filters,
+  // The filter row at (18, 64): category 170 at 0, currency 130 at 176, sort 30 x 22 at 312 / 346,
+  // the tier chips (84 x 22) under them at 28.
+  .mk-filters {
+    position: absolute;
+    left: 18px;
+    top: 64px;
+    width: 528px;
+    height: 54px;
+  }
+
+  .mk-filter {
+    position: absolute;
+    top: 0;
+    height: 22px;
+    padding: 0 6px;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: rgb(255, 220, 150);
+
+    &.mk-category {
+      left: 0;
+      width: 170px;
+    }
+
+    &.mk-pay-filter {
+      left: 176px;
+      width: 130px;
+    }
+
+    &.open {
+      border-color: rgb(255, 200, 80);
+      background: rgba(217, 158, 51, 0.3);
+    }
+
+    &.active {
+      border-bottom: 2px solid rgb(255, 200, 80);
+    }
+  }
+
+  .mk-sort {
+    position: absolute;
+    top: 0;
+    width: 30px;
+    height: 22px;
+
+    &.mk-asc {
+      left: 312px;
+    }
+
+    &.mk-desc {
+      left: 346px;
+    }
+
+    &.active {
+      color: rgb(255, 220, 150);
+      border-bottom: 2px solid rgb(255, 200, 80);
+    }
+  }
+
   .mk-chips {
     position: absolute;
-    left: 14px;
-    right: 14px;
+    left: 0;
+    top: 28px;
+    width: 528px;
+    height: 22px;
     display: flex;
     gap: 4px;
   }
 
-  .mk-filters {
-    top: 50px;
-    .mk-filter {
-      flex: 1;
-      text-align: left;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+  .mk-chip {
+    flex: 0 0 84px;
+    height: 22px;
+    line-height: 20px;
+    white-space: nowrap;
+    color: rgb(150, 150, 150);
+    border-color: rgb(80, 70, 50);
+
+    &.active {
+      color: rgb(255, 220, 150);
+      background: rgba(217, 158, 51, 0.27);
+      border-color: rgb(200, 160, 80);
+    }
+
+    &.exc {
+      color: rgb(100, 150, 115);
+
+      &.active {
+        color: rgb(130, 255, 170);
+      }
+    }
+
+    &.anc {
+      color: rgb(100, 130, 155);
+
+      &.active {
+        color: rgb(130, 200, 255);
+      }
+    }
+
+    &.socket {
+      color: rgb(130, 110, 150);
+
+      &.active {
+        color: rgb(215, 160, 255);
+      }
+    }
+
+    &.g380 {
+      color: rgb(155, 125, 95);
+
+      &.active {
+        color: rgb(255, 175, 95);
+      }
     }
   }
 
-  .mk-chips {
-    top: 68px;
-    .mk-chip {
-      flex: 1;
-      padding: 0 2px;
-    }
-  }
-
-  .exc {
-    color: #4cff4c;
-  }
-  .anc {
-    color: #2ad0d0;
-  }
-  .socket {
-    color: #c88cff;
-  }
-  .g380 {
-    color: #ff9c4c;
-  }
-
+  // The offers at (18, 124), 528 x 251: cards of 124 x 79, four a row.
   .mk-list {
     position: absolute;
-    left: 14px;
-    right: 14px;
-    top: 90px;
-    height: 202px;
+    left: 18px;
+    top: 124px;
+    width: 528px;
+    height: 251px;
+    box-sizing: border-box;
+    background: rgba(0, 0, 0, 0.43);
+    border: 1px solid rgb(80, 70, 50);
+    overflow-x: hidden;
     overflow-y: auto;
+    scrollbar-width: thin;
   }
 
-  .mk-row {
+  .mk-cards {
     display: flex;
-    align-items: center;
-    gap: 6px;
-    height: 34px;
-    padding: 0 4px;
-    border-bottom: 1px solid rgba(107, 86, 49, 0.4);
+    flex-wrap: wrap;
+    gap: 3px 6px;
+    padding: 4px 0 0 4px;
+  }
+
+  .mk-card {
+    position: relative;
+    width: 124px;
+    height: 79px;
+    box-sizing: border-box;
     cursor: pointer;
+    background: rgba(30, 24, 16, 0.78);
+    border: 1px solid rgb(106, 80, 48);
+
     &:hover {
-      background: rgba(255, 255, 255, 0.06);
+      background: rgba(70, 54, 24, 0.82);
     }
+
     &.selected {
-      background: rgba(255, 204, 26, 0.12);
+      background: rgba(90, 70, 25, 0.86);
+      border-color: rgb(255, 200, 80);
     }
   }
 
-  .mk-icon {
-    width: 30px;
-    height: 30px;
-    flex: none;
+  .mk-card-well {
+    position: absolute;
+    left: 3px;
+    top: 3px;
+    width: 40px;
+    height: 40px;
+    box-sizing: border-box;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.59);
+    border: 1px solid rgb(80, 70, 50);
+
     .item-icon {
       width: 100%;
       height: 100%;
@@ -165,120 +285,286 @@
     }
   }
 
-  .mk-name {
-    flex: 1;
-    overflow: hidden;
+  .mk-card-name {
+    position: absolute;
+    left: 3px;
+    right: 3px;
+    top: 45px;
+    height: 13px;
+    text-align: center;
     white-space: nowrap;
+    overflow: hidden;
     text-overflow: ellipsis;
+    color: rgb(235, 235, 235);
   }
 
-  .mk-price {
+  .exc {
+    color: rgb(130, 255, 170);
+  }
+
+  .anc {
+    color: rgb(130, 200, 255);
+  }
+
+  .socket {
+    color: rgb(215, 160, 255);
+  }
+
+  .g380 {
+    color: rgb(255, 175, 95);
+  }
+
+  .mk-card-foot {
+    position: absolute;
+    left: 3px;
+    right: 3px;
+    top: 58px;
+    height: 18px;
     display: flex;
     align-items: center;
-    gap: 3px;
-    color: rgb(255, 204, 26);
+    justify-content: flex-end;
+    gap: 2px;
+  }
+
+  .mk-card-price {
     white-space: nowrap;
+    overflow: hidden;
+    color: rgb(255, 220, 150);
+    font-weight: bold;
   }
 
   .mk-coin {
     display: inline-flex;
     align-items: center;
+    flex: none;
+    max-width: 60px;
+    overflow: hidden;
     color: #c8b080;
+
     .item-icon {
-      width: 16px;
-      height: 16px;
+      width: 14px;
+      height: 14px;
       object-fit: contain;
     }
   }
 
+  // Walk sits in the card's top right, beside the icon well.
+  .mk-walk {
+    position: absolute;
+    left: 75px;
+    top: 6px;
+    width: 44px;
+    height: 18px;
+    line-height: 16px;
+  }
+
   .mk-empty {
-    padding-top: 70px;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 96px;
     text-align: center;
+
+    .mk-empty-line {
+      color: rgb(255, 220, 150);
+      font-weight: bold;
+    }
+
     .mk-empty-hint {
       margin-top: 6px;
-      color: #9a8a6a;
+      color: rgb(150, 150, 150);
     }
   }
 
+  // A board over the cards at (18, 90), 470 x 214; the currency board at 52.
   .mk-board {
     position: absolute;
-    left: 14px;
-    right: 14px;
+    left: 18px;
     top: 90px;
-    height: 202px;
-    overflow-y: auto;
-    background: rgba(10, 8, 4, 0.96);
-    border: 1px solid #6b5631;
-    padding: 4px;
+    width: 470px;
+    height: 214px;
+    box-sizing: border-box;
+    padding: 24px 10px 0;
+    background: rgba(12, 10, 6, 0.96);
+    border: 1px solid rgb(200, 160, 80);
+    z-index: 2;
+
+    &.pay {
+      left: 52px;
+    }
 
     .mk-board-title {
-      color: rgb(255, 204, 26);
-      margin-bottom: 4px;
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 4px;
+      text-align: center;
+      font-weight: bold;
+      color: rgb(255, 200, 80);
     }
+
     .mk-columns {
       display: flex;
       gap: 6px;
     }
-    .mk-column {
-      flex: 1;
-    }
-    .mk-column-head {
-      color: rgb(127, 178, 255);
-      margin-bottom: 2px;
-    }
-    .mk-pay {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 2px;
-    }
-    .mk-entry {
-      display: flex;
-      align-items: center;
-      gap: 3px;
-      padding: 1px 4px;
-      cursor: pointer;
-      &:hover {
-        background: rgba(255, 255, 255, 0.08);
-      }
-      &.chosen {
-        color: rgb(255, 204, 26);
-      }
-    }
-  }
 
-  .mk-status {
-    position: absolute;
-    left: 14px;
-    right: 14px;
-    top: 302px;
-    display: flex;
-    justify-content: space-between;
-    gap: 8px;
-    white-space: nowrap;
-    .mk-location {
+    .mk-column {
+      flex: 0 0 146px;
+    }
+
+    .mk-column-head {
+      height: 18px;
+      line-height: 18px;
+      color: rgb(170, 170, 170);
+      border-bottom: 1px solid rgb(110, 90, 50);
+    }
+
+    .mk-entry {
+      height: 20px;
+      margin-top: 2px;
+      line-height: 20px;
+      padding-left: 6px;
+      white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      color: rgb(127, 178, 255);
+      cursor: pointer;
+      color: rgb(220, 220, 220);
+      background: rgba(0, 0, 0, 0.47);
+
+      &:hover {
+        background: rgba(217, 158, 51, 0.27);
+      }
+
+      &.chosen {
+        color: rgb(255, 220, 150);
+        background: rgba(217, 158, 51, 0.43);
+        font-weight: bold;
+      }
+    }
+
+    .mk-pay {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .mk-pay-cell {
+      position: relative;
+      width: 71px;
+      height: 42px;
+      box-sizing: border-box;
+      cursor: pointer;
+      background: rgba(0, 0, 0, 0.47);
+      border: 1px solid rgb(80, 70, 50);
+
+      &:hover {
+        border-color: rgb(200, 160, 80);
+      }
+
+      &.chosen {
+        background: rgba(217, 158, 51, 0.43);
+        border-color: rgb(255, 200, 80);
+      }
+
+      .mk-pay-icon {
+        position: absolute;
+        left: 25px;
+        top: 3px;
+        width: 20px;
+        height: 20px;
+
+        .item-icon {
+          width: 20px;
+          height: 20px;
+        }
+      }
+
+      .mk-pay-label {
+        position: absolute;
+        left: 2px;
+        right: 2px;
+        top: 25px;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: rgb(220, 220, 220);
+      }
     }
   }
 
-  .mk-pager {
+  // The status line at (18, 379): the offer count, the selected seller's place right-aligned from 110.
+  .mk-status {
     position: absolute;
-    left: 0;
-    right: 0;
-    top: 320px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
+    left: 18px;
+    top: 379px;
+    width: 528px;
+    height: 16px;
+    white-space: nowrap;
+
+    .mk-count {
+      position: absolute;
+      left: 2px;
+      color: rgb(170, 170, 170);
+    }
+
+    .mk-location {
+      position: absolute;
+      left: 110px;
+      right: 2px;
+      text-align: right;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: rgb(255, 220, 150);
+    }
   }
 
+  // The exit plate on the bottom border at (18, 395).
+  .mk-close {
+    position: absolute;
+    left: 18px;
+    top: 395px;
+    cursor: pointer;
+
+    &:hover {
+      filter: brightness(1.25);
+    }
+  }
+
+  // The pager at (446, 398), 100 x 22.
+  .mk-pager {
+    position: absolute;
+    left: 446px;
+    top: 398px;
+    width: 100px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+
+    .mk-page-btn {
+      flex: 0 0 18px;
+      height: 22px;
+      font-size: 8px;
+    }
+
+    .mk-page {
+      flex: 1 1 0;
+      text-align: center;
+      font-weight: bold;
+      color: rgb(255, 220, 150);
+    }
+  }
+
+  // The answer line at (60, 409), 380 wide.
   .mk-message {
     position: absolute;
-    left: 14px;
-    right: 14px;
-    top: 340px;
+    left: 60px;
+    top: 409px;
+    width: 380px;
     text-align: center;
-    color: #ff5050;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #ff8c7a;
   }
 }

@@ -58,4 +58,11 @@ export default {
   'guild.kickHint': 'キャラクター「{name}」を除名するには、',
   'guild.enterSecurityCode': 'アカウントのセキュリティコードを入力してください。',
   'guild.securityCode': 'コード',
+  'guild.plateWars': 'ギルド戦争',
+  'guild.plateWarsTip': 'ギルドを閲覧して宣戦布告',
+  'guild.plateAlliance': 'ギルド同盟',
+  'guild.plateAllianceTip': '他のギルドに同盟を申し込む',
+  'guild.platePositionTip': '選択したメンバーに階級を与える',
+  'guild.noticePlaceholder': 'お知らせ...',
+  'guild.noticeSend': 'お知らせを設定',
 } satisfies Partial<Record<keyof typeof en, string>>;

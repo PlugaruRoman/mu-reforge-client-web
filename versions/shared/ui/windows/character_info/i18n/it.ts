@@ -37,4 +37,7 @@ export default {
   'characterInfo.quest': 'Missione (T)',
   'characterInfo.pet': 'Famiglio',
   'characterInfo.masterTree': 'Albero di maestria (A)',
+  'charInfo.plateAddStatsTip': 'Spendi molti punti livello in una volta, o lascia che li spenda il server per te.',
+  'charInfo.plateResetTip': 'Fa ripartire il personaggio da un livello più basso e aggiunge uno ai tuoi reset.',
+  'charInfo.plateGrandResetTip': 'Scambia una serie completa di reset con un grand reset e li fa ripartire.',
 } satisfies Partial<Record<keyof typeof en, string>>;

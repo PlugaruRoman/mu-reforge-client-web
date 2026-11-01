@@ -33,6 +33,7 @@ Always-on interface elements, one folder per element, same shape as a window. Re
 | `match_time` | match_time (hud, 425) | the soccer time at the screen centre (`RenderTournamentInterface`); off with `soccerBoardClock` | social, options |
 | `minimap` | minimap (hud, 450) | full world map on TAB and the corner minimap, turned by the camera heading (`rotation.ts`: the original's 45 degrees counter-clockwise) | Ecs.world, hero, options, social |
 | `camera_reset` | camera_reset (hud, 455) | Reset camera while the view is off the map's frame (ours, `cameraKeepsView`); left of the corner minimap and the party list | camera, social, options |
+| `reforge_launcher` | reforge_launcher (hud, 457) | our client's Menu (N) button and HUD toggle column (Auto Party, Requests) at the world's right edge above the bottom bar, stage-scaled; only with the `reforge_hud` module | reforge_menu entries, options, reforge_hud |
 | `mu_helper_buttons` | mu_helper_buttons (hud, 456) | MU Helper Start / Stop and Settings under the event timers (ours, `muHelperButtons`); only with the `mu_helper` module | mu_helper, events, options |
 | `mobile_controls` | mobile_controls (hud, 490) | touch HUD: move button, skill pad, menu cluster | AppState, hero, skills, warp, social |
 | `name_tags` | - | names and guild marks over characters | Ecs.world, guild, social |

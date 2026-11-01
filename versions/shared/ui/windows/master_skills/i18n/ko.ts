@@ -6,4 +6,5 @@ export default {
   'master.spendPoint': '마스터 포인트 {points}을(를) {skill}에 쓸까요?',
   'master.spendPoints': '마스터 포인트 {points}을(를) {skill}에 쓸까요?',
   'master.skillFallback': '스킬 {number}',
+  'master.resetTree': '트리 초기화',
 } satisfies Partial<Record<keyof typeof en, string>>;

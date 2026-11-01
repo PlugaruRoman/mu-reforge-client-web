@@ -13,4 +13,8 @@ export default {
   'party.notInParty': 'در گروهی نیستید.',
   'party.invite': 'دعوت',
   'party.shop': 'فروشگاه',
+  'party.find': 'یافتن',
+  'party.settings': 'تنظیمات',
+  'party.giveLead': 'سپردن رهبری؟',
+  'party.giveLeadConfirm': 'دوباره کلیک کنید',
 } satisfies Partial<Record<keyof typeof en, string>>;

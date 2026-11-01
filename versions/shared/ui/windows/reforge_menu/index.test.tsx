@@ -24,6 +24,7 @@ const { ReforgeMarket } = await import('@/modules/reforge_market');
 const { huntLogShown } = await import('@/modules/hunt_log');
 const { Session } = await import('@/modules/session');
 const { WindowMenu, chooseWindowMenu, WINDOW_MENU } = await import('../window_menu');
+const { GameOptions } = await import('@/controllers/settings');
 
 const entry = (id: string) => MENU_ENTRIES.find(e => e.id === id)!;
 
@@ -32,16 +33,17 @@ afterEach(() => {
   runInAction(() => ReforgeHud.setGuest(false));
 });
 
-// UI/Reforge/ReforgeMenuEntries.cpp: the Windows tab, then the server switches.
+// UI/Reforge/ReforgeMenuEntries.cpp: the Windows tab, then the View & HUD tiles Babylon can do.
 describe('the Mu Reforge menu', () => {
   it('lists our client\'s windows with their keys, and only those whose module is on', () => {
-    expect(MENU_ENTRIES.map(e => [e.id, e.key])).toEqual([
+    expect(menuEntries('windows').map(e => [e.id, e.key])).toEqual([
       ['reset', ''],
       ['add_stats', ''],
       ['jewel_bank', 'J'],
       ['event_timer', 'H'],
       ['vip_shop', 'K'],
       ['soul_points', 'S'],
+      ['party_search', 'P'],
       ['death_records', 'Y'],
       ['guest_access', 'L'],
       ['event_list', 'B'],
@@ -49,7 +51,16 @@ describe('the Mu Reforge menu', () => {
       ['reforge_market', ''],
       ['item_collections', ';'],
       ['options', 'O'],
-      ['requests', ''],
+    ]);
+    expect(menuEntries('settings').map(e => e.id)).toEqual([
+      'radar',
+      'camera3d',
+      'reset_view',
+      'auto_party',
+      'requests',
+      'weather',
+      'hunt_log_position',
+      'mute_background',
     ]);
     off.add('resets');
     off.add('reforge_market');
@@ -90,14 +101,26 @@ describe('the Mu Reforge menu', () => {
     expect(MuWindows.isOpen('guest_access')).toBe(false);
   });
 
-  it('draws a row for each window and the requests switch under Settings', () => {
+  it('turns a View & HUD tile\'s web setting', () => {
+    const was = GameOptions.weatherEffects;
+    activateEntry(entry('weather'));
+    expect(entry('weather').isOn()).toBe(!was);
+    activateEntry(entry('weather'));
+    expect(GameOptions.weatherEffects).toBe(was);
+  });
+
+  it('draws a tile for each window, its key on a chip, under the two tabs', () => {
     runInAction(() => MuWindows.setOpen(REFORGE_MENU_WINDOW, true));
-    const html = renderToStaticMarkup(<ReforgeMenuWindow />);
-    expect(html).toContain('Jewel Bank (J)');
-    expect(html).toContain('Market board');
-    expect(html).toContain('Settings');
-    expect(html).toContain('Allow requests');
-    runInAction(() => MuWindows.setOpen(REFORGE_MENU_WINDOW, false));
+    try {
+      const html = renderToStaticMarkup(<ReforgeMenuWindow />);
+      expect(html).toContain('Jewel Bank<span class="rm-key">J</span>');
+      expect(html).toContain('Market board');
+      expect(html).toContain('Windows');
+      expect(html).toContain('View &amp; HUD');
+      expect(html).toContain('Click an entry, or press its key');
+    } finally {
+      runInAction(() => MuWindows.setOpen(REFORGE_MENU_WINDOW, false));
+    }
   });
 });
 

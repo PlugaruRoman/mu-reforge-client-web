@@ -13,4 +13,8 @@ export default {
   'party.notInParty': 'Nisi u grupi.',
   'party.invite': 'Pozovi',
   'party.shop': 'Prodavnica',
+  'party.find': 'Traži',
+  'party.settings': 'Podešavanja',
+  'party.giveLead': 'Predati vođstvo?',
+  'party.giveLeadConfirm': 'Klikni ponovo',
 } satisfies Partial<Record<keyof typeof en, string>>;

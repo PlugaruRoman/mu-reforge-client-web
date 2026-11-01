@@ -35,4 +35,7 @@ export default {
   'characterInfo.quest': 'Nhiệm vụ (T)',
   'characterInfo.pet': 'Linh thú',
   'characterInfo.masterTree': 'Cây kỹ năng Master (A)',
+  'charInfo.plateAddStatsTip': 'Dùng nhiều điểm lên cấp cùng lúc, hoặc để máy chủ tự dùng giúp bạn.',
+  'charInfo.plateResetTip': 'Cho nhân vật bắt đầu lại ở cấp thấp hơn và cộng thêm một lần reset.',
+  'charInfo.plateGrandResetTip': 'Đổi trọn một vòng reset lấy một lần grand reset, rồi bắt đầu lại từ đầu.',
 } satisfies Partial<Record<keyof typeof en, string>>;

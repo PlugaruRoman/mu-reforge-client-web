@@ -37,4 +37,7 @@ export default {
   'characterInfo.quest': 'Quête (T)',
   'characterInfo.pet': 'Familier',
   'characterInfo.masterTree': 'Arbre de maîtrise (A)',
+  'charInfo.plateAddStatsTip': 'Dépense beaucoup de points de niveau d\'un coup, ou laisse le serveur les dépenser pour toi.',
+  'charInfo.plateResetTip': 'Fait recommencer le personnage à un niveau plus bas et ajoute un à ton nombre de resets.',
+  'charInfo.plateGrandResetTip': 'Échange une série complète de resets contre un grand reset, et les recommence.',
 } satisfies Partial<Record<keyof typeof en, string>>;

@@ -5,13 +5,12 @@ import { t, type TextKey } from '@/i18n';
 import { Ecs } from '@/ecs/current';
 import { MuWindows } from '@/controllers/interface';
 import { serverNow } from '@/controllers/net/serverTime';
-import { MuItemWindow } from '@/controllers/interface/components/mu_window';
-import { MuButton } from '@/controllers/interface/components/mu_button';
 import { MuText, TEXT_COLOR } from '@/controllers/interface/components/mu_text';
 import { useUiStageScale, UI_STAGE_WIDTH } from '@/controllers/interface/components/ui_stage';
 import { playUiSound } from '@/controllers/sound/sfx';
 import { addNotification } from '@/modules/chat';
 import { Hero } from '@/modules/hero';
+import { Resets } from '@/modules/resets';
 import {
   DEEP_DUNGEON_WINDOW,
   DeepDungeon,
@@ -21,9 +20,11 @@ import {
   enterDeepDungeon,
   hudUrgency,
   secondsLeft,
+  suggestedFloor,
   windowUrgency,
   type Urgency,
 } from '@/modules/deep_dungeon';
+import { ReforgeShell, RfButton, RfList } from '../_shared/reforgeShell';
 
 /**
  * The Deep Dungeon: the floor selection the server opens at the Dungeon Guide (C1 E3 01, our client's
@@ -33,7 +34,6 @@ import {
  */
 
 const URGENCY_COLOR: Record<Urgency, string> = { calm: TEXT_COLOR.brightGray, soon: TEXT_COLOR.orange, last: 'rgb(255, 90, 70)' };
-const DIFFICULTY_COLOR = ['rgb(120, 230, 120)', 'rgb(200, 230, 120)', TEXT_COLOR.orange, 'rgb(255, 130, 60)', 'rgb(255, 80, 80)'];
 
 const mmss = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 
@@ -46,6 +46,14 @@ function useNow(): number {
   return now;
 }
 
+const DIFFICULTY_TIER: Record<string, number> = { easy: 0, normal: 1, hard: 2, veryHard: 3, extreme: 4 };
+const URGENCY_CLASS: Record<Urgency, string> = { calm: '', soon: ' soon', last: ' last' };
+
+/**
+ * `CDeepDungeonWindow` (reforge_deep_dungeon.rml), 230 x 346: the status box (time left, the level asked
+ * for), the floors (104 high, rows of 20, a notch on the one that fits the character's resets), the
+ * details of the hovered or selected floor (92 high), Enter | Close.
+ */
 const Window = observer(() => {
   const now = useNow();
   const [selected, setSelected] = useState(0);
@@ -60,9 +68,12 @@ const Window = observer(() => {
   const shown = hovered >= 0 && hovered < selection.floorCount ? hovered : selected;
   const info = FLOORS[shown];
   const last = shown === selection.floorCount - 1;
+  // The notch: only once the server told the character's resets (the Reset window's answer).
+  const resets = Resets.reset?.currentResets;
+  const suggested = resets === undefined ? -1 : suggestedFloor(resets, selection.floorCount);
+  const fit = suggested < 0 || shown === suggested ? '' : shown > suggested ? ' harder' : ' easier';
 
   const tryEnter = () => {
-    playUiSound('click');
     if (!levelOk) {
       // The level line is red already; the click still answers why nothing happens.
       addNotification(t('deepDungeon.levelRequired', { level: selection.minimumLevel }), 'error');
@@ -72,24 +83,30 @@ const Window = observer(() => {
   };
 
   return (
-    <MuItemWindow id="deep-dungeon-window" label={t('deepDungeon.title')} onClose={closeDeepDungeon}>
-      <MuText face="bold" align="center" className="dd-title" text={t('deepDungeon.title')} />
-      <div className="dd-body">
-        <MuText
-          className="dd-line"
-          text={left > 0 ? t('deepDungeon.closesIn', { time: mmss(left) }) : t('deepDungeon.closedNow')}
-          color={URGENCY_COLOR[windowUrgency(left)]}
-        />
-        <MuText
-          className="dd-line"
-          text={levelOk ? t('deepDungeon.requiresLevel', { level: selection.minimumLevel }) : t('deepDungeon.requiresLevelYou', { level: selection.minimumLevel, you: level })}
-          color={levelOk ? TEXT_COLOR.brightGray : 'rgb(255, 90, 70)'}
-        />
-        <div className="dd-floors" data-no-drag="true" onPointerLeave={() => setHovered(-1)}>
+    <ReforgeShell
+      id={DEEP_DUNGEON_WINDOW}
+      title={t('deepDungeon.title')}
+      height={346}
+      closeButton={false}
+      className="deep-dungeon"
+      onClose={closeDeepDungeon}
+    >
+      <div className="dd-status">
+        <div className={`dd-timer${left > 0 ? URGENCY_CLASS[windowUrgency(left)] : ' closed'}`}>
+          {left > 0 ? t('deepDungeon.closesIn', { time: mmss(left) }) : t('deepDungeon.closedNow')}
+        </div>
+        <div className={`dd-level${levelOk ? '' : ' blocked'}`}>
+          {levelOk
+            ? t('deepDungeon.requiresLevel', { level: selection.minimumLevel })
+            : t('deepDungeon.requiresLevelYou', { level: selection.minimumLevel, you: level })}
+        </div>
+      </div>
+      <RfList height={104} className={`dd-floors${canEnter ? '' : ' locked'}`}>
+        <div onPointerLeave={() => setHovered(-1)}>
           {FLOORS.slice(0, selection.floorCount).map((floor, i) => (
             <div
               key={i}
-              className={`dd-floor${i === selected ? ' selected' : ''}`}
+              className={`rf-row dd-floor tier-${DIFFICULTY_TIER[floor.difficulty] ?? 0}${i === selected ? ' selected' : ''}${i === suggested ? ' suggested' : ''}`}
               onPointerEnter={() => setHovered(i)}
               onClick={() => {
                 if (i !== selected) playUiSound('click');
@@ -100,43 +117,36 @@ const Window = observer(() => {
                 if (canEnter) enterDeepDungeon(i + 1);
               }}
             >
-              <MuText text={t('deepDungeon.floor', { n: i + 1 })} color={TEXT_COLOR.brightYellow} />
-              <MuText text={t(`deepDungeon.difficulty.${floor.difficulty}` as TextKey)} color={DIFFICULTY_COLOR[i]} />
+              <span className="dd-notch" />
+              <span className="dd-floor-label">{t('deepDungeon.floor', { n: i + 1 })}</span>
+              <span className="dd-floor-difficulty">{t(`deepDungeon.difficulty.${floor.difficulty}` as TextKey)}</span>
             </div>
           ))}
         </div>
-        <div className="dd-details">
-          <MuText face="bold" className="dd-line" text={`${t('deepDungeon.floor', { n: shown + 1 })} - ${t(`deepDungeon.difficulty.${info.difficulty}` as TextKey)}`} color={DIFFICULTY_COLOR[shown]} />
-          <div className="dd-pair">
-            <MuText text={t('deepDungeon.monstersLabel')} color={TEXT_COLOR.orange} />
-            <MuText text={t('deepDungeon.monsterLevels', { min: info.monsterLevelMin, max: info.monsterLevelMax })} color={TEXT_COLOR.brightGray} />
-          </div>
-          <div className="dd-pair">
-            <MuText text={t('deepDungeon.suggestedLabel')} color={TEXT_COLOR.orange} />
-            <MuText
-              text={last ? t('deepDungeon.resetsFrom', { min: info.resetsMin }) : t('deepDungeon.resetRange', { min: info.resetsMin, max: info.resetsMax })}
-              color={TEXT_COLOR.brightGray}
-            />
-          </div>
-          <MuText className="dd-line" text={t(`deepDungeon.loot.${shown}a` as TextKey)} color={TEXT_COLOR.brightGray} />
-          <MuText className="dd-line" text={t(`deepDungeon.loot.${shown}b` as TextKey)} color={TEXT_COLOR.brightGray} />
+      </RfList>
+      <div className={`dd-details tier-${DIFFICULTY_TIER[info.difficulty] ?? 0}`}>
+        <div className="dd-detail-head">
+          <span className="dd-detail-title">{t('deepDungeon.floor', { n: shown + 1 })}</span>
+          <span className="dd-detail-difficulty">{t(`deepDungeon.difficulty.${info.difficulty}` as TextKey)}</span>
         </div>
+        <div className="dd-detail-row">
+          <span className="dd-detail-label">{t('deepDungeon.monstersLabel')}</span>
+          <span className="dd-detail-value">{t('deepDungeon.monsterLevels', { min: info.monsterLevelMin, max: info.monsterLevelMax })}</span>
+        </div>
+        <div className={`dd-detail-row dd-fit${fit}`}>
+          <span className="dd-detail-label">{t('deepDungeon.suggestedLabel')}</span>
+          <span className="dd-detail-value">
+            {last ? t('deepDungeon.resetsFrom', { min: info.resetsMin }) : t('deepDungeon.resetRange', { min: info.resetsMin, max: info.resetsMax })}
+          </span>
+        </div>
+        <div className="dd-loot">{t(`deepDungeon.loot.${shown}a` as TextKey)}</div>
+        <div className="dd-loot">{t(`deepDungeon.loot.${shown}b` as TextKey)}</div>
       </div>
-      <div className="dd-enter" data-no-drag="true">
-        <MuButton
-          file="newui_btn_empty.OZT"
-          width={108}
-          height={29}
-          frames={{ up: 0, active: 1, down: 2 }}
-          color={canEnter ? TEXT_COLOR.brightGray : 'rgb(120, 120, 120)'}
-          activeColor={TEXT_COLOR.white}
-          label={t('deepDungeon.enterFloor', { n: selected + 1 })}
-          labelStyle={{ fontSize: 11 }}
-          onClick={tryEnter}
-          style={canEnter ? undefined : { filter: 'brightness(0.6)' }}
-        />
+      <div className="dd-actions">
+        <RfButton width={120} className="dd-enter" label={t('deepDungeon.enterFloor', { n: selected + 1 })} disabled={!canEnter} onRefused={tryEnter} onClick={tryEnter} />
+        <RfButton small label={t('common.close')} onClick={closeDeepDungeon} />
       </div>
-    </MuItemWindow>
+    </ReforgeShell>
   );
 });
 

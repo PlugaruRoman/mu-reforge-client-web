@@ -6,13 +6,11 @@ import { Ecs } from '@/ecs/current';
 import { ENUM_WORLD } from '@/core/types';
 import { MuWindows } from '@/controllers/interface';
 import { serverNow } from '@/controllers/net/serverTime';
-import { MuItemWindow } from '@/controllers/interface/components/mu_window';
-import { MuButton } from '@/controllers/interface/components/mu_button';
 import { MuText, TEXT_COLOR } from '@/controllers/interface/components/mu_text';
 import { useUiStageScale, UI_STAGE_WIDTH } from '@/controllers/interface/components/ui_stage';
-import { playUiSound } from '@/controllers/sound/sfx';
 import { TVT_TIMETABLE, stateAt, utcMomentOf } from '@/modules/event_list';
 import { BLUE_TEAM, RED_TEAM, TVT_WINDOW, Tvt, closeTvtWindow, joinTvt, tvtSecondsLeft } from '@/modules/tvt';
+import { ReforgeShell, RfButton, RfList, RfTableHead } from '../_shared/reforgeShell';
 
 /**
  * Team vs Team: the Battle Master's window (our client's UI/Tvt/TvtWindow.cpp, reforge_tvt.rml) and
@@ -23,7 +21,6 @@ import { BLUE_TEAM, RED_TEAM, TVT_WINDOW, Tvt, closeTvtWindow, joinTvt, tvtSecon
 
 const BLUE = 'rgb(80, 160, 255)';
 const RED = 'rgb(255, 80, 70)';
-const OPEN_GREEN = 'rgb(120, 230, 120)';
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
@@ -36,6 +33,10 @@ function useNow(): number {
   return now;
 }
 
+/**
+ * `CTvtWindow` (reforge_tvt.rml), 230 x 330: the status box, the "Schedule" grid (two slots a row), the
+ * "Arena" box (three lines), Join | Close.
+ */
 const Window = observer(() => {
   const now = useNow();
   const open = Tvt.registrationOpen;
@@ -46,46 +47,30 @@ const Window = observer(() => {
   const nextMinute = open ? -1 : Math.floor((utc.secondOfDay + toStart) / 60) % 1440;
 
   return (
-    <MuItemWindow id="tvt-window" label={t('tvt.title')} onClose={closeTvtWindow}>
-      <MuText face="bold" align="center" className="tvt-title" text={t('tvt.title')} />
-      <div className="tvt-body">
-        <MuText className="tvt-caption" text={t(open ? 'tvt.registrationOpen' : 'tvt.nextBattle')} color={open ? OPEN_GREEN : TEXT_COLOR.brightGray} />
-        <MuText face="bold" className="tvt-status" text={open ? t('tvt.joinHint') : countdown} color={open ? OPEN_GREEN : TEXT_COLOR.brightOrange} />
-        <MuText className="tvt-section" text={t('tvt.scheduleTitle')} color={TEXT_COLOR.orange} />
-        <div className="tvt-slots">
-          {TVT_TIMETABLE.times.map(minute => (
-            <MuText
-              key={minute}
-              className={`tvt-slot${minute === nextMinute ? ' next' : ''}`}
-              text={`${pad(Math.floor(minute / 60))}:${pad(minute % 60)}`}
-              color={minute === nextMinute ? TEXT_COLOR.brightOrange : TEXT_COLOR.brightGray}
-            />
-          ))}
-        </div>
-        <MuText className="tvt-section" text={t('tvt.arenaTitle')} color={TEXT_COLOR.orange} />
-        <MuText className="tvt-line" text={t('tvt.arenaDescription')} color={TEXT_COLOR.brightGray} />
-        <MuText className="tvt-line" text={t('tvt.winnersEarnZen')} color={TEXT_COLOR.brightGray} />
-        <MuText className="tvt-line" text={t('tvt.requiresLevel')} color={TEXT_COLOR.brightGray} />
+    <ReforgeShell id={TVT_WINDOW} title={t('tvt.title')} height={330} closeButton={false} className="tvt-window" onClose={closeTvtWindow}>
+      <div className={`tvt-status${open ? ' open' : ''}`}>
+        <div className="tvt-status-caption">{t(open ? 'tvt.registrationOpen' : 'tvt.nextBattle')}</div>
+        <div className="tvt-status-value">{open ? t('tvt.joinHint') : countdown}</div>
       </div>
-      <div className="tvt-join" data-no-drag="true">
-        <MuButton
-          file="newui_btn_empty.OZT"
-          width={108}
-          height={29}
-          frames={{ up: 0, active: 1, down: 2 }}
-          disabled={!open}
-          color={open ? TEXT_COLOR.brightGray : 'rgb(120, 120, 120)'}
-          activeColor={TEXT_COLOR.white}
-          label={t('tvt.join')}
-          labelStyle={{ fontSize: 11 }}
-          onClick={() => {
-            playUiSound('click');
-            joinTvt();
-          }}
-          style={open ? undefined : { filter: 'brightness(0.6)' }}
-        />
+      <RfTableHead columns={[{ label: t('tvt.scheduleTitle'), align: 'center' }]} />
+      <RfList height={40} className="tvt-schedule">
+        {TVT_TIMETABLE.times.map(minute => (
+          <div key={minute} className={`tvt-slot${minute === nextMinute ? ' next' : ''}`}>
+            {`${pad(Math.floor(minute / 60))}:${pad(minute % 60)}`}
+          </div>
+        ))}
+      </RfList>
+      <RfTableHead columns={[{ label: t('tvt.arenaTitle'), align: 'center' }]} />
+      <div className="tvt-arena">
+        <div className="tvt-arena-line">{t('tvt.arenaDescription')}</div>
+        <div className="tvt-arena-line">{t('tvt.winnersEarnZen')}</div>
+        <div className="tvt-arena-line tvt-requirement">{t('tvt.requiresLevel')}</div>
       </div>
-    </MuItemWindow>
+      <div className="tvt-actions">
+        <RfButton className="tvt-join" label={t('tvt.join')} disabled={!open} onClick={joinTvt} />
+        <RfButton small label={t('common.close')} onClick={closeTvtWindow} />
+      </div>
+    </ReforgeShell>
   );
 });
 

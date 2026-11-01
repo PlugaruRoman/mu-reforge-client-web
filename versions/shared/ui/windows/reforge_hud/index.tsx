@@ -5,13 +5,10 @@ import { runInAction } from 'mobx';
 import { t, type TextKey } from '@/i18n';
 import { MuWindows } from '@/controllers/interface';
 import { GameOptions } from '@/controllers/settings';
-import { MuItemWindow } from '@/controllers/interface/components/mu_window';
 import { MuSpriteFrame } from '@/controllers/interface/components/mu_sprite';
-import { MuText, TEXT_COLOR } from '@/controllers/interface/components/mu_text';
 import { useUiStageScale } from '@/controllers/interface/components/ui_stage';
 import { togglesWindow } from '@/controllers/interface/components/module_window';
 import { useEventBus } from '@/controllers/interface/hooks';
-import { playUiSound } from '@/controllers/sound/sfx';
 import { addNotification } from '@/modules/chat';
 import { Social } from '@/modules/social/social';
 import { BUFF_ICON_HEIGHT, BUFF_ICON_WIDTH, buffIconCell } from '@/modules/skills/recipes';
@@ -24,6 +21,8 @@ import {
   type GuestSession,
 } from '@/modules/reforge_hud';
 import { cornerPanelSpan } from '../../hud/minimap/corner';
+import { AccountButton, AccountConfirm } from '../_shared/accountWidgets';
+import { ReforgeShell, RfButton, RfFooter, RfList, RfTableHead, RfTabs } from '../_shared/reforgeShell';
 
 /**
  * Our client's small Mu Reforge pieces: the party members' buffs beside the party list
@@ -102,6 +101,11 @@ const copy = (text: string) => {
   void navigator.clipboard?.writeText(text).then(() => addNotification(t('reforgeHud.guest.copied')));
 };
 
+/**
+ * `CGuestAccessWindow` (reforge_guest_access.rml), 230 x 404: Settings (the eleven permissions in two
+ * columns, the hour stepper, the session name, the generated password, Generate | Copy) and Sessions
+ * (Name | Time left, rows of 32 with Copy and Delete); the footer holds the tab's hint; Close.
+ */
 const GuestAccessWindow = observer(() => {
   const [tab, setTab] = useState<'settings' | 'sessions'>('settings');
   // No permission ticked: the owner grants what the guest may do.
@@ -124,7 +128,6 @@ const GuestAccessWindow = observer(() => {
       addNotification(t('reforgeHud.guest.limitReached', { max: GUEST_MAX_SESSIONS }), 'error');
       return;
     }
-    playUiSound('click');
     ReforgeHud.generateGuest(permissions, hours, name);
   };
 
@@ -135,56 +138,83 @@ const GuestAccessWindow = observer(() => {
       : generated.success
         ? generated.password
         : t('reforgeHud.guest.refused');
+  const shown = !!generated?.success && !generated.pending;
 
   return (
-    <MuItemWindow id="guest-access-window" label={t('reforgeHud.guest.title')} onClose={close}>
-      <MuText face="bold" align="center" className="rh-title" text={t('reforgeHud.guest.title')} />
-      <div className="rh-tabs" data-no-drag="true">
-        {(['settings', 'sessions'] as const).map(id => (
-          <div
-            key={id}
-            className={`rh-tab${tab === id ? ' active' : ''}`}
-            onClick={() => {
-              setTab(id);
-              if (id === 'sessions') ReforgeHud.requestGuestList();
-            }}
-          >
-            {t(id === 'settings' ? 'reforgeHud.guest.tabSettings' : 'reforgeHud.guest.tabSessions')}
+    <ReforgeShell
+      id={GUEST_ACCESS_WINDOW}
+      title={t('reforgeHud.guest.title')}
+      height={404}
+      className="guest-access"
+      onClose={() => {
+        if (revoke) setRevoke(null);
+        else close();
+      }}
+      overlay={
+        revoke && (
+          <AccountConfirm
+            lines={[
+              { text: t('reforgeHud.guest.revokeQuestion', { name: revoke.name }), bold: true },
+              { text: t('reforgeHud.guest.revokeDisconnects') },
+            ]}
+            buttons={[
+              {
+                label: t('reforgeHud.ok'),
+                onClick: () => {
+                  ReforgeHud.revokeGuest(revoke);
+                  setRevoke(null);
+                  ReforgeHud.requestGuestList();
+                },
+              },
+              { label: t('reforgeHud.cancel'), onClick: () => setRevoke(null) },
+            ]}
+          />
+        )
+      }
+    >
+      <RfTabs
+        tabs={[
+          { id: 'settings' as const, label: t('reforgeHud.guest.tabSettings') },
+          { id: 'sessions' as const, label: t('reforgeHud.guest.tabSessions'), live: sessions.length > 0 },
+        ]}
+        active={tab}
+        onSelect={id => {
+          setTab(id);
+          if (id === 'sessions') ReforgeHud.requestGuestList();
+        }}
+      />
+      {tab === 'settings' ? (
+        <div className="ga-page">
+          <RfTableHead className="ga-heading" columns={[{ label: t('reforgeHud.guest.restrictions') }]} />
+          <div className="ga-perms">
+            {PERMISSION_KEYS.slice(0, GUEST_PERMISSIONS).map((key, i) => {
+              const on = (permissions & (1 << i)) !== 0;
+              return (
+                <div key={i} className={`ga-perm${on ? ' checked' : ''}`} onClick={() => setPermissions(p => p ^ (1 << i))}>
+                  <span className="acct-box" />
+                  <span className="ga-perm-label">{t(key)}</span>
+                </div>
+              );
+            })}
           </div>
-        ))}
-      </div>
-      <div className="rh-body" data-no-drag="true">
-        {tab === 'settings' ? (
-          <>
-            <MuText className="rh-line" text={t('reforgeHud.guest.restrictions')} color={TEXT_COLOR.orange} />
-            <div className="rh-perms">
-              {PERMISSION_KEYS.slice(0, GUEST_PERMISSIONS).map((key, i) => {
-                const on = (permissions & (1 << i)) !== 0;
-                return (
-                  <label key={i} className="rh-perm">
-                    <input type="checkbox" checked={on} onChange={() => setPermissions(p => p ^ (1 << i))} />
-                    {t(key)}
-                  </label>
-                );
-              })}
-            </div>
-            <div className="rh-row">
-              <MuText text={t('reforgeHud.guest.duration')} color={TEXT_COLOR.orange} />
-              <span className="rh-stepper">
-                <span className="rh-step" onClick={() => setHours(h => Math.max(GUEST_HOURS.min, h - 1))} title={t('reforgeHud.guest.minusOneHour')}>
-                  -
-                </span>
-                {t('reforgeHud.guest.hours', { hours })}
-                <span className="rh-step" onClick={() => setHours(h => Math.min(GUEST_HOURS.max, h + 1))} title={t('reforgeHud.guest.plusOneHour')}>
-                  +
-                </span>
+          <div className="ga-line ga-duration">
+            <span className="ga-label">{t('reforgeHud.guest.duration')}</span>
+            <span className="ga-stepper">
+              <span className="ga-step" title={t('reforgeHud.guest.minusOneHour')} onClick={() => setHours(h => Math.max(GUEST_HOURS.min, h - 1))}>
+                -
               </span>
-            </div>
-            <MuText className="rh-line" text={t('reforgeHud.guest.generateHeader')} color={TEXT_COLOR.orange} />
+              <span className="ga-step-value">{t('reforgeHud.guest.hours', { hours })}</span>
+              <span className="ga-step" title={t('reforgeHud.guest.plusOneHour')} onClick={() => setHours(h => Math.min(GUEST_HOURS.max, h + 1))}>
+                +
+              </span>
+            </span>
+          </div>
+          <RfTableHead className="ga-heading" columns={[{ label: t('reforgeHud.guest.generateHeader') }]} />
+          <div className="ga-line">
+            <span className="ga-label">{t('reforgeHud.guest.sessionName')}</span>
             <input
-              className="rh-input"
+              className="acct-field ga-name-field"
               maxLength={20}
-              placeholder={t('reforgeHud.guest.sessionName')}
               value={name}
               onChange={e => setName(e.target.value)}
               onKeyDown={e => {
@@ -192,69 +222,54 @@ const GuestAccessWindow = observer(() => {
                 if (e.key === 'Enter') generate();
               }}
             />
-            <div className="rh-button" onClick={generate}>
-              {t('reforgeHud.guest.generate')}
-            </div>
-            <div className="rh-row">
-              <MuText text={t('reforgeHud.guest.password')} color={TEXT_COLOR.orange} />
-              <MuText text={password} color={generated?.success ? TEXT_COLOR.brightYellow : TEXT_COLOR.brightGray} />
-            </div>
-            {generated?.success && (
-              <div className="rh-button" onClick={() => copy(generated.password)}>
-                {t('reforgeHud.guest.copy')}
-              </div>
-            )}
-            <MuText className="rh-line" text={t('reforgeHud.guest.hint')} color="rgb(150, 150, 150)" />
-          </>
-        ) : (
-          <>
-            <MuText className="rh-line" text={t('reforgeHud.guest.sessionCount', { count: sessions.length, max: GUEST_MAX_SESSIONS })} />
-            {sessions.length === 0 && <MuText className="rh-line" text={t('reforgeHud.guest.noSessions')} color="rgb(150, 150, 150)" />}
-            {sessions.map((s, i) => (
-              <div key={i} className="rh-session">
-                <div className="rh-row">
-                  <MuText text={s.name} color={TEXT_COLOR.brightYellow} />
-                  <MuText text={timeLeft(ReforgeHud.guestSecondsLeft(s, now))} />
-                </div>
-                <div className="rh-row">
-                  <span
-                    className="rh-link"
+          </div>
+          <div className="ga-line">
+            <span className="ga-label">{t('reforgeHud.guest.password')}</span>
+            <span className={`ga-password${shown ? ' shown' : ''}${generated && !generated.pending && !generated.success ? ' failed' : ''}`}>
+              {password}
+            </span>
+          </div>
+          <div className="ga-buttons">
+            <RfButton small label={t('reforgeHud.guest.generate')} disabled={!!generated?.pending} onClick={generate} />
+            <RfButton small label={t('reforgeHud.guest.copy')} disabled={!shown} onClick={() => generated && copy(generated.password)} />
+          </div>
+        </div>
+      ) : (
+        <div className="ga-page">
+          <RfTableHead
+            className="ga-columns"
+            columns={[{ label: t('reforgeHud.guest.colName') }, { label: t('reforgeHud.guest.colTimeLeft'), width: 64, align: 'right' }]}
+          />
+          <RfList height={228} className="ga-list">
+            {sessions.length === 0 && <div className="ga-empty">{t('reforgeHud.guest.noSessions')}</div>}
+            {sessions.map((s, i) => {
+              const left = ReforgeHud.guestSecondsLeft(s, now);
+              return (
+                <div key={i} className={`rf-row ga-row${left <= 0 ? ' expired' : ''}`}>
+                  <div className="ga-row-text">
+                    <div className="ga-cols">
+                      <span className="ga-col-name">{s.name}</span>
+                      <span className="ga-col-time">{timeLeft(left)}</span>
+                    </div>
+                    <div className={`ga-row-password${s.password ? '' : ' missing'}`}>{s.password || t('reforgeHud.guest.notStored')}</div>
+                  </div>
+                  <AccountButton
+                    className={`ga-icon${s.password ? '' : ' hidden'}`}
+                    label={t('reforgeHud.guest.copy')}
                     title={t('reforgeHud.guest.copyPasswordTip')}
                     onClick={() => s.password && copy(s.password)}
-                  >
-                    {s.password || t('reforgeHud.guest.notStored')}
-                  </span>
-                  <span className="rh-link danger" title={t('reforgeHud.guest.deleteSessionTip')} onClick={() => setRevoke(s)}>
-                    X
-                  </span>
+                  />
+                  <AccountButton className="ga-icon ga-delete" label="X" title={t('reforgeHud.guest.deleteSessionTip')} onClick={() => setRevoke(s)} />
                 </div>
-              </div>
-            ))}
-            {revoke && (
-              <div className="rh-confirm">
-                <MuText className="rh-line" text={t('reforgeHud.guest.revokeQuestion', { name: revoke.name })} />
-                <MuText className="rh-line" text={t('reforgeHud.guest.revokeDisconnects')} color="rgb(150, 150, 150)" />
-                <div className="rh-row">
-                  <div
-                    className="rh-button"
-                    onClick={() => {
-                      ReforgeHud.revokeGuest(revoke);
-                      setRevoke(null);
-                      ReforgeHud.requestGuestList();
-                    }}
-                  >
-                    {t('reforgeHud.ok')}
-                  </div>
-                  <div className="rh-button" onClick={() => setRevoke(null)}>
-                    {t('reforgeHud.cancel')}
-                  </div>
-                </div>
-              </div>
-            )}
-          </>
-        )}
-      </div>
-    </MuItemWindow>
+              );
+            })}
+          </RfList>
+        </div>
+      )}
+      <RfFooter className="ga-footer">
+        {tab === 'settings' ? t('reforgeHud.guest.hint') : t('reforgeHud.guest.sessionCount', { count: sessions.length, max: GUEST_MAX_SESSIONS })}
+      </RfFooter>
+    </ReforgeShell>
   );
 });
 

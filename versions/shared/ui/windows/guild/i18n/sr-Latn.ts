@@ -57,4 +57,11 @@ export default {
   'guild.kickHint': 'Za razrešenje lika „{name}“,',
   'guild.enterSecurityCode': 'unesi bezbednosni kod naloga.',
   'guild.securityCode': 'Kod',
+  'guild.plateWars': 'Ratovi gildi',
+  'guild.plateWarsTip': 'Pregledaj gilde i objavi rat',
+  'guild.plateAlliance': 'Savez gildi',
+  'guild.plateAllianceTip': 'Predloži savez drugoj gildi',
+  'guild.platePositionTip': 'Dodeli čin izabranom članu',
+  'guild.noticePlaceholder': 'Obaveštenje...',
+  'guild.noticeSend': 'Postavi obaveštenje',
 } satisfies Partial<Record<keyof typeof en, string>>;

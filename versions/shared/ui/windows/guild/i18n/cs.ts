@@ -57,4 +57,11 @@ export default {
   'guild.kickHint': 'Chceš-li propustit postavu „{name}“,',
   'guild.enterSecurityCode': 'zadej bezpečnostní kód svého účtu.',
   'guild.securityCode': 'Kód',
+  'guild.plateWars': 'Války cechů',
+  'guild.plateWarsTip': 'Prohlížej cechy a vyhlas válku',
+  'guild.plateAlliance': 'Aliance cechů',
+  'guild.plateAllianceTip': 'Nabídni alianci jinému cechu',
+  'guild.platePositionTip': 'Přiděl vybranému členovi hodnost',
+  'guild.noticePlaceholder': 'Oznámení...',
+  'guild.noticeSend': 'Nastavit oznámení',
 } satisfies Partial<Record<keyof typeof en, string>>;

@@ -57,4 +57,11 @@ export default {
   'guild.kickHint': 'Aby zwolnić postać „{name}”,',
   'guild.enterSecurityCode': 'wpisz kod zabezpieczający konta.',
   'guild.securityCode': 'Kod',
+  'guild.plateWars': 'Wojny gildii',
+  'guild.plateWarsTip': 'Przeglądaj gildie i wypowiadaj wojnę',
+  'guild.plateAlliance': 'Sojusz gildii',
+  'guild.plateAllianceTip': 'Zaproponuj sojusz innej gildii',
+  'guild.platePositionTip': 'Nadaj wybranemu członkowi rangę',
+  'guild.noticePlaceholder': 'Ogłoszenie...',
+  'guild.noticeSend': 'Ustaw ogłoszenie',
 } satisfies Partial<Record<keyof typeof en, string>>;

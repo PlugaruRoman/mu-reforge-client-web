@@ -35,4 +35,7 @@ export default {
   'charInfo.attackSpeed': 'আক্রমণের গতি: {value}',
   'charInfo.defenseRatePvpBonus': 'প্রতিরক্ষার হার: {value} (+{bonus})',
   'charInfo.curseSpellRate': ' অভিশাপ মন্ত্র: {min} ~ {max}(+{rate})',
+  'charInfo.plateAddStatsTip': 'একসাথে অনেক লেভেল আপ পয়েন্ট খরচ করো, অথবা সার্ভারকে তোমার হয়ে খরচ করতে দাও।',
+  'charInfo.plateResetTip': 'চরিত্রকে নিচের লেভেল থেকে আবার শুরু করায় এবং তোমার রিসেট সংখ্যায় এক যোগ করে।',
+  'charInfo.plateGrandResetTip': 'পুরো এক দফা রিসেটের বদলে একটি গ্র্যান্ড রিসেট দেয়, এবং সেগুলো আবার শুরু করে।',
 } satisfies Partial<Record<keyof typeof en, string>>;

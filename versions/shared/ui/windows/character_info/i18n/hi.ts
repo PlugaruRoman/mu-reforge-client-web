@@ -35,4 +35,7 @@ export default {
   'charInfo.attackSpeed': 'हमले की गति: {value}',
   'charInfo.defenseRatePvpBonus': 'रक्षा दर: {value} (+{bonus})',
   'charInfo.curseSpellRate': 'श्राप शक्ति: {min} ~ {max}(+{rate})',
+  'charInfo.plateAddStatsTip': 'एक साथ कई लेवल अप पॉइंट खर्च करें, या सर्वर को आपके लिए खर्च करने दें।',
+  'charInfo.plateResetTip': 'चरित्र को निचले लेवल से फिर शुरू करता है और आपकी रीसेट गिनती में एक जोड़ता है।',
+  'charInfo.plateGrandResetTip': 'रीसेट की पूरी श्रृंखला को एक ग्रैंड रीसेट से बदलता है, और उन्हें फिर से शुरू करता है।',
 } satisfies Partial<Record<keyof typeof en, string>>;

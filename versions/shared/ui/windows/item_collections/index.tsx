@@ -4,7 +4,8 @@ import { observer } from 'mobx-react-lite';
 import { t, type TextKey } from '@/i18n';
 import type { Item } from '@/ecs/world';
 import { MuWindows } from '@/controllers/interface/windowManager';
-import { useWindowChrome } from '@/controllers/interface/components/mu_window';
+import { MuTableFrame, useWindowChrome } from '@/controllers/interface/components/mu_window';
+import { MuSpriteFrame, useMuSprite } from '@/controllers/interface/components/mu_sprite';
 import { togglesWindow } from '@/controllers/interface/components/module_window';
 import { ItemIcon } from '@/controllers/interface/components/item_icon';
 import { useEventBus } from '@/controllers/interface/hooks';
@@ -30,7 +31,9 @@ import { itemBaseName } from '@versions/shared/items/itemsDatabase';
 
 /**
  * `CItemCollectionWindow` (our client's UI/ItemCollections/ItemCollectionWindow.cpp,
- * reforge_item_collections.rml): the server's collections eight to a page, filtered by category, each
+ * reforge_item_collections.rml), a 546 x 404 table panel centred on the stage, at our client's places:
+ * the category tabs with the statistics right of them, the list well with its captions, the exit plate
+ * and the pager on the bottom border. The server's collections eight to a page, filtered by category, each
  * with its state, the items it asks for (an open slot dimmed, a registered one gold, one an inventory
  * item fits framed green) and its bonus. A click on a green slot asks, after a confirmation, to register
  * the weakest fitting inventory item (the item is destroyed). ';' toggles it, as in our client
@@ -41,16 +44,20 @@ export const ITEM_COLLECTIONS_ID = 'item_collections';
 /** VK_OEM_1 (0xBA), our client's key. */
 const HOT_KEY = 'Semicolon';
 
-const WIDTH = 560;
-const HEIGHT = 400;
+/** Our client's reforge_item_collections.rcss, in stage units: the panel, the list well at (16, 62). */
+const WIDTH = 546;
+const HEIGHT = 404;
+const LIST = { x: 16, y: 62, width: 512, height: 292, head: 21 } as const;
 const ROWS_PER_PAGE = 8;
-const ROW_Y = 92;
+const ROW_Y = LIST.y + LIST.head;
 const ROW_HEIGHT = 34;
-const NAME_X = 12;
-const SLOTS_X = 172;
+/** Within a row: the name at 6, the slots (32 x 30, 2 apart) at 134, the bonus at 376. */
+const NAME_X = 6;
+const SLOTS_X = 134;
 const SLOT_SIZE = 32;
-const SLOT_PITCH = 38;
-const BONUS_X = 444;
+const SLOT_HEIGHT = 30;
+const SLOT_PITCH = 34;
+const BONUS_X = 376;
 /** The additional option grows 4 per level, except on jewelry (group 13) (ReforgeItemCollections.h:43-45). */
 const JEWELRY_GROUP = 13;
 const OPTION_VALUE_PER_LEVEL = 4;
@@ -171,6 +178,7 @@ export function toggleItemCollections(click = true): void {
 }
 
 export const ItemCollectionsWindow = observer(() => {
+  const back = useMuSprite('newui_msgbox_back.OZJ');
   const [category, setCategory] = useState(0);
   const [page, setPage] = useState(0);
   const [hover, setHover] = useState<Hover | null>(null);
@@ -185,6 +193,7 @@ export const ItemCollectionsWindow = observer(() => {
       playUiSound('click');
     },
     open: 'center',
+    scaleBy: 'stage',
   });
 
   useEventBus('keyPressed', key => {
@@ -220,8 +229,9 @@ export const ItemCollectionsWindow = observer(() => {
       onPointerDown={chrome.onPointerDown}
       style={chrome.style}
     >
+      <div className="ic-bg" style={{ backgroundImage: back ? `url(${back.url})` : undefined }} />
+      <MuTableFrame left={0} top={0} width={WIDTH} height={HEIGHT} />
       <div className="ic-title">{t('itemCollections.title')}</div>
-      <div className="ic-close" data-no-drag="true" title={t('itemCollections.close')} onClick={close} />
 
       <div className="ic-tabs" data-no-drag="true">
         {Array.from({ length: CATEGORY_COUNT }, (_, i) => (
@@ -245,9 +255,12 @@ export const ItemCollectionsWindow = observer(() => {
         <span>{t('itemCollections.stat.items', { done: progress.filledSlots, total: progress.slots })}</span>
       </div>
 
-      <div className="ic-head" style={{ left: NAME_X }}>{t('itemCollections.head.name')}</div>
-      <div className="ic-head" style={{ left: SLOTS_X }}>{t('itemCollections.head.items')}</div>
-      <div className="ic-head" style={{ left: BONUS_X }}>{t('itemCollections.head.bonus')}</div>
+      <div className="ic-well" style={{ left: LIST.x, top: LIST.y, width: LIST.width, height: LIST.height }} />
+      <div className="ic-headrow" style={{ left: LIST.x, top: LIST.y, width: LIST.width, height: LIST.head - 1 }}>
+        <div className="ic-head" style={{ left: NAME_X, width: 124 }}>{t('itemCollections.head.name')}</div>
+        <div className="ic-head" style={{ left: SLOTS_X, width: 236, textAlign: 'center' }}>{t('itemCollections.head.items')}</div>
+        <div className="ic-head" style={{ left: BONUS_X, width: 130 }}>{t('itemCollections.head.bonus')}</div>
+      </div>
 
       {shown.length === 0 && (
         <div className="ic-empty">{t(ItemCollections.hasCatalog ? 'itemCollections.empty' : 'itemCollections.loading')}</div>
@@ -257,11 +270,11 @@ export const ItemCollectionsWindow = observer(() => {
         const y = ROW_Y + row * ROW_HEIGHT;
         const state = isComplete(collection) ? 'complete' : filledCount(collection) > 0 ? 'started' : 'idle';
         return (
-          <div key={collection.number} className={`ic-row ${state}`} style={{ top: y, height: ROW_HEIGHT - 2 }}>
+          <div key={collection.number} className={`ic-row ${state}${row % 2 ? '' : ' odd'}`} style={{ left: LIST.x, width: LIST.width, top: y, height: ROW_HEIGHT }}>
             <div
               className="ic-name"
               style={{ left: NAME_X }}
-              onPointerEnter={() => tip(collectionTooltip(collection), NAME_X, y + ROW_HEIGHT)}
+              onPointerEnter={() => tip(collectionTooltip(collection), LIST.x + NAME_X, y + ROW_HEIGHT)}
               onPointerLeave={() => setHover(null)}
             >
               <div className="ic-name-text">{collection.name}</div>
@@ -275,9 +288,9 @@ export const ItemCollectionsWindow = observer(() => {
                   key={s}
                   className={`ic-slot ${look}${has(slot, SlotFlag.Ancient) ? ' ancient' : ''}`}
                   data-no-drag="true"
-                  style={{ left: x, width: SLOT_SIZE, height: SLOT_SIZE }}
+                  style={{ left: x, width: SLOT_SIZE, height: SLOT_HEIGHT }}
                   onClick={() => clickSlot(collection, s)}
-                  onPointerEnter={() => tip(slotTooltip(slot), x, y)}
+                  onPointerEnter={() => tip(slotTooltip(slot), LIST.x + x, y)}
                   onPointerLeave={() => setHover(null)}
                 >
                   <ItemIcon item={slotItem(slot)} />
@@ -294,6 +307,15 @@ export const ItemCollectionsWindow = observer(() => {
         );
       })}
 
+      <MuSpriteFrame
+        file="newui_exit_00.OZT"
+        width={36}
+        height={29}
+        className="ic-close"
+        title={t('itemCollections.close')}
+        noDrag
+        onClick={close}
+      />
       {pages > 1 && (
         <div className="ic-pager" data-no-drag="true">
           <div

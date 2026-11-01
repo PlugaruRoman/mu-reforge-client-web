@@ -58,4 +58,11 @@ export default {
   'guild.kickHint': "캐릭터 '{name}'을(를) 추방하려면,",
   'guild.enterSecurityCode': '계정 보안 코드를 입력하세요.',
   'guild.securityCode': '코드',
+  'guild.plateWars': '길드 전쟁',
+  'guild.plateWarsTip': '길드를 둘러보고 전쟁을 선포합니다',
+  'guild.plateAlliance': '길드 연합',
+  'guild.plateAllianceTip': '다른 길드에 연합을 요청합니다',
+  'guild.platePositionTip': '선택한 멤버에게 계급을 부여합니다',
+  'guild.noticePlaceholder': '공지...',
+  'guild.noticeSend': '공지 설정',
 } satisfies Partial<Record<keyof typeof en, string>>;

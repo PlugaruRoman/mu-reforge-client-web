@@ -17,6 +17,10 @@ export const BACK_RIGHT_WIDTH = 128;
 export const CLOSE_SPRITE = 'new_Master_exit.OZJ';
 export const CLOSE = { x: 611, y: 9, width: 13, height: 14 };
 
+/** [reforge] Reset Tree (master_level.rcss `#reforge_reset_tree`): two 30x22 frames, up over pressed. */
+export const RESET_TREE_SPRITE = 'newui_master_btn_resettree.OZT';
+export const RESET_TREE = { x: 20, y: 31, width: 30, height: 22 };
+
 /** Icon atlases: open nodes in colour, closed ones in the grey atlas. */
 export const ICON_SPRITE = 'new_Master_Icon.OZJ';
 export const ICON_GREY_SPRITE = 'new_Master_non_Icon.OZJ';

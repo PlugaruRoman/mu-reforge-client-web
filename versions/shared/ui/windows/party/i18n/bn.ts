@@ -13,4 +13,8 @@ export default {
   'party.notInParty': 'কোনো পার্টিতে নেই।',
   'party.invite': 'আমন্ত্রণ',
   'party.shop': 'দোকান',
+  'party.find': 'খুঁজুন',
+  'party.settings': 'সেটিংস',
+  'party.giveLead': 'নেতৃত্ব দেবেন?',
+  'party.giveLeadConfirm': 'আবার ক্লিক করুন',
 } satisfies Partial<Record<keyof typeof en, string>>;

@@ -35,4 +35,7 @@ export default {
   'charInfo.attackSpeed': 'Brzina napada: {value}',
   'charInfo.defenseRatePvpBonus': 'Stopa odbrane: {value} (+{bonus})',
   'charInfo.curseSpellRate': 'Šteta kletve: {min} ~ {max}(+{rate})',
+  'charInfo.plateAddStatsTip': 'Potroši mnogo poena odjednom ili pusti server da ih troši umesto tebe.',
+  'charInfo.plateResetTip': 'Počinje lika iznova na nižem nivou i dodaje jedan reset.',
+  'charInfo.plateGrandResetTip': 'Menja ceo krug resetova za jedan grand reset i počinje ih iznova.',
 } satisfies Partial<Record<keyof typeof en, string>>;

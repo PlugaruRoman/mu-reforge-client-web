@@ -1,9 +1,9 @@
 import './style.less';
 import { useEffect, type PointerEvent as ReactPointerEvent } from 'react';
+import { observable, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import { t } from '@/i18n';
 import { Ecs } from '@/ecs/current';
-import { MuText, TEXT_COLOR } from '@/controllers/interface/components/mu_text';
 import { useUiStageScale, UI_STAGE_HEIGHT, UI_STAGE_WIDTH } from '@/controllers/interface/components/ui_stage';
 import { playUiSound } from '@/controllers/sound/sfx';
 import { MuWindows } from '@/controllers/interface/windowManager';
@@ -15,7 +15,8 @@ import { HuntLog, NOT_ESTIMABLE, closeHuntLog, helperStopped, huntLogShown, requ
  * The Hunting Log ("Instant Hunting Log", our client's UI/HuntLog/HuntLogHud.cpp, reforge_hunt_log.rml):
  * the current hunting session's figures from the server (C1 DA 01), asked for once a second while it
  * shows. It comes up by itself while the MU Helper runs, as the old client's did; its X closes it for
- * that run.
+ * that run. A small translucent box on the stage's right edge (reforge_hunt_log.rcss); a click on the
+ * title folds it, a drag moves it.
  */
 
 /** The old client asked once a second while the panel showed; the server answers every request. */
@@ -25,7 +26,6 @@ const REQUEST_MS = 1000;
  * not a stacked window, so Escape and the window order leave it alone. "Reset windows" puts it back.
  */
 const PLACEMENT_ID = 'hunt_log_panel';
-const VIP_COLOR = 'rgb(255, 200, 60)';
 
 /** `Text::GroupedNumber`: 1,234,567. */
 const grouped = (n: number) => Math.floor(n).toLocaleString('en-US');
@@ -38,26 +38,38 @@ const timeToLevel = (s: number) =>
 
 type Row = { label: string; value: string; gap?: boolean; vip?: boolean };
 
+/** reforge_hunt_log.rcss `#panel`: 112 from the stage's top, 8 in from its right edge, 128 wide. */
+const PANEL = { top: 112, right: 8, width: 128 } as const;
+/** A press that moves less than this many screen pixels is a click: it folds the log (HuntLogPlacement.h). */
+const CLICK_SLOP = 4;
+/** Per sitting, as our client keeps it while the game runs. */
+const folded = observable.box(false);
+
 /**
- * HuntLogHud.cpp: the title is a drag handle. The panel's top left follows the pointer, kept on screen
- * by `MuWindows.moveTo`, and the place is saved.
+ * HuntLogHud.cpp: the title is a drag handle and a fold switch. The panel's top left follows the
+ * pointer, kept on screen by `MuWindows.moveTo`, and the place is saved; a press that barely moves folds.
  */
-function dragByTitle(event: ReactPointerEvent<HTMLDivElement>): void {
-  if (event.button !== 0 || GameOptions.lockWindows) return;
+function pressTitle(event: ReactPointerEvent<HTMLDivElement>): void {
+  if (event.button !== 0) return;
   if ((event.target as HTMLElement).closest('[data-no-drag]')) return;
   const head = event.currentTarget;
   const panel = head.parentElement;
   if (!panel) return;
   const rect = panel.getBoundingClientRect();
-  const offsetX = event.clientX - rect.left;
-  const offsetY = event.clientY - rect.top;
+  const startX = event.clientX;
+  const startY = event.clientY;
+  const offsetX = startX - rect.left;
+  const offsetY = startY - rect.top;
   const pointerId = event.pointerId;
+  let moved = false;
   head.setPointerCapture(pointerId);
   event.preventDefault();
   event.stopPropagation();
 
   const onMove = (move: PointerEvent) => {
-    if (move.pointerId !== pointerId) return;
+    if (move.pointerId !== pointerId || GameOptions.lockWindows) return;
+    if (!moved && Math.hypot(move.clientX - startX, move.clientY - startY) < CLICK_SLOP) return;
+    moved = true;
     MuWindows.moveTo(PLACEMENT_ID, move.clientX - offsetX, move.clientY - offsetY);
   };
   const onUp = (up: PointerEvent) => {
@@ -66,6 +78,10 @@ function dragByTitle(event: ReactPointerEvent<HTMLDivElement>): void {
     head.removeEventListener('pointermove', onMove);
     head.removeEventListener('pointerup', onUp);
     head.removeEventListener('pointercancel', onUp);
+    if (!moved && up.type === 'pointerup') {
+      playUiSound('click');
+      runInAction(() => folded.set(!folded.get()));
+    }
   };
   head.addEventListener('pointermove', onMove);
   head.addEventListener('pointerup', onUp);
@@ -81,6 +97,7 @@ const Panel = observer(() => {
   }, []);
 
   const s = HuntLog.statistics;
+  const isFolded = folded.get();
   // The old client's three groups: time; damage and zen; levels and experience.
   const rows: Row[] = s
     ? [
@@ -101,32 +118,40 @@ const Panel = observer(() => {
   const offsetY = (window.innerHeight - UI_STAGE_HEIGHT * scale) / 2;
   const placement = MuWindows.placement(PLACEMENT_ID);
   // A saved place stays on screen after the window shrinks (HuntLogPlacement.h), its title reachable.
-  const left = placement.x === null ? offsetX + 4 * scale : Math.max(0, Math.min(placement.x, window.innerWidth - 40));
-  const top = placement.y === null ? offsetY + 150 * scale : Math.max(0, Math.min(placement.y, window.innerHeight - 20));
+  const left =
+    placement.x === null
+      ? offsetX + (UI_STAGE_WIDTH - PANEL.right - PANEL.width) * scale
+      : Math.max(0, Math.min(placement.x, window.innerWidth - 40));
+  const top = placement.y === null ? offsetY + PANEL.top * scale : Math.max(0, Math.min(placement.y, window.innerHeight - 20));
 
   return (
-    <div className="hunt-log" style={{ left, top, transform: `scale(${scale})` }}>
-      <div className={`hunt-log-head${GameOptions.lockWindows ? '' : ' draggable'}`} onPointerDown={dragByTitle}>
-        <MuText face="bold" text={t('huntLog.title')} color={TEXT_COLOR.brightYellow} />
-        <span
-          className="hunt-log-close"
-          data-no-drag="true"
-          role="button"
-          onClick={() => {
-            playUiSound('click');
-            closeHuntLog(MuHelper.active);
-          }}
-        >
-          x
-        </span>
+    <div className="hunt-log" style={{ left, top, width: PANEL.width, transform: `scale(${scale})` }}>
+      <div className={`hunt-log-title${GameOptions.lockWindows ? '' : ' draggable'}`} title={t('huntLog.foldHint')} onPointerDown={pressTitle}>
+        {t('huntLog.title')}
       </div>
-      {rows.map(row => (
-        <div key={row.label} className={`hunt-log-row${row.gap ? ' gap' : ''}`}>
-          <MuText text={row.label} color={row.vip ? VIP_COLOR : 'rgb(127, 178, 255)'} />
-          <MuText text={row.value} color={row.vip ? VIP_COLOR : TEXT_COLOR.white} />
-        </div>
-      ))}
-      {s?.resetAvailable && <MuText face="bold" className="hunt-log-reset" text={t('huntLog.resetAvailable')} color="rgb(120, 230, 120)" />}
+      <span className={`hunt-log-fold${isFolded ? ' folded' : ''}`} data-no-drag="true" title={t('huntLog.foldHint')} onClick={() => runInAction(() => folded.set(!isFolded))}>
+        {isFolded ? '+' : '-'}
+      </span>
+      <span
+        className="hunt-log-close"
+        data-no-drag="true"
+        role="button"
+        title={t('common.close')}
+        onClick={() => {
+          playUiSound('click');
+          closeHuntLog(MuHelper.active);
+        }}
+      >
+        x
+      </span>
+      {!isFolded &&
+        rows.map(row => (
+          <div key={row.label} className={`hunt-log-row${row.gap ? ' gap' : ''}${row.vip ? ' vip' : ''}`}>
+            <span className="hunt-log-label">{row.label}</span>
+            <span className="hunt-log-value">{row.value}</span>
+          </div>
+        ))}
+      {s?.resetAvailable && <div className="hunt-log-reset">{t('huntLog.resetAvailable')}</div>}
     </div>
   );
 });

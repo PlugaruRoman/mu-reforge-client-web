@@ -6,4 +6,5 @@ export default {
   'master.spendPoint': 'Dùng {points} điểm master cho {skill}?',
   'master.spendPoints': 'Dùng {points} điểm master cho {skill}?',
   'master.skillFallback': 'kỹ năng {number}',
+  'master.resetTree': 'Đặt lại cây',
 } satisfies Partial<Record<keyof typeof en, string>>;

@@ -1,50 +1,106 @@
 @import (reference) '@/controllers/interface/components/mu_text/style.less';
-// The Hunting Log: a black plate on the left of the stage while the MU Helper runs.
+// The Hunting Log (our client's reforge_hunt_log.rcss): a small translucent box on the stage's right
+// edge, the title in blue with the fold mark and the X beside it, one small row per figure.
 .hunt-log {
+  .mu-font();
   position: absolute;
-  width: 168px;
+  box-sizing: border-box;
   transform-origin: top left;
   pointer-events: auto;
   user-select: none;
-  padding: 4px 6px;
-  background: rgba(0, 0, 0, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  font-size: 11px;
+  padding: 2px 4px 3px;
+  background: rgba(0, 0, 0, 0.67);
+  border: 1px solid #5a5040;
+  font-size: 9px;
+  color: #e2e2e2;
   text-shadow: 1px 1px 0 #000;
 
-  .hunt-log-head,
-  .hunt-log-row {
-    display: flex;
-    justify-content: space-between;
+  .hunt-log-title {
+    height: 11px;
+    line-height: 11px;
+    margin-right: 20px;
+    cursor: pointer;
+    color: rgb(127, 178, 255);
+    font-weight: bold;
     white-space: nowrap;
-  }
+    overflow: hidden;
+    text-overflow: ellipsis;
 
-  .hunt-log-head {
-    margin-bottom: 3px;
+    &:hover {
+      color: #fff;
+    }
 
     &.draggable {
       cursor: move;
     }
   }
 
+  .hunt-log-fold,
   .hunt-log-close {
-    .mu-font();
-    color: #ccc;
+    position: absolute;
+    top: 2px;
+    width: 10px;
+    height: 11px;
+    line-height: 10px;
+    text-align: center;
+    font-weight: bold;
     cursor: pointer;
-    padding: 0 2px;
+    color: #dcc8c8;
+  }
+
+  .hunt-log-fold {
+    right: 13px;
 
     &:hover {
       color: #fff;
     }
   }
 
-  .hunt-log-row.gap {
-    margin-top: 5px;
+  .hunt-log-close {
+    right: 2px;
+
+    &:hover {
+      color: #ff5a5a;
+    }
+  }
+
+  .hunt-log-row {
+    display: flex;
+    height: 9px;
+    line-height: 9px;
+    white-space: nowrap;
+
+    &.gap {
+      margin-top: 2px;
+    }
+
+    &.vip {
+      .hunt-log-label,
+      .hunt-log-value {
+        color: #64e664;
+      }
+    }
+  }
+
+  .hunt-log-label {
+    flex: 1 1 0;
+    min-width: 0;
+    overflow: hidden;
+    color: rgb(127, 178, 255);
+  }
+
+  .hunt-log-value {
+    flex-shrink: 0;
+    padding-left: 4px;
+    text-align: right;
   }
 
   .hunt-log-reset {
-    display: block;
-    margin-top: 5px;
-    text-align: center;
+    margin-top: 2px;
+    height: 9px;
+    line-height: 9px;
+    color: #ff0;
+    font-weight: bold;
+    white-space: nowrap;
   }
 }

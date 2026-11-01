@@ -50,4 +50,6 @@ export default {
   'reforgeHud.guest.limitReached': 'Все {max} гостевых сессий заняты. Сначала удалите одну.',
   'reforgeHud.guest.sessionCount': 'Сессий: {count} / {max}',
   'reforgeHud.guest.revokeQuestion': 'Удалить сессию «{name}»?',
+  'reforgeHud.guest.colName': 'Имя',
+  'reforgeHud.guest.colTimeLeft': 'Осталось',
 } satisfies Partial<Record<keyof typeof en, string>>;

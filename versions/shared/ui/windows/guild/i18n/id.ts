@@ -57,4 +57,11 @@ export default {
   'guild.kickHint': 'Untuk mengeluarkan karakter \'{name}\',',
   'guild.enterSecurityCode': 'masukkan kode keamanan akunmu.',
   'guild.securityCode': 'Kode',
+  'guild.plateWars': 'Perang Guild',
+  'guild.plateWarsTip': 'Lihat guild dan nyatakan perang',
+  'guild.plateAlliance': 'Aliansi Guild',
+  'guild.plateAllianceTip': 'Ajukan aliansi ke guild lain',
+  'guild.platePositionTip': 'Beri pangkat pada anggota terpilih',
+  'guild.noticePlaceholder': 'Pengumuman...',
+  'guild.noticeSend': 'Atur pengumuman',
 } satisfies Partial<Record<keyof typeof en, string>>;

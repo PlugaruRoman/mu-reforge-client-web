@@ -357,3 +357,44 @@
     color: #e2e2e2;
   }
 }
+
+// [reforge] The guild master's announcement field and its send plate (reforgeParts.tsx), and the
+// announcement our server sends (guild_info.rcss `#reforge_guild_notice_input`).
+.guild-window {
+  .guild-notice-input {
+    position: absolute;
+    box-sizing: border-box;
+    padding: 0 4px;
+    border: 1px solid rgb(110, 90, 50);
+    outline: none;
+    background-color: #000;
+    color: rgb(255, 255, 230);
+    font: inherit;
+    font-size: 10px;
+    pointer-events: auto;
+  }
+
+  .guild-notice-send {
+    position: absolute;
+    overflow: hidden;
+
+    &:hover {
+      filter: brightness(1.25);
+    }
+  }
+
+  .guild-announcement {
+    color: #fff;
+    font-size: 10px;
+    line-height: 13px;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+}
+
+// [reforge] The rank menu (reforgeParts.tsx `GuildRankMenu`): our confirm box's text.
+.guild-window .reforge-confirm-text {
+  font-size: 10px;
+  color: #e2e2e2;
+  text-shadow: 1px 1px 0 #000;
+}

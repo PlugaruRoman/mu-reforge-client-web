@@ -1,0 +1,240 @@
+// Our client's reforge_party_search.rcss (legacy theme) in the reforge shell (270 x 404 dp).
+.rf-shell.party-search {
+  // The page takes the content box under the tabs; its buttons sit at the bottom.
+  .ps-page {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+
+    > * {
+      flex-shrink: 0;
+    }
+  }
+
+  // "My party ... Listed" and the found count, or a refused join in red.
+  .ps-line {
+    display: flex;
+    height: 16px;
+    line-height: 16px;
+  }
+  .ps-line-label {
+    flex: 1 1 0;
+    color: #afafb4;
+  }
+  .ps-line-value {
+    color: #ffaa6e;
+    font-weight: bold;
+
+    &.listed {
+      color: #96eb96;
+    }
+  }
+  .ps-found {
+    height: 16px;
+    line-height: 16px;
+    margin-bottom: 4px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #ffe196;
+
+    &.failed {
+      color: #ff6e6e;
+      font-weight: bold;
+    }
+  }
+
+  // One line of four columns: the master, the map, members / maximum, the join button.
+  .ps-columns {
+    height: 18px;
+    line-height: 18px;
+  }
+  .ps-row {
+    height: 18px;
+    line-height: 18px;
+
+    &:nth-child(even) {
+      background: rgba(0, 0, 0, 0.31);
+    }
+
+    .ps-name {
+      color: #e6e2c8;
+      font-weight: bold;
+    }
+    .ps-map {
+      color: #afafb4;
+    }
+    .ps-members {
+      text-align: center;
+      color: #96eb96;
+      font-weight: bold;
+    }
+    // The party wants a password: type it below before Join.
+    &.locked .ps-members {
+      color: #ffcd3c;
+    }
+    &.full .ps-members {
+      color: #ff7864;
+    }
+  }
+  .ps-join-cell {
+    display: flex;
+    justify-content: center;
+  }
+  .ps-join {
+    width: 34px;
+    height: 14px;
+    line-height: 13px;
+    box-sizing: border-box;
+    text-align: center;
+    cursor: pointer;
+    color: #ffe196;
+    background: rgba(120, 90, 30, 0.63);
+    border: 1px solid #8a6a36;
+
+    &:hover {
+      color: #fff;
+      background: rgba(170, 125, 40, 0.78);
+    }
+    &:active {
+      background: rgba(110, 80, 25, 0.86);
+    }
+  }
+
+  .ps-empty {
+    padding-top: 60px;
+    text-align: center;
+    color: #c8c8d2;
+  }
+  .ps-empty-hint {
+    color: #96969b;
+  }
+
+  // A label on the left, its control on the right: the passwords and the maximum level.
+  .ps-field-row {
+    display: flex;
+    align-items: center;
+    height: 20px;
+    margin-top: 4px;
+  }
+  .ps-field-label {
+    flex: 1 1 0;
+    color: #afafb4;
+    white-space: nowrap;
+  }
+  .acct-field.ps-field {
+    width: 84px;
+    height: 16px;
+    box-sizing: border-box;
+    padding: 1px 3px;
+    font-size: 11px;
+    text-align: left;
+    flex-shrink: 0;
+  }
+
+  .ps-hint {
+    margin-top: 4px;
+    line-height: 13px;
+    text-align: center;
+    color: #9696a2;
+  }
+
+  // The maximum level stepper: [-10] value [+10].
+  .ps-step {
+    width: 26px;
+    height: 16px;
+    line-height: 15px;
+    box-sizing: border-box;
+    flex-shrink: 0;
+    text-align: center;
+    cursor: pointer;
+    color: #ffe196;
+    background: rgba(120, 90, 30, 0.63);
+    border: 1px solid #8a6a36;
+
+    &:hover {
+      color: #fff;
+      background: rgba(170, 125, 40, 0.78);
+    }
+  }
+  .ps-level {
+    width: 30px;
+    flex-shrink: 0;
+    text-align: center;
+    font-weight: bold;
+    color: #ffe178;
+  }
+
+  // A section title with an optional note on its right.
+  .ps-section {
+    display: flex;
+    height: 18px;
+    line-height: 18px;
+    margin-top: 2px;
+    border-bottom: 1px solid #8a6a36;
+  }
+  .ps-section-title {
+    flex: 1 1 0;
+    color: #ffd927;
+    font-weight: bold;
+  }
+  .ps-section-hint {
+    color: #96969b;
+    white-space: nowrap;
+
+    &.warning {
+      color: #ff9664;
+    }
+  }
+
+  // A whole row toggles; its label lights up while the option is on.
+  .ps-toggle {
+    display: flex;
+    align-items: center;
+    height: 18px;
+    cursor: pointer;
+
+    .ps-toggle-label {
+      flex: 1 1 0;
+      color: #afafb4;
+    }
+    &.on .ps-toggle-label {
+      color: #fff;
+    }
+    &:hover .ps-toggle-label {
+      color: #ffe196;
+    }
+  }
+
+  // The seven classes in two columns.
+  .ps-classes {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  .ps-class {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    width: 50%;
+    height: 18px;
+    cursor: pointer;
+
+    .ps-class-label {
+      color: #afafb4;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    &.on .ps-class-label {
+      color: #fff;
+    }
+  }
+
+  .ps-buttons {
+    margin-top: auto;
+    padding-top: 4px;
+  }
+}

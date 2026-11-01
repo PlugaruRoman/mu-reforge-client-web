@@ -1,14 +1,12 @@
 import './style.less';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { observer } from 'mobx-react-lite';
 import { runInAction } from 'mobx';
 import { t, type TextKey } from '@/i18n';
 import { Ecs } from '@/ecs/current';
 import { MuWindows } from '@/controllers/interface';
-import { MuItemWindow } from '@/controllers/interface/components/mu_window';
 import { MuSpriteFrame } from '@/controllers/interface/components/mu_sprite';
 import { MuText, TEXT_COLOR } from '@/controllers/interface/components/mu_text';
-import { playUiSound } from '@/controllers/sound/sfx';
 import { Doppelganger } from '@/modules/doppelganger';
 import { ImperialGuardian, PHASE_BATTLE, type GuardianBox } from '@/modules/imperial_guardian';
 import {
@@ -26,6 +24,8 @@ import {
   type RegistrationState,
 } from '@/modules/fort_siege';
 import { NoticeBox, useStage } from './noticeBox';
+import { guildMarkDataUrl, packGuildMark } from '@/core/guildMark';
+import { ReforgeShell, RfButton, RfTableHead, RfTabs } from '../_shared/reforgeShell';
 
 /**
  * Our server's event HUDs: the Doppelganger frame (`CDoppelGangerFrame`, UI/Events/DoppelGangerFrame.cpp),
@@ -34,9 +34,6 @@ import { NoticeBox, useStage } from './noticeBox';
  */
 
 const ORANGE = 'rgb(255, 150, 0)';
-const GOOD = 'rgb(120, 230, 120)';
-const BAD = 'rgb(255, 90, 70)';
-const MUTED = 'rgb(150, 150, 150)';
 
 /** Re-renders every `ms` while mounted. */
 function useTick(ms: number): number {
@@ -241,169 +238,196 @@ function clock(seconds: number): string {
 }
 
 type Tab = 'status' | 'register' | 'guilds';
+const TABS: readonly Tab[] = ['status', 'register', 'guilds'];
 
-const Row = observer(({ label, value, color }: { label: string; value: string; color?: string }) => (
-  <div className="re-row">
-    <MuText text={label} color={TEXT_COLOR.orange} />
-    <MuText text={value} color={color ?? TEXT_COLOR.brightGray} />
+/** reforge_fort_siege.rcss `tone-N`. */
+const TONE = { normal: '#e6e2c8', good: '#78e678', warn: '#ffaa46', gold: '#ffd25a', muted: '#8c8c96', bad: '#ff5a46' } as const;
+type Tone = keyof typeof TONE;
+
+const Mark = observer(({ cells }: { cells: number[] | null }) =>
+  cells ? <img className="fs-mark" alt="" src={guildMarkDataUrl(packGuildMark(cells))} /> : null
+);
+
+const Row = observer(({ label, value, tone, mark }: { label: string; value: string; tone?: Tone; mark?: number[] | null }) => (
+  <div className="fs-row">
+    <span className="fs-label">{label}</span>
+    <span className="fs-value" style={{ color: TONE[tone ?? 'normal'] }}>
+      {mark !== undefined && <Mark cells={mark} />}
+      {value}
+    </span>
   </div>
 ));
 
-const Button = observer(({ label, enabled = true, onClick }: { label: string; enabled?: boolean; onClick: () => void }) => (
-  <div
-    className={`re-button${enabled ? '' : ' disabled'}`}
-    onClick={() => {
-      if (!enabled) return;
-      playUiSound('click');
-      onClick();
-    }}
-  >
-    {label}
+const Line = observer(({ text, tone }: { text: string; tone?: Tone }) => (
+  <div className="fs-line" style={tone ? { color: TONE[tone] } : undefined}>
+    {text}
+  </div>
+));
+
+const Panel = observer(({ title, children, className }: { title?: string; children?: ReactNode; className?: string }) => (
+  <div className={`fs-panel${className ? ` ${className}` : ''}`}>
+    {title && <div className="fs-panel-title">{title}</div>}
+    {children}
   </div>
 ));
 
 const StatusTab = observer(function StatusTab({ s, now }: { s: RegistrationState; now: number }) {
   const left = (seconds: number) => Math.max(0, seconds - Math.floor((now - FortSiege.registrationAt) / 1000));
   const phase =
-    s.phase === Phase.RegistrationOpen
-      ? [
-          <MuText key="p" className="re-line" text={t('reforgeEvents.fort.registrationOpen')} color={GOOD} />,
-          <Row key="c" label={t('reforgeEvents.fort.closesIn')} value={clock(left(s.secondsUntilClose))} />,
-          <Row key="b" label={t('reforgeEvents.fort.battleIn')} value={clock(left(s.secondsUntilBattle))} />,
-        ]
-      : s.phase === Phase.RegistrationClosed
-        ? [
-            <MuText key="p" className="re-line" text={t('reforgeEvents.fort.registrationClosed')} color={ORANGE} />,
-            <Row key="b" label={t('reforgeEvents.fort.battleIn')} value={clock(left(s.secondsUntilBattle))} />,
-          ]
-        : [
-            <MuText key="p" className="re-line" text={t('reforgeEvents.fort.battleRunning')} color={BAD} />,
-            <Row key="b" label={t('reforgeEvents.fort.timeLeft')} value={clock(left(s.secondsUntilBattle))} />,
-          ];
-  let guild: JSX.Element[];
-  if (s.role === Role.NoGuild) guild = [<MuText key="n" className="re-line" text={t('reforgeEvents.fort.noGuild')} color={MUTED} />];
+    s.phase === Phase.RegistrationOpen ? (
+      <>
+        <div className="fs-phase-title">{t('reforgeEvents.fort.registrationOpen')}</div>
+        <Row label={t('reforgeEvents.fort.closesIn')} value={clock(left(s.secondsUntilClose))} />
+        <Row label={t('reforgeEvents.fort.battleIn')} value={clock(left(s.secondsUntilBattle))} />
+      </>
+    ) : s.phase === Phase.RegistrationClosed ? (
+      <>
+        <div className="fs-phase-title">{t('reforgeEvents.fort.registrationClosed')}</div>
+        <Row label={t('reforgeEvents.fort.battleIn')} value={clock(left(s.secondsUntilBattle))} />
+      </>
+    ) : (
+      <>
+        <div className="fs-phase-title">{t('reforgeEvents.fort.battleRunning')}</div>
+        <Row label={t('reforgeEvents.fort.timeLeft')} value={clock(left(s.secondsUntilBattle))} />
+      </>
+    );
+  let guild: ReactNode;
+  if (s.role === Role.NoGuild) guild = <Line text={t('reforgeEvents.fort.noGuild')} tone="muted" />;
   else if (s.ownedFort >= 0)
-    guild = [
-      <Row key="o" label={t('reforgeEvents.fort.owns')} value={fortName(s.ownedFort)} color={GOOD} />,
-      <MuText key="d" className="re-line" text={t('reforgeEvents.fort.defendsIt')} color={MUTED} />,
-    ];
+    guild = (
+      <>
+        <Row label={t('reforgeEvents.fort.owns')} value={fortName(s.ownedFort)} tone="good" />
+        <Line text={t('reforgeEvents.fort.defendsIt')} tone="muted" />
+      </>
+    );
   else if (s.registeredFort >= 0)
-    guild = [
-      <Row key="a" label={t('reforgeEvents.fort.attacks')} value={fortName(s.registeredFort)} />,
-      <Row key="s" label={t('reforgeEvents.fort.signs')} value={t('reforgeEvents.fort.signsRank', { signs: s.signs, rank: ownRank(s) })} />,
-      <MuText
-        key="w"
-        className="re-line"
-        text={t(wouldAttack(s) ? 'reforgeEvents.fort.inTheTop' : 'reforgeEvents.fort.notInTop')}
-        color={wouldAttack(s) ? GOOD : ORANGE}
-      />,
-    ];
-  else guild = [<MuText key="r" className="re-line" text={t('reforgeEvents.fort.notRegistered')} color={MUTED} />];
+    guild = (
+      <>
+        <Row label={t('reforgeEvents.fort.attacks')} value={fortName(s.registeredFort)} />
+        <Row label={t('reforgeEvents.fort.signs')} value={t('reforgeEvents.fort.signsRank', { signs: s.signs, rank: ownRank(s) })} />
+        <Line text={t(wouldAttack(s) ? 'reforgeEvents.fort.inTheTop' : 'reforgeEvents.fort.notInTop')} tone={wouldAttack(s) ? 'good' : 'warn'} />
+      </>
+    );
+  else guild = <Line text={t('reforgeEvents.fort.notRegistered')} tone="muted" />;
   return (
     <>
-      {phase}
-      <div className="re-panel">
-        <MuText face="bold" className="re-line" text={t('reforgeEvents.fort.owners')} color={TEXT_COLOR.brightYellow} />
+      <Panel className={`fs-phase phase-${s.phase}`}>{phase}</Panel>
+      <Panel title={t('reforgeEvents.fort.owners')}>
         {s.forts.map((f, i) => (
           <Row
             key={i}
             label={fortName(i)}
             value={f.enabled ? f.owner || t('reforgeEvents.fort.nobody') : t('reforgeEvents.fort.closed')}
-            color={f.enabled ? undefined : MUTED}
+            tone={f.enabled ? (f.owner ? 'gold' : 'muted') : 'muted'}
+            mark={f.enabled ? f.ownerEmblem : null}
           />
         ))}
-      </div>
-      <div className="re-panel">
-        <MuText face="bold" className="re-line" text={t('reforgeEvents.fort.yourGuild')} color={TEXT_COLOR.brightYellow} />
-        {guild}
-      </div>
+      </Panel>
+      <Panel title={t('reforgeEvents.fort.yourGuild')}>{guild}</Panel>
     </>
   );
 });
 
 const RegisterTab = observer(function RegisterTab({ s }: { s: RegistrationState }) {
-  if (s.role === Role.NoGuild) return <MuText className="re-line" text={t('reforgeEvents.fort.joinGuild')} color={MUTED} />;
-  if (s.ownedFort >= 0)
-    return <MuText className="re-line" text={t('reforgeEvents.fort.yourGuildOwns', { fort: fortName(s.ownedFort) })} color={GOOD} />;
+  if (s.role === Role.NoGuild) return <Line text={t('reforgeEvents.fort.joinGuild')} tone="muted" />;
+  if (s.ownedFort >= 0) return <Line text={t('reforgeEvents.fort.yourGuildOwns', { fort: fortName(s.ownedFort) })} tone="good" />;
   if (s.registeredFort < 0)
     return (
       <>
-        <MuText
-          className="re-line"
-          text={t(s.phase === Phase.RegistrationOpen ? 'reforgeEvents.fort.chooseFort' : 'reforgeEvents.fort.registrationIsClosed')}
-        />
-        {Array.from({ length: Math.min(FORT_COUNT, s.forts.length) }, (_, i) => (
-          <Button
-            key={i}
-            label={`${fortName(i)} (${t('reforgeEvents.fort.guildsRegistered', { count: s.forts[i].guildCount })})`}
-            enabled={canRegister(s, i)}
-            onClick={() => FortSiege.register(i)}
-          />
-        ))}
-        {s.role !== Role.Master && <MuText className="re-line" text={t('reforgeEvents.fort.onlyMasters')} color={MUTED} />}
+        <div className="fs-line fs-headline">
+          {t(s.phase === Phase.RegistrationOpen ? 'reforgeEvents.fort.chooseFort' : 'reforgeEvents.fort.registrationIsClosed')}
+        </div>
+        {Array.from({ length: Math.min(FORT_COUNT, s.forts.length) }, (_, i) => {
+          const f = s.forts[i];
+          return (
+            <Panel key={i} className="fs-card">
+              <div className="fs-card-text">
+                <div className="fs-card-name">{fortName(i)}</div>
+                <div className={`fs-card-owner${f.owner ? '' : ' none'}`}>
+                  <Mark cells={f.ownerEmblem} />
+                  {f.owner || t('reforgeEvents.fort.noOwner')}
+                </div>
+                <div className="fs-card-count">{t('reforgeEvents.fort.guildsRegistered', { count: f.guildCount })}</div>
+              </div>
+              <RfButton small label={t('reforgeEvents.fort.tab.register')} disabled={!canRegister(s, i)} onClick={() => FortSiege.register(i)} />
+            </Panel>
+          );
+        })}
+        {s.role !== Role.Master && <Line text={t('reforgeEvents.fort.onlyMasters')} tone="muted" />}
       </>
     );
   return (
-    <>
-      <Row label={t('reforgeEvents.fort.attacks')} value={fortName(s.registeredFort)} />
-      <Row label={t('reforgeEvents.fort.signsHandedIn')} value={String(s.signs)} />
-      <Row label={t('reforgeEvents.fort.rank')} value={`${ownRank(s)} / ${s.forts[s.registeredFort]?.guildCount ?? 0}`} />
-      <Row label={t('reforgeEvents.fort.attackers')} value={t('reforgeEvents.fort.topN', { n: s.maximumAttackers })} />
-      <Row label={t('reforgeEvents.fort.signsInBag')} value={String(s.signsInBag)} />
-      <Button
+    <div className="fs-registered">
+      <Panel title={t('reforgeEvents.fort.attacks')}>
+        <div className="fs-fort-name">{fortName(s.registeredFort)}</div>
+        <Row label={t('reforgeEvents.fort.signsHandedIn')} value={String(s.signs)} tone="gold" />
+        <Row label={t('reforgeEvents.fort.rank')} value={`${ownRank(s)} / ${s.forts[s.registeredFort]?.guildCount ?? 0}`} />
+        <Row label={t('reforgeEvents.fort.attackers')} value={t('reforgeEvents.fort.topN', { n: s.maximumAttackers })} />
+        <Row label={t('reforgeEvents.fort.signsInBag')} value={String(s.signsInBag)} />
+      </Panel>
+      <RfButton
+        className="fs-wide-btn"
+        width="100%"
         label={s.signsInBag > 0 ? t('reforgeEvents.fort.handIn', { n: s.signsInBag }) : t('reforgeEvents.fort.noSignInBag')}
-        enabled={canHandInSigns(s)}
+        disabled={!canHandInSigns(s)}
         onClick={() => FortSiege.handInSigns()}
       />
       {s.role === Role.Master && (
         <>
-          <Button label={t('reforgeEvents.fort.withdraw')} enabled={canWithdraw(s)} onClick={() => FortSiege.withdraw()} />
-          <MuText className="re-line" text={t('reforgeEvents.fort.withdrawnLost')} color={MUTED} />
+          <RfButton className="fs-wide-btn" width="100%" label={t('reforgeEvents.fort.withdraw')} disabled={!canWithdraw(s)} onClick={() => FortSiege.withdraw()} />
+          <div className="fs-hint">{t('reforgeEvents.fort.withdrawnLost')}</div>
         </>
       )}
-    </>
+    </div>
   );
 });
 
 const GuildsTab = observer(function GuildsTab({ s }: { s: RegistrationState }) {
+  const [fort, setFort] = useState(0);
+  const f = s.forts[Math.min(fort, s.forts.length - 1)];
   return (
     <>
-      {s.forts.map((f, i) => (
-        <div key={i} className="re-panel">
-          <MuText face="bold" className="re-line" text={fortName(i)} color={TEXT_COLOR.brightYellow} />
-          <Row label={t('reforgeEvents.fort.defender')} value={f.owner || t('reforgeEvents.fort.noOwner')} />
-          {f.guilds.length === 0 && <MuText className="re-line" text={t('reforgeEvents.fort.noGuildRegistered')} color={MUTED} />}
+      <RfTabs tabs={s.forts.map((_, i) => ({ id: i, label: fortName(i) }))} active={fort} onSelect={setFort} />
+      {f && (
+        <Panel className="fs-guilds">
+          <Row label={t('reforgeEvents.fort.defender')} value={f.owner || t('reforgeEvents.fort.noOwner')} tone={f.owner ? 'gold' : 'muted'} mark={f.ownerEmblem} />
+          <RfTableHead
+            className="fs-columns"
+            columns={[{ label: t('reforgeEvents.fort.attackers') }, { label: t('reforgeEvents.fort.signs'), width: 40, align: 'right' }]}
+          />
+          {f.guilds.length === 0 && <div className="fs-empty">{t('reforgeEvents.fort.noGuildRegistered')}</div>}
           {f.guilds.map((g, place) => (
-            <Row key={place} label={g.name} value={String(g.signs)} color={listedGuildAttacks(s, place, g.signs) ? GOOD : undefined} />
+            <div key={place} className={`rf-row fs-listed${listedGuildAttacks(s, place, g.signs) ? ' attacks' : ''}`}>
+              <span className="fs-column-guild">
+                <span className="fs-place">{place + 1}</span>
+                <Mark cells={g.emblem} />
+                {g.name}
+              </span>
+              <span className="fs-column-signs">{g.signs}</span>
+            </div>
           ))}
-          {f.guildCount > f.guilds.length && (
-            <MuText className="re-line" text={t('reforgeEvents.fort.more', { n: f.guildCount - f.guilds.length })} color={MUTED} />
-          )}
-        </div>
-      ))}
-      <MuText className="re-line" text={t('reforgeEvents.fort.legend', { n: s.maximumAttackers, signs: s.minimumSigns })} color={MUTED} />
+          {f.guildCount > f.guilds.length && <div className="fs-more">{t('reforgeEvents.fort.more', { n: f.guildCount - f.guilds.length })}</div>}
+        </Panel>
+      )}
+      <Line text={t('reforgeEvents.fort.legend', { n: s.maximumAttackers, signs: s.minimumSigns })} tone="muted" />
     </>
   );
 });
 
+/**
+ * `CFortSiegeWindow` (reforge_fort_siege.rml), 230 x 430: tabs Status | Register | Guilds over framed
+ * panels, Close.
+ */
 const HeraldWindow = observer(() => {
   const now = useTick(1000);
   const [tab, setTab] = useState<Tab>('status');
-  const close = () => MuWindows.setOpen(HERALD_WINDOW, false);
   const s = FortSiege.registration;
   return (
-    <MuItemWindow id="fort-herald-window" label={t('reforgeEvents.fort.heraldTitle')} onClose={close}>
-      <MuText face="bold" align="center" className="re-title" text={t('reforgeEvents.fort.heraldTitle')} />
-      <div className="re-tabs" data-no-drag="true">
-        {(['status', 'register', 'guilds'] as const).map(id => (
-          <div key={id} className={`re-tab${tab === id ? ' active' : ''}`} onClick={() => setTab(id)}>
-            {t(`reforgeEvents.fort.tab.${id}` as TextKey)}
-          </div>
-        ))}
-      </div>
-      <div className="re-body" data-no-drag="true">
+    <ReforgeShell id={HERALD_WINDOW} title={t('reforgeEvents.fort.heraldTitle')} height={430} className="fort-herald">
+      <RfTabs tabs={TABS.map(id => ({ id, label: t(`reforgeEvents.fort.tab.${id}` as TextKey) }))} active={tab} onSelect={setTab} />
+      <div className="fs-page">
         {FortSiege.awaiting || !s ? (
-          <MuText className="re-line" text={t('reforgeEvents.fort.talking')} />
+          <div className="fs-wait">{t('reforgeEvents.fort.talking')}</div>
         ) : tab === 'status' ? (
           <StatusTab s={s} now={now} />
         ) : tab === 'register' ? (
@@ -412,7 +436,7 @@ const HeraldWindow = observer(() => {
           <GuildsTab s={s} />
         )}
       </div>
-    </MuItemWindow>
+    </ReforgeShell>
   );
 });
 

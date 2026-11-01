@@ -35,4 +35,7 @@ export default {
   'charInfo.attackSpeed': 'Ταχύτητα επίθεσης: {value}',
   'charInfo.defenseRatePvpBonus': 'Αποφυγή: {value} (+{bonus})',
   'charInfo.curseSpellRate': ' Ξόρκι κατάρας: {min} ~ {max}(+{rate})',
+  'charInfo.plateAddStatsTip': 'Ξόδεψε πολλούς πόντους επιπέδου μαζί ή άφησε τον διακομιστή να τους ξοδέψει για σένα.',
+  'charInfo.plateResetTip': 'Ξεκινά τον χαρακτήρα από χαμηλότερο επίπεδο και προσθέτει ένα στα reset σου.',
+  'charInfo.plateGrandResetTip': 'Ανταλλάσσει μια πλήρη σειρά reset με ένα grand reset και τα ξεκινά ξανά.',
 } satisfies Partial<Record<keyof typeof en, string>>;

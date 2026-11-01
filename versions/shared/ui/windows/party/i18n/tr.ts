@@ -13,4 +13,8 @@ export default {
   'party.notInParty': 'Grupta değilsin.',
   'party.invite': 'Davet et',
   'party.shop': 'Dükkan',
+  'party.find': 'Bul',
+  'party.settings': 'Ayarlar',
+  'party.giveLead': 'Liderliği ver?',
+  'party.giveLeadConfirm': 'Tekrar tıkla',
 } satisfies Partial<Record<keyof typeof en, string>>;

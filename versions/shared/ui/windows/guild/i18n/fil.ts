@@ -57,4 +57,11 @@ export default {
   'guild.kickHint': 'Para alisin ang karakter na \'{name}\',',
   'guild.enterSecurityCode': 'ilagay ang security code ng iyong account.',
   'guild.securityCode': 'Code',
+  'guild.plateWars': 'Mga Digmaan ng Guild',
+  'guild.plateWarsTip': 'Tingnan ang mga guild at magdeklara ng digmaan',
+  'guild.plateAlliance': 'Alyansa ng Guild',
+  'guild.plateAllianceTip': 'Mag-alok ng alyansa sa ibang guild',
+  'guild.platePositionTip': 'Bigyan ng ranggo ang napiling miyembro',
+  'guild.noticePlaceholder': 'Anunsiyo...',
+  'guild.noticeSend': 'Itakda ang anunsiyo',
 } satisfies Partial<Record<keyof typeof en, string>>;

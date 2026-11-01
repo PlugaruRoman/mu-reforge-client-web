@@ -1,9 +1,9 @@
 import type { TextKey } from '@/i18n';
 import { Category, Currency, Quality, TeleportResult, isJewel, isZenBox } from '@/modules/reforge_market';
 
-/** The panel (our client's reforge_market.rcss draws it at about this size). */
-export const WIDTH = 420;
-export const HEIGHT = 360;
+/** The panel in stage units (our client's reforge_market.rcss `#panel`, 564 x 440 dp). */
+export const WIDTH = 564;
+export const HEIGHT = 440;
 
 /** The category board in three columns, as our client groups it (UI/Market/MarketText.cpp `Board`). */
 export const CATEGORY_COLUMNS: readonly { title: TextKey; entries: readonly [number, TextKey][] }[] = [

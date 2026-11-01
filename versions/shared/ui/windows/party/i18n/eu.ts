@@ -13,4 +13,8 @@ export default {
   'party.notInParty': 'Ez zaude talde batean.',
   'party.invite': 'Gonbidatu',
   'party.shop': 'Denda',
+  'party.find': 'Bilatu',
+  'party.settings': 'Ezarpenak',
+  'party.giveLead': 'Buruzagitza eman?',
+  'party.giveLeadConfirm': 'Egin klik berriro',
 } satisfies Partial<Record<keyof typeof en, string>>;

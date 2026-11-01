@@ -13,4 +13,8 @@ export default {
   'party.notInParty': 'Nu ești într-un grup.',
   'party.invite': 'Invită',
   'party.shop': 'Magazin',
+  'party.find': 'Caută',
+  'party.settings': 'Setări',
+  'party.giveLead': 'Cedezi conducerea?',
+  'party.giveLeadConfirm': 'Apasă din nou',
 } satisfies Partial<Record<keyof typeof en, string>>;

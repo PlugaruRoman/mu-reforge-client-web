@@ -35,4 +35,7 @@ export default {
   'characterInfo.quest': 'Quest(T)',
   'characterInfo.pet': 'Pet',
   'characterInfo.masterTree': 'Puno ng Master Skill (A)',
+  'charInfo.plateAddStatsTip': 'Gumastos ng maraming level up point nang sabay, o hayaang ang server ang gumastos para sa iyo.',
+  'charInfo.plateResetTip': 'Inuulit ang karakter sa mas mababang level at nagdadagdag ng isa sa bilang ng iyong reset.',
+  'charInfo.plateGrandResetTip': 'Ipinagpapalit ang buong takbo ng reset sa isang grand reset, at sinisimulan muli ang mga ito.',
 } satisfies Partial<Record<keyof typeof en, string>>;

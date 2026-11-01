@@ -1,153 +1,254 @@
 @import (reference) '@/controllers/interface/components/mu_text/style.less';
-// Our client's reforge_item_collections window on the classic black plate with a gold rule.
-// Coordinates live in the component; this is the look.
+// Our client's reforge_item_collections window (546 x 404 stage units): the message box plate in the
+// item table frame. Row and slot coordinates live in the component; this is the look and the places.
 .item-collections {
   .mu-font();
   position: absolute;
-  left: 60px;
-  top: 40px;
   pointer-events: auto;
   user-select: none;
   overflow: hidden;
-  background: rgba(0, 0, 0, 0.85);
-  border: 1px solid rgba(180, 140, 60, 0.8);
-  box-sizing: border-box;
+  outline: none;
   color: #e2e2e2;
   font-size: 11px;
+  line-height: 13px;
   text-shadow: 1px 1px 0 #000;
+
+  .ic-bg {
+    position: absolute;
+    inset: 3px;
+    background-color: rgba(0, 0, 0, 0.9);
+    background-size: 100% 100%;
+    pointer-events: none;
+  }
+
+  .mu-table-frame {
+    position: absolute;
+    pointer-events: none;
+  }
 
   .ic-title {
     position: absolute;
     left: 0;
     right: 0;
-    top: 8px;
+    top: 11px;
     text-align: center;
-    color: rgb(255, 204, 26);
+    color: rgb(255, 238, 161);
     font-weight: bold;
-    font-size: 13px;
+    white-space: nowrap;
   }
 
+  // The exit plate on the bottom border at (16, 359).
   .ic-close {
     position: absolute;
-    right: 8px;
-    top: 6px;
-    width: 14px;
-    height: 14px;
+    left: 16px;
+    top: 359px;
     cursor: pointer;
-    background: rgba(153, 0, 0, 0.9);
-    &::after {
-      content: 'x';
-      position: absolute;
-      left: 4px;
-      top: -1px;
-      color: #fff;
+
+    &:hover {
+      filter: brightness(1.25);
     }
   }
 
+  // The category tabs at (16, 34), 330 wide.
   .ic-tabs {
     position: absolute;
-    left: 12px;
-    top: 30px;
+    left: 16px;
+    top: 34px;
+    width: 330px;
+    height: 22px;
     display: flex;
-    gap: 4px;
+    gap: 2px;
   }
 
   .ic-tab {
-    width: 80px;
-    height: 18px;
-    line-height: 18px;
+    flex: 1 1 0;
+    min-width: 0;
+    height: 22px;
+    line-height: 20px;
+    padding: 0 3px;
+    box-sizing: border-box;
     text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     cursor: pointer;
-    background: rgba(60, 50, 30, 0.8);
-    border: 1px solid rgba(120, 100, 60, 0.8);
+    color: #a8a8a8;
+    background: linear-gradient(#3a2f1c, #1c160c);
+    border: 1px solid #7a6334;
+    border-radius: 4px 4px 0 0;
+
+    &:hover {
+      color: #fff;
+    }
+
     &.active {
-      color: rgb(255, 204, 26);
-      background: rgba(110, 80, 20, 0.9);
+      color: #ffd927;
+      background: linear-gradient(#5a4520, #2a200e);
+      border-color: #c9a55a;
     }
   }
 
+  // The statistics right of the tabs at (356, 33), two lines right-aligned.
   .ic-stats {
     position: absolute;
-    left: 12px;
-    right: 12px;
-    top: 56px;
+    left: 356px;
+    top: 33px;
+    width: 174px;
     display: flex;
-    justify-content: space-between;
-    color: rgb(127, 178, 255);
+    flex-direction: column;
+    align-items: flex-end;
+    white-space: nowrap;
+    color: rgb(200, 200, 205);
+  }
+
+  .ic-well {
+    position: absolute;
+    box-sizing: border-box;
+    background: rgba(0, 0, 0, 0.43);
+    border: 1px solid rgb(80, 70, 50);
+    pointer-events: none;
+  }
+
+  .ic-headrow {
+    position: absolute;
+    border-bottom: 1px solid #8a6a36;
   }
 
   .ic-head {
     position: absolute;
-    top: 74px;
-    color: rgb(255, 204, 26);
+    top: 0;
+    height: 20px;
+    line-height: 20px;
+    color: rgb(255, 225, 150);
+    font-weight: bold;
+    white-space: nowrap;
   }
 
   .ic-empty {
     position: absolute;
-    left: 0;
-    right: 0;
-    top: 200px;
+    left: 16px;
+    width: 512px;
+    top: 162px;
     text-align: center;
-    color: #aaa;
+    color: rgb(150, 150, 162);
   }
 
   .ic-row {
     position: absolute;
-    left: 6px;
-    right: 6px;
-    border-top: 1px solid rgba(120, 100, 60, 0.35);
-    &.complete .ic-name-text {
-      color: rgb(255, 204, 26);
+    box-sizing: border-box;
+
+    &.odd {
+      background: rgba(0, 0, 0, 0.24);
     }
-    &.started .ic-status {
-      color: rgb(140, 220, 120);
+
+    &.complete {
+      background: rgba(26, 77, 26, 0.35);
+
+      .ic-name-text {
+        color: rgb(130, 230, 130);
+      }
+
+      .ic-bonuses {
+        color: rgb(140, 200, 255);
+      }
     }
-    &.complete .ic-status {
-      color: rgb(255, 204, 26);
+
+    &.started .ic-name-text {
+      color: rgb(255, 205, 90);
+    }
+
+    &:hover {
+      background: rgba(217, 158, 51, 0.24);
     }
   }
 
   .ic-name {
     position: absolute;
     top: 2px;
-    width: 150px;
+    width: 124px;
     cursor: default;
   }
 
   .ic-name-text {
+    height: 15px;
+    line-height: 15px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    color: rgb(215, 110, 100);
   }
 
   .ic-status {
-    color: #888;
+    height: 13px;
+    line-height: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: rgb(150, 150, 160);
   }
 
   .ic-slot {
     position: absolute;
-    top: 0;
+    top: 2px;
     box-sizing: border-box;
-    border: 1px solid rgba(90, 90, 90, 0.8);
-    background: rgba(30, 30, 30, 0.8);
+    overflow: hidden;
+    cursor: pointer;
+    border: 1px solid rgb(77, 77, 82);
+
     img,
     .item-icon {
       max-width: 100%;
       max-height: 100%;
     }
-    &.open {
-      opacity: 0.45;
+
+    // The veil over an open slot's item: lighter where an inventory item fits; none once registered.
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(8, 8, 10, 0.66);
+      pointer-events: none;
     }
+
     &.fits {
-      border-color: rgb(80, 220, 80);
-      cursor: pointer;
+      border-color: rgb(89, 217, 89);
+
+      &::after {
+        background: rgba(8, 8, 10, 0.4);
+      }
     }
+
     &.filled {
-      border-color: rgb(255, 204, 26);
-      background: rgba(90, 70, 10, 0.6);
+      border-color: rgb(242, 191, 77);
+
+      &::after {
+        display: none;
+      }
+
+      &::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        z-index: 1;
+        width: 7px;
+        height: 7px;
+        box-sizing: border-box;
+        background: rgb(51, 191, 64);
+        border: 1px solid rgb(255, 209, 77);
+      }
+
+      .ic-level {
+        color: rgb(255, 215, 100);
+      }
     }
-    &.ancient.filled {
-      border-color: rgb(90, 160, 255);
+
+    &.ancient .ic-level {
+      color: rgb(90, 170, 210);
+    }
+
+    &:hover {
+      border-color: #fff;
     }
   }
 
@@ -155,38 +256,55 @@
     position: absolute;
     right: 1px;
     bottom: 0;
+    z-index: 1;
     font-size: 9px;
-    color: #fff;
+    line-height: 11px;
+    color: rgb(110, 190, 110);
   }
 
   .ic-bonuses {
     position: absolute;
-    top: 1px;
-    width: 108px;
-    font-size: 10px;
-    color: rgb(170, 200, 255);
+    top: 2px;
+    width: 130px;
+    font-size: 9px;
+    line-height: 10px;
     white-space: nowrap;
+    overflow: hidden;
+    color: rgb(190, 190, 200);
   }
 
+  // The pager on the bottom border at (430, 362), 100 x 22.
   .ic-pager {
     position: absolute;
-    left: 0;
-    right: 0;
-    top: 372px;
+    left: 430px;
+    top: 362px;
+    width: 100px;
+    height: 22px;
     display: flex;
-    justify-content: center;
     align-items: center;
-    gap: 12px;
+
+    span {
+      flex: 1 1 0;
+      text-align: center;
+      font-weight: bold;
+      color: rgb(255, 220, 150);
+    }
   }
 
   .ic-page-btn {
-    width: 18px;
-    height: 16px;
-    line-height: 16px;
+    flex: 0 0 18px;
+    height: 22px;
+    line-height: 20px;
+    box-sizing: border-box;
     text-align: center;
     cursor: pointer;
-    background: rgba(60, 50, 30, 0.8);
-    border: 1px solid rgba(120, 100, 60, 0.8);
+    background: rgba(0, 0, 0, 0.47);
+    border: 1px solid rgb(110, 90, 50);
+
+    &:hover {
+      background: rgba(217, 158, 51, 0.27);
+    }
+
     &.disabled {
       opacity: 0.35;
       cursor: default;

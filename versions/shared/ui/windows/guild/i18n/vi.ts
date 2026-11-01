@@ -56,4 +56,11 @@ export default {
   'guild.kickHint': 'Để khai trừ nhân vật \'{name}\',',
   'guild.enterSecurityCode': 'hãy nhập mã bảo mật tài khoản.',
   'guild.securityCode': 'Mã',
+  'guild.plateWars': 'Chiến tranh bang hội',
+  'guild.plateWarsTip': 'Xem các bang hội và tuyên chiến',
+  'guild.plateAlliance': 'Liên minh bang hội',
+  'guild.plateAllianceTip': 'Đề nghị liên minh với bang hội khác',
+  'guild.platePositionTip': 'Phong cấp bậc cho thành viên đã chọn',
+  'guild.noticePlaceholder': 'Thông báo...',
+  'guild.noticeSend': 'Đặt thông báo',
 } satisfies Partial<Record<keyof typeof en, string>>;

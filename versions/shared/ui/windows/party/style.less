@@ -38,6 +38,44 @@
       left: -4px;
       top: 1px;
     }
+    // Mu Reforge: the master's lead flag on a member's flag slot, dimmed, brighter under the
+    // pointer, full once armed; "Give lead?" / "Click again" before the X (party_info.rcss .party-lead).
+    .party-lead {
+      position: absolute;
+      left: -4px;
+      top: 1px;
+      width: 12px;
+      height: 12px;
+      opacity: 0.4;
+      cursor: pointer;
+
+      &:hover {
+        opacity: 0.85;
+      }
+      &.armed {
+        opacity: 1;
+      }
+    }
+    .party-lead-hint {
+      display: none;
+      position: absolute;
+      left: 16px;
+      top: -1px;
+      width: 135px;
+      padding-right: 14px;
+      box-sizing: border-box;
+      text-align: right;
+      white-space: nowrap;
+      color: #b4b4b4;
+      pointer-events: none;
+    }
+    .party-lead:hover .party-lead-hint {
+      display: block;
+    }
+    .party-lead.armed .party-lead-hint {
+      display: block;
+      color: #ffd24a;
+    }
     .party-name {
       position: absolute;
       left: 12px;

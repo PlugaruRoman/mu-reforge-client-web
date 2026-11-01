@@ -58,4 +58,11 @@ export default {
   'guild.kickHint': "За да изключиш героя '{name}',",
   'guild.enterSecurityCode': 'въведи кода за сигурност на акаунта си.',
   'guild.securityCode': 'Код',
+  'guild.plateWars': 'Гилдийни войни',
+  'guild.plateWarsTip': 'Разгледай гилдиите и обяви война',
+  'guild.plateAlliance': 'Гилдийски съюз',
+  'guild.plateAllianceTip': 'Предложи съюз на друга гилдия',
+  'guild.platePositionTip': 'Дай ранг на избрания член',
+  'guild.noticePlaceholder': 'Обява...',
+  'guild.noticeSend': 'Задай обява',
 } satisfies Partial<Record<keyof typeof en, string>>;

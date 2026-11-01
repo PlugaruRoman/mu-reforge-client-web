@@ -1,87 +1,184 @@
-// The VIP shop's status line and tier cards (our client's reforge_vip_shop.rcss), on the item window.
+// The VIP shop (our client's reforge_vip_shop.rcss, 300 x 452) in the reforge shell.
 .vip-body {
-  gap: 2px;
-
   .vip-status {
     display: flex;
     justify-content: space-between;
-    gap: 4px;
-    color: rgb(127, 178, 255);
+    width: 100%;
+    box-sizing: border-box;
+    height: 19px;
+    line-height: 17px;
+    padding: 0 6px;
     white-space: nowrap;
+    background: rgba(0, 0, 0, 0.47);
+    border: 1px solid #5a4a2c;
+  }
 
-    b {
-      color: #ffd927;
-      font-weight: normal;
-    }
+  .vip-status-cell {
+    overflow: hidden;
+  }
+
+  .vip-status-right {
+    margin-left: 8px;
+    text-align: right;
+  }
+
+  .vip-status-label {
+    color: #a8a8a8;
+  }
+
+  .vip-status-value {
+    padding-left: 5px;
+    color: #fff;
+    font-weight: bold;
+  }
+
+  .vip-wcoin {
+    color: #ffd927;
+  }
+
+  .vip-hint {
+    height: 16px;
+    line-height: 16px;
+    margin: 1px 0 3px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    color: #a8a8a8;
+  }
+
+  .vip-cards {
+    padding: 3px;
   }
 
   .vip-card {
+    position: relative;
     display: flex;
     flex-direction: column;
-    gap: 1px;
-    padding: 3px 4px;
-    background: rgba(0, 0, 0, 0.45);
-    border: 1px solid rgba(120, 100, 60, 0.6);
+    margin-bottom: 4px;
+    padding: 3px 6px 4px;
+    box-sizing: border-box;
+    background: rgba(30, 24, 16, 0.78);
+    border: 1px solid #6a5030;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    &:hover {
+      border-color: #c8a050;
+    }
 
     &.active {
-      border-color: rgba(150, 235, 150, 0.7);
+      background: rgba(30, 60, 26, 0.82);
+      border-color: #5aa050;
+
+      .vip-card-badge {
+        color: #7ef074;
+      }
     }
 
     &.bundle {
-      border-color: #c9a55a;
+      background: rgba(70, 54, 18, 0.82);
+      border-color: #c8a050;
+
+      .vip-card-badge {
+        color: #ffd23c;
+      }
     }
 
     &.locked {
-      opacity: 0.7;
+      background: rgba(20, 20, 20, 0.78);
+      border-color: #444;
+
+      .vip-card-name,
+      .vip-card-badge,
+      .vip-card-line {
+        color: #808080;
+      }
+
+      .vip-bullet {
+        background: #6a6a6a;
+      }
     }
   }
 
   .vip-card-head {
     display: flex;
-    justify-content: space-between;
+    flex-wrap: wrap;
+    align-items: baseline;
+    margin-bottom: 1px;
+    white-space: nowrap;
+  }
 
-    .vip-card-name {
-      color: #ffd927;
-      font-weight: bold;
-    }
+  .vip-card-name {
+    flex: 1 0 auto;
+    margin-right: 6px;
+    color: #ffcc66;
+    font-weight: bold;
+  }
 
-    .vip-card-badge {
-      color: rgb(150, 235, 150);
-    }
+  .vip-card-badge {
+    color: #a8d8ff;
+    font-weight: bold;
   }
 
   .vip-card-line {
-    color: #cfcfcf;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    position: relative;
+    padding-left: 10px;
+    color: #d8d0b8;
+    white-space: normal;
+  }
 
-    &::before {
-      content: '- ';
-      color: #a08850;
-    }
+  .vip-bullet {
+    position: absolute;
+    left: 2px;
+    top: 5px;
+    width: 4px;
+    height: 4px;
+    background: #c8a050;
   }
 
   .vip-card-foot {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    gap: 4px;
+    margin-top: 3px;
   }
 
   .vip-card-cost {
-    flex: 1;
+    flex: 1 1 0;
     min-width: 0;
+    margin-right: 6px;
   }
 
   .vip-card-price {
-    color: #fff;
+    color: #ffd927;
+    font-weight: bold;
+    white-space: nowrap;
   }
 
   // Wraps rather than cut: "You need 100 more W Coin" is the one line that says what to do.
   .vip-card-reason {
-    color: rgb(255, 130, 110);
+    color: #ff8c7a;
     white-space: normal;
-    line-height: 11px;
+  }
+
+  .acct-btn.rf-btn.vip-buy {
+    width: 112px;
+  }
+
+  .vip-time {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 2px;
+    background: #7ef074;
+  }
+
+  .vip-message {
+    color: #ff8c7a;
+
+    &.good {
+      color: #7ef074;
+    }
   }
 }

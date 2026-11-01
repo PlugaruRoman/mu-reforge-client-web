@@ -37,4 +37,7 @@ export default {
   'characterInfo.quest': 'Missão (T)',
   'characterInfo.pet': 'Mascote',
   'characterInfo.masterTree': 'Árvore de mestre (A)',
+  'charInfo.plateAddStatsTip': 'Gaste muitos pontos de nível de uma vez, ou deixe o servidor gastá-los por você.',
+  'charInfo.plateResetTip': 'Recomeça o personagem num nível mais baixo e soma um à sua contagem de resets.',
+  'charInfo.plateGrandResetTip': 'Troca uma série completa de resets por um grand reset e recomeça-os.',
 } satisfies Partial<Record<keyof typeof en, string>>;

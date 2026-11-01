@@ -37,13 +37,14 @@ export const LOCKED_SPRITE = 'newui_Bt_lock.OZT';
 
 export const HEAD_CLOSE = { left: 169, top: 7, width: 13, height: 12 };
 
-/** The guild window's bottom row: Exit is at (13, 392), our Settings and Castle follow it. */
-export const GUILD_ROW_Y = 392;
-export const SETTINGS_BUTTON_X = 52;
-export const CASTLE_BUTTON_X = 117;
+/**
+ * Our client's parts of the guild window (themes/legacy/guild_info.rcss, `#reforge_guild_parts`):
+ * Settings beside Disband on the Guild tab, Castle on the exit button's row, and the guild master's
+ * Guild Wars / Guild Alliance plates off the left edge above that row (33 px apart).
+ */
+export const SETTINGS_BUTTON = { x: 26, y: 350 };
+export const CASTLE_BUTTON = { x: 108, y: 392 };
+export const WARS_PLATE_TOP = 392;
+export const ALLIANCE_PLATE_TOP = 359;
 export const GUILD_BUTTON = { width: 64, height: 29 };
 export const GUILD_BUTTON_SPRITE = 'newui_btn_empty_small.OZT';
-
-/** The settings grid: one row per rank, IN / OUT boxes. */
-export const SETTINGS_ROW_Y = 96;
-export const SETTINGS_ROW_STEP = 22;

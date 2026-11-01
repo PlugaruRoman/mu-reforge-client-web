@@ -56,4 +56,11 @@ export default {
   'guild.kickHint': 'لطرد الشخصية «{name}»،',
   'guild.enterSecurityCode': 'يرجى إدخال رمز أمان حسابك.',
   'guild.securityCode': 'الرمز',
+  'guild.plateWars': 'حروب النقابات',
+  'guild.plateWarsTip': 'تصفح النقابات وأعلن الحرب',
+  'guild.plateAlliance': 'تحالف النقابات',
+  'guild.plateAllianceTip': 'اطلب تحالفًا من نقابة أخرى',
+  'guild.platePositionTip': 'امنح العضو المحدد رتبة',
+  'guild.noticePlaceholder': 'إعلان...',
+  'guild.noticeSend': 'تعيين الإعلان',
 } satisfies Partial<Record<keyof typeof en, string>>;

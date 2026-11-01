@@ -6,4 +6,5 @@ export default {
   'master.spendPoint': 'Erabili {points} maisu-puntu hemen: {skill}?',
   'master.spendPoints': 'Erabili {points} maisu-puntu hemen: {skill}?',
   'master.skillFallback': '{number}. trebetasuna',
+  'master.resetTree': 'Berrezarri zuhaitza',
 } satisfies Partial<Record<keyof typeof en, string>>;

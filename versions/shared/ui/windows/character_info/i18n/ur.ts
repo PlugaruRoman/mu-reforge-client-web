@@ -35,4 +35,7 @@ export default {
   'characterInfo.quest': 'مہم (T)',
   'characterInfo.pet': 'پالتو',
   'characterInfo.masterTree': 'ماسٹر سکل درخت (A)',
+  'charInfo.plateAddStatsTip': 'ایک ساتھ کئی لیول اپ پوائنٹس خرچ کریں، یا سرور کو آپ کے لیے خرچ کرنے دیں۔',
+  'charInfo.plateResetTip': 'کردار کو کم لیول سے دوبارہ شروع کرتا ہے اور آپ کے ری سیٹ میں ایک جوڑتا ہے۔',
+  'charInfo.plateGrandResetTip': 'ری سیٹ کی پوری باری کو ایک گرینڈ ری سیٹ سے بدلتا ہے، اور انہیں دوبارہ شروع کرتا ہے۔',
 } satisfies Partial<Record<keyof typeof en, string>>;

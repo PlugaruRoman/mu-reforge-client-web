@@ -58,4 +58,11 @@ export default {
   'guild.kickHint': "Um den Charakter '{name}' auszuschließen,",
   'guild.enterSecurityCode': 'gib bitte den Sicherheitscode deines Kontos ein.',
   'guild.securityCode': 'Code',
+  'guild.plateWars': 'Gildenkriege',
+  'guild.plateWarsTip': 'Gilden ansehen und Krieg erklären',
+  'guild.plateAlliance': 'Gildenallianz',
+  'guild.plateAllianceTip': 'Einer anderen Gilde ein Bündnis anbieten',
+  'guild.platePositionTip': 'Dem gewählten Mitglied einen Rang geben',
+  'guild.noticePlaceholder': 'Ankündigung...',
+  'guild.noticeSend': 'Ankündigung setzen',
 } satisfies Partial<Record<keyof typeof en, string>>;

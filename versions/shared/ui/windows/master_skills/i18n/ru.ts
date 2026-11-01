@@ -6,4 +6,5 @@ export default {
   'master.spendPoint': 'Потратить {points} master-очко на {skill}?',
   'master.spendPoints': 'Потратить {points} master-очков на {skill}?',
   'master.skillFallback': 'умение {number}',
+  'master.resetTree': 'Сбросить дерево',
 } satisfies Partial<Record<keyof typeof en, string>>;

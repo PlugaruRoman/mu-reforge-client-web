@@ -13,4 +13,8 @@ export default {
   'party.notInParty': 'Không ở trong tổ đội.',
   'party.invite': 'Mời',
   'party.shop': 'Cửa hàng',
+  'party.find': 'Tìm',
+  'party.settings': 'Cài đặt',
+  'party.giveLead': 'Nhường đội trưởng?',
+  'party.giveLeadConfirm': 'Bấm lần nữa',
 } satisfies Partial<Record<keyof typeof en, string>>;

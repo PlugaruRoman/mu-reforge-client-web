@@ -2,9 +2,6 @@ import './style.less';
 import { observer } from 'mobx-react-lite';
 import { t } from '@/i18n';
 import { MuWindows } from '@/controllers/interface';
-import { MuItemWindow } from '@/controllers/interface/components/mu_window';
-import { MuButton } from '@/controllers/interface/components/mu_button';
-import { MuText, TEXT_COLOR } from '@/controllers/interface/components/mu_text';
 import {
   QUEST_BOARD_WINDOW,
   QuestBoard,
@@ -16,8 +13,8 @@ import {
   currentQuest,
   goalReached,
   progress,
-  type BoardQuest,
 } from '@/modules/quest_board';
+import { ReforgeShell, RfButton } from '../_shared/reforgeShell';
 
 /**
  * Captain Slough's quest board (our C++ client's UI/QuestBoard/QuestBoardWindow.cpp,
@@ -25,74 +22,45 @@ import {
  * Accept / Claim, then the active quests of every chain (the T window's rows, ActiveBoardQuests.cpp).
  */
 
-const GREEN = 'rgb(120, 230, 120)';
-const GRAY = 'rgb(120, 120, 120)';
-
-const Action = observer(({ label, enabled, onClick }: { label: string; enabled: boolean; onClick: () => void }) => (
-  <MuButton
-    file="newui_btn_empty.OZT"
-    width={108}
-    height={29}
-    frames={{ up: 0, active: 1, down: 2 }}
-    disabled={!enabled}
-    color={enabled ? TEXT_COLOR.brightGray : GRAY}
-    activeColor={TEXT_COLOR.white}
-    label={label}
-    labelStyle={{ fontSize: 11 }}
-    onClick={onClick}
-    style={enabled ? undefined : { filter: 'brightness(0.6)' }}
-  />
-));
-
-const Current = observer(({ quest, at, total }: { quest: BoardQuest; at: number; total: number }) => (
-  <>
-    <MuText className="quest-board-step" text={t('questBoard.questOf', { n: at + 1, total })} color={TEXT_COLOR.brightGray} />
-    <MuText face="bold" className="quest-board-name" text={quest.name} color={TEXT_COLOR.brightOrange} />
-    <MuText
-      className="quest-board-line"
-      text={t('questBoard.progress', { done: quest.currentKills, need: quest.requiredKills })}
-      color={goalReached(quest) ? GREEN : TEXT_COLOR.brightGray}
-    />
-    <div className="quest-board-bar">
-      <div className="quest-board-fill" style={{ width: `${Math.round(progress(quest) * 100)}%` }} />
-    </div>
-    <MuText className="quest-board-section" text={t('questBoard.reward')} color={TEXT_COLOR.orange} />
-    <MuText className="quest-board-line" text={quest.reward} color={TEXT_COLOR.brightYellow} />
-  </>
-));
-
+/**
+ * `CQuestBoardWindow` (reforge_quest_board.rml), 230 x 214: the quest box (112 high: step, name, the kill
+ * bar and its text, the reward), then Accept | Claim | Close. The other chains' active quests (our
+ * client's T window rows) are the box's tooltip here.
+ */
 const Window = observer(() => {
   const board = QuestBoard.board;
   const at = currentQuest(board);
   const quest = at >= 0 ? board[at] : null;
   const others = QuestBoard.active.filter(q => !quest || q.name !== quest.name);
+  const tip = others.length
+    ? [t('questBoard.active'), ...others.map(q => `${q.name}  ${t('questBoard.progress', { done: q.currentKills, need: q.requiredKills })}`)].join('\n')
+    : undefined;
   return (
-    <MuItemWindow id="quest-board-window" label={t('questBoard.title')} onClose={closeQuestBoard}>
-      <MuText face="bold" align="center" className="quest-board-title" text={t('questBoard.title')} />
-      <div className="quest-board-body">
-        {quest ? (
-          <Current quest={quest} at={at} total={board.length} />
-        ) : (
-          <MuText className="quest-board-line" text={t(board.length ? 'questBoard.allCompleted' : 'questBoard.noQuests')} color={TEXT_COLOR.brightGray} />
-        )}
-        {others.length > 0 && <MuText className="quest-board-section" text={t('questBoard.active')} color={TEXT_COLOR.orange} />}
-        {others.map(q => (
-          <MuText
-            key={`${q.number}-${q.name}`}
-            className="quest-board-line"
-            text={`${q.name}  ${t('questBoard.progress', { done: q.currentKills, need: q.requiredKills })}`}
-            color={goalReached(q) ? GREEN : TEXT_COLOR.brightGray}
-          />
-        ))}
+    <ReforgeShell id={QUEST_BOARD_WINDOW} title={t('questBoard.title')} height={214} closeButton={false} className="quest-board" onClose={closeQuestBoard}>
+      {quest ? (
+        <div className="qb-quest" title={tip}>
+          <div className="qb-step">{t('questBoard.questOf', { n: at + 1, total: board.length })}</div>
+          <div className="qb-name">{quest.name}</div>
+          <div className={`qb-progress${goalReached(quest) ? ' done' : ''}`}>
+            <div className="qb-bar">
+              <div style={{ width: `${Math.round(progress(quest) * 100)}%` }} />
+            </div>
+            <div className="qb-progress-text">{t('questBoard.progress', { done: quest.currentKills, need: quest.requiredKills })}</div>
+          </div>
+          <div className="qb-reward-label">{t('questBoard.reward')}</div>
+          <div className="qb-reward">{quest.reward}</div>
+        </div>
+      ) : (
+        <div className={`qb-empty${board.length ? ' done' : ''}`} title={tip}>
+          {t(board.length ? 'questBoard.allCompleted' : 'questBoard.noQuests')}
+        </div>
+      )}
+      <div className="qb-actions">
+        <RfButton small label={t('questBoard.accept')} disabled={!quest || !canAccept(quest)} onClick={acceptQuest} />
+        <RfButton small label={t('questBoard.claim')} disabled={!quest || !canClaim(quest)} onClick={claimQuest} />
+        <RfButton small label={t('common.close')} onClick={closeQuestBoard} />
       </div>
-      <div className="quest-board-actions" data-no-drag="true">
-        {quest && canClaim(quest) ? (
-          <Action label={t('questBoard.claim')} enabled onClick={claimQuest} />
-        ) : (
-          <Action label={t('questBoard.accept')} enabled={!!quest && canAccept(quest)} onClick={acceptQuest} />
-        )}
-      </div>
-    </MuItemWindow>
+    </ReforgeShell>
   );
 });
 

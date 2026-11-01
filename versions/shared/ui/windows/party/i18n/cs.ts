@@ -13,4 +13,8 @@ export default {
   'party.notInParty': 'Nejsi v družině.',
   'party.invite': 'Pozvat',
   'party.shop': 'Obchod',
+  'party.find': 'Hledat',
+  'party.settings': 'Nastavení',
+  'party.giveLead': 'Předat velení?',
+  'party.giveLeadConfirm': 'Klikni znovu',
 } satisfies Partial<Record<keyof typeof en, string>>;

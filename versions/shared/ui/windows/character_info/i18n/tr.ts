@@ -35,4 +35,7 @@ export default {
   'charInfo.attackSpeed': 'Saldırı hızı: {value}',
   'charInfo.defenseRatePvpBonus': 'Savunma oranı: {value} (+{bonus})',
   'charInfo.curseSpellRate': 'Lanet Büyüsü: {min} ~ {max}(+{rate})',
+  'charInfo.plateAddStatsTip': 'Birçok seviye puanını tek seferde harca ya da sunucunun senin yerine harcamasına izin ver.',
+  'charInfo.plateResetTip': 'Karakteri daha düşük bir seviyeden yeniden başlatır ve reset sayına bir ekler.',
+  'charInfo.plateGrandResetTip': 'Tam bir reset turunu tek bir grand reset ile değiştirir ve onları yeniden başlatır.',
 } satisfies Partial<Record<keyof typeof en, string>>;

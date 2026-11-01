@@ -37,4 +37,7 @@ export default {
   'characterInfo.quest': 'Quest (T)',
   'characterInfo.pet': 'Begleiter',
   'characterInfo.masterTree': 'Meisterbaum (A)',
+  'charInfo.plateAddStatsTip': 'Viele Levelpunkte auf einmal verteilen oder den Server für dich verteilen lassen.',
+  'charInfo.plateResetTip': 'Startet den Charakter auf einer niedrigeren Stufe neu und erhöht deine Resets um eins.',
+  'charInfo.plateGrandResetTip': 'Tauscht eine volle Reihe Resets gegen einen Grand Reset und beginnt sie von vorn.',
 } satisfies Partial<Record<keyof typeof en, string>>;

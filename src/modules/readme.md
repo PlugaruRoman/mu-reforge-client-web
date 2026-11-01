@@ -73,6 +73,7 @@ Controllers, ECS systems and `app/boot.tsx` add theirs at runtime, after the mod
 - [gm](gm/readme.md): game master panel, command catalogue, admin feed, offline debug menu.
 - [guild](guild/readme.md): guild packets; state in `Social`.
 - [guild_bank](guild_bank/readme.md): Mu Reforge's shared guild bank, guild settings and castle warp (DC).
+- [guild_browser](guild_browser/readme.md): Mu Reforge's Guild Wars and Guild Alliance browsers (DC 10-12).
 - [guild_war](guild_war/readme.md): guild war, Battle Soccer, alliances; state in `Social`.
 - [hero](hero/readme.md): the hero's stats, vitals, level, experience, respawn, stat points.
 - [inventory](inventory/readme.md): the bag, the shared item grid model and item runs.
@@ -83,6 +84,7 @@ Controllers, ECS systems and `app/boot.tsx` add theirs at runtime, after the mod
 - [npc_shop](npc_shop/readme.md): NPC talk and merchant packets, the merchant window (`Merchant`).
 - [options](options/readme.md): player settings (`GameOptions`), mobile skill slots, saved hot keys.
 - [party](party/readme.md): party packets; state in `Social`.
+- [party_search](party_search/readme.md): Mu Reforge's Party Search (D8): open parties, the own listing, joins, handing the lead.
 - [personal_shop](personal_shop/readme.md): player stall packets; state in `Economy`.
 - [pets](pets/readme.md): pets and mounts: models, drawing, Dark Raven / Dark Horse.
 - [quests](quests/readme.md): legacy quests, quest log, NPC dialogue, kill counters.

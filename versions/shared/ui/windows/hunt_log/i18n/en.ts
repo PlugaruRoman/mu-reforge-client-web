@@ -14,6 +14,7 @@ const en = {
   'huntLog.nextLevelIn': 'Level {n} in',
   'huntLog.maxLevelIn': 'Max level in',
   'huntLog.resetAvailable': 'Reset is available!',
+  'huntLog.foldHint': 'Click to fold or unfold, drag to move',
 };
 
 export default en;

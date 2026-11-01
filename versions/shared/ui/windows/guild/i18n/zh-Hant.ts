@@ -54,4 +54,11 @@ export default {
   'guild.kickHint': '若要逐出角色「{name}」，',
   'guild.enterSecurityCode': '請輸入你的帳號安全碼。',
   'guild.securityCode': '安全碼',
+  'guild.plateWars': '公會戰爭',
+  'guild.plateWarsTip': '瀏覽公會並宣戰',
+  'guild.plateAlliance': '公會同盟',
+  'guild.plateAllianceTip': '向其他公會提出同盟',
+  'guild.platePositionTip': '給予選定成員一個階級',
+  'guild.noticePlaceholder': '公告...',
+  'guild.noticeSend': '設定公告',
 } satisfies Partial<Record<keyof typeof en, string>>;

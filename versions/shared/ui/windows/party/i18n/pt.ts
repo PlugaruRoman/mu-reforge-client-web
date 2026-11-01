@@ -13,4 +13,8 @@ export default {
   'party.notInParty': 'Você não está em um grupo.',
   'party.invite': 'Convidar',
   'party.shop': 'Loja',
+  'party.find': 'Procurar',
+  'party.settings': 'Configurações',
+  'party.giveLead': 'Passar a liderança?',
+  'party.giveLeadConfirm': 'Clique de novo',
 } satisfies Partial<Record<keyof typeof en, string>>;
