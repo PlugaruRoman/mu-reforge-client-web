@@ -16,6 +16,8 @@ controller never imports a module). Windows, HUD elements and pages import them 
   mounts it. See its readme.
 - `reconnect_overlay`: `ReconnectOverlay`, the plate over the screen while `SessionResume` walks the
   login flow again (`modules/session`); `App.tsx` mounts it.
+- `rotate_hint`: `RotateHint`, a phone held upright on the stage or the world: a picture of it turning
+  sideways, dismissed by a tap (touch only, `controllers/interface/mobile.ts`); `App.tsx` mounts it.
 - `item_grid`: `ItemGrid`, the square grid every item window draws (`CNewUIInventoryCtrl`), with the
   carried item's drop preview; reads `Bag` (`modules/inventory`). `SQUARE`. `viewOnly` keeps the tooltip
   but swallows clicks (the trade partner's grid). `hoverRelease.ts`: `useHoverRelease` drops a hover

@@ -1,0 +1,57 @@
+// Over the pages and the world, under the loading screen's own plates (z 1000 and up are the
+// cursor and tooltips).
+.rotate-hint {
+  position: absolute;
+  inset: 0;
+  z-index: 900;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.72);
+  touch-action: none;
+}
+
+.rotate-hint-phone {
+  width: 128px;
+  height: 128px;
+  fill: none;
+  stroke: #d8c89a;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  animation: rotate-hint-turn 2.4s ease-in-out infinite;
+
+  circle {
+    fill: #d8c89a;
+  }
+}
+
+.rotate-hint-close {
+  position: absolute;
+  top: max(12px, env(safe-area-inset-top));
+  right: max(12px, env(safe-area-inset-right));
+  width: 44px;
+  height: 44px;
+  line-height: 40px;
+  text-align: center;
+  font-size: 32px;
+  color: #d8c89a;
+}
+
+@keyframes rotate-hint-turn {
+  0%,
+  20% {
+    transform: rotate(0deg);
+  }
+  60%,
+  100% {
+    transform: rotate(-90deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rotate-hint-phone {
+    animation: none;
+  }
+}
