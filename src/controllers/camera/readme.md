@@ -30,6 +30,9 @@ per-map overrides and this client's extra zoom steps, drag and first-person mous
   level, heading and tilt, except onto a map that pins its distance (`layers.ts`). `cameraView.moved`
   is true while the view is off the opening frame, and `resetCamera()` goes back to it.
 - Ctrl + middle drag is this client's addition: left / right turns the heading, up / down pitches.
+- On touch (`interface/mobile.ts`) two fingers are the same two gestures: a pinch steps the ladder
+  (60 px of spread a step) and a twist turns the heading. `pointerInputSystem` hides the second
+  finger from every other system, so it never walks or targets.
 - The ladder keeps the original's five distances (1000-1400) and adds steps on both sides: below
   1000 it blends toward an eye-level shot, the innermost step is first person (the hero's body is
   hidden, `heroBody.ts`), and above it goes out to 2900. In first person the eye bobs with the
