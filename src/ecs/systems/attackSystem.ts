@@ -25,6 +25,10 @@ import { skillDefinition } from '@versions/shared/skills/skillsDatabase';
 import { truncatePathWithinRange } from '../../controllers/actors/approachPath';
 import { isHostilePlayer } from '../../controllers/combat/playerTarget';
 import { duelEnemyId } from '../../modules/events/duel';
+import { Social } from '../../modules/social/social';
+import { GuildRelation } from '../../controllers/interface/nameTags';
+import { inChaosCastle } from '../../controllers/actors/locomotion';
+import { ENUM_WORLD } from '../../core/types';
 import { ammoInHand, ammoReload, type Hands } from '../../controllers/combat/weaponRange';
 import { InventoryConstants } from '@/core/inventoryConstants';
 import { StorageKind } from '../../modules/inventory/itemStorage';
@@ -183,8 +187,31 @@ export function canAttackPlayer(
 ): boolean {
   return (
     isAttackablePlayer(world, e) &&
-    isHostilePlayer(e, { duelEnemyId: duelEnemyId(), ctrl })
+    isHostilePlayer(e, {
+      duelEnemyId: duelEnemyId(),
+      ctrl,
+      protectedAlly: isProtectedGuildAlly(world.mapIndex, e),
+    })
   );
+}
+
+/**
+ * MU Reforge: a guild mate or a member of an allied guild can't be hurt
+ * (server AttackableExtensions.IsProtectedGuildAlly), so the click must not
+ * start a swing either. The duel is handled by `isHostilePlayer` itself; the
+ * events which are fought between anybody keep their rules.
+ */
+function isProtectedGuildAlly(mapIndex: number, e: Entity): boolean {
+  if (
+    inChaosCastle(mapIndex) ||
+    (mapIndex >= ENUM_WORLD.WD_45CURSEDTEMPLE_LV1 &&
+      mapIndex <= ENUM_WORLD.WD_45CURSEDTEMPLE_LV6) ||
+    mapIndex === ENUM_WORLD.WD_87TEAM_VS_TEAM
+  ) {
+    return false;
+  }
+
+  return Social.guildRelationOf(e.guild?.id) === GuildRelation.Union;
 }
 
 function directionCode(dx: number, dy: number): number {

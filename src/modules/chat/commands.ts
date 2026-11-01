@@ -16,7 +16,7 @@ import {
   DuelStopRequestPacket,
 } from '@versions/shared/packets/ClientToServerPackets';
 import { playUiSound } from '../../controllers/sound/sfx';
-import { isAttackablePlayer } from '../../ecs/systems/attackSystem';
+import { canAttackPlayer } from '../../ecs/systems/attackSystem';
 
 /**
  * `CNewUICommandWindow` (NewUICommandWindow.cpp) and the `/command` lines of
@@ -280,11 +280,12 @@ export const Commands = new (class _Commands {
   /**
    * The quick menu's attack entry. `isAttackableEntity` refuses every player
    * so an ordinary click in a crowd never starts a fight; picking the entry
-   * is deliberate, so it gets the player-only test instead.
+   * is deliberate, so it counts as Ctrl held - which still refuses a guild
+   * mate or ally (MU Reforge), and anyone but the enemy of a duel.
    */
   private attack(entity: Entity | null | undefined): void {
     const world = Ecs.world;
-    if (!world || !entity || !isAttackablePlayer(world, entity)) {
+    if (!world || !entity || !canAttackPlayer(world, entity, true)) {
       Social.errorMessage(t('command.cannotAttack'));
       playUiSound('error');
       return;

@@ -5,7 +5,10 @@
  * the target and nobody else is, Ctrl or not. Outside one an outlaw
  * (`PK >= PVP_MURDERER2`) is always a target, and anyone else only while
  * Ctrl is held. The guild war, rival guild, Chaos Castle and Cursed Temple
- * branches are not ported.
+ * branches are not ported. MU Reforge: a guild mate or ally is never a
+ * target, Ctrl or not - the server refuses the hit
+ * (AttackableExtensions.IsProtectedGuildAlly), outside a duel, Chaos Castle,
+ * Illusion Temple and the TvT arena.
  *
  * Readers only. Read by `attackSystem.canAttackPlayer`, which adds the
  * safe-zone and liveness rules and feeds both click paths.
@@ -20,6 +23,11 @@ type PlayerTargetContext = {
   duelEnemyId: number | null;
   /** Ctrl is held: `CheckAttack`'s force attack. */
   ctrl: boolean;
+  /**
+   * The target is of the hero's guild or alliance, on a map where that
+   * protects it (not Chaos Castle, Illusion Temple or the TvT arena).
+   */
+  protectedAlly?: boolean;
 };
 
 /** A player under the cursor: the id and the `HeroState` byte (`c->PK`). */
@@ -30,6 +38,7 @@ export function isHostilePlayer(
   ctx: PlayerTargetContext
 ): boolean {
   if (ctx.duelEnemyId !== null) return target.netId === ctx.duelEnemyId;
+  if (ctx.protectedAlly) return false;
   if ((target.heroState ?? PVP_NEUTRAL) >= PVP_MURDERER2) return true;
   return ctx.ctrl;
 }

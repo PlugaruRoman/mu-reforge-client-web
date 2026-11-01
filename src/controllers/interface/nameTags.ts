@@ -176,9 +176,13 @@ const RELATION_RIVAL = {
   text: 'rgb(255, 30, 0)',
   bg: 'rgba(0, 0, 0, 0.59)',
 };
-/** Same guild / union (GR_UNION and everything that is not rival). */
+/**
+ * Same guild / union (GR_UNION and everything that is not rival). MU Reforge:
+ * the green of the desktop clients' ally guild line, apart from the hero's
+ * own yellow-green - a guild mate or ally can't be attacked.
+ */
 const RELATION_UNION = {
-  text: 'rgb(200, 255, 0)',
+  text: 'rgb(80, 225, 100)',
   bg: 'rgba(20, 50, 80, 0.59)',
 };
 
