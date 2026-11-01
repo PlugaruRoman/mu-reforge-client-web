@@ -4,6 +4,7 @@ import { observer } from 'mobx-react-lite';
 import { MuSpriteFrame, useMuSprite } from '../mu_sprite';
 import { MuResizeGrip, useWindowChrome } from './useWindowChrome';
 import { MuWindows, type WindowCloser } from '../../windowManager';
+import { useUiViewport } from '../ui_stage';
 
 const BACK_SPRITE = 'newui_msgbox_back.OZJ';
 const TOP_SPRITE = 'newui_item_back04.OZT';
@@ -50,6 +51,12 @@ export const MuItemWindow = observer(
       onClose,
     });
     const stackRef = chrome.ref as (el: HTMLElement | null) => void;
+    // Docked, a column or the bar may not push the window off a small screen (a phone): the
+    // fit-capped scale makes it fit, so it slides left / down over the bar until it does.
+    const viewport = useUiViewport();
+    const drawnWidth = WINDOW_WIDTH * chrome.scale;
+    const right = Math.max(0, Math.min(column * drawnWidth, viewport.width - drawnWidth));
+    const bottom = Math.max(0, Math.min(bottomBarScreenHeight(), viewport.height - WINDOW_HEIGHT * chrome.scale));
     // Joins the stack and takes the focus, so the window is the keyboard's
     // target the moment it opens (and Escape scopes to it).
     const ref = useCallback(
@@ -69,8 +76,8 @@ export const MuItemWindow = observer(
         className={`mu-item-window${className ? ` ${className}` : ''}`}
         onPointerDown={chrome.onPointerDown}
         style={{
-          right: column * WINDOW_WIDTH * chrome.scale,
-          bottom: bottomBarScreenHeight(),
+          right,
+          bottom,
           backgroundImage: back ? `url(${back.url})` : undefined,
           backgroundSize: '100% 100%',
           ...chrome.style,

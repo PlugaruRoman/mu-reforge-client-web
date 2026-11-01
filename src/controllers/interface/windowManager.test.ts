@@ -5,6 +5,7 @@ const sfx = vi.hoisted(() => ({ playSfx: vi.fn(), setSfxListener: vi.fn(), clear
 vi.mock('../sound/listener', () => sfx);
 
 const { MuWindows } = await import('./windowManager');
+const { getUiViewport } = await import('./components/ui_stage');
 const { AppState } = await import('./uiState');
 const { playUiSound } = await import('@/controllers/sound/sfx');
 
@@ -58,5 +59,13 @@ describe('MuWindows.closeAll', () => {
     MuWindows.closeAll();
     expect(closed).toEqual(['vault']);
     runInAction(() => (AppState.hudHidden = false));
+  });
+});
+
+// The bar never registers a size, yet a screen narrower than 640 px (a phone) must shrink it to fit.
+describe('MuWindows.fitScaleOf', () => {
+  it('fits the bottom bar to the viewport width', () => {
+    expect(MuWindows.fitScaleOf('bottom-bar')).toBeCloseTo((getUiViewport().width - 24) / 640);
+    expect(MuWindows.fitScaleOf('never_registered')).toBe(3);
   });
 });

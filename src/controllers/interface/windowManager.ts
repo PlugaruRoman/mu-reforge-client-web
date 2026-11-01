@@ -53,6 +53,9 @@ export type WindowCloser = () => boolean | void;
 
 type WindowSize = { width: number; height: number };
 
+/** What `fitScaleOf` measures for a piece that is never stacked: the bar, 640x51 at scale 1. */
+const FIXED_SIZES: Record<string, WindowSize> = { 'bottom-bar': { width: 640, height: 51 } };
+
 export const MuWindows = new (class _MuWindows {
   private placements: Record<string, WindowPlacement> = {};
   /** Open windows, bottom to top. */
@@ -90,7 +93,7 @@ export const MuWindows = new (class _MuWindows {
    * `FIT_MARGIN` left on each side). Unknown sizes fit anything.
    */
   fitScaleOf(id: string): number {
-    const size = this.sizes.get(id);
+    const size = this.sizes.get(id) ?? FIXED_SIZES[id];
     if (!size) return MAX_SCALE;
     const { width, height } = this.viewport;
     const fit = Math.min(
