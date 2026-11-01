@@ -34,7 +34,7 @@ Always-on interface elements, one folder per element, same shape as a window. Re
 | `minimap` | minimap (hud, 450) | full world map on TAB and the corner minimap, turned by the camera heading (`rotation.ts`: the original's 45 degrees counter-clockwise) | Ecs.world, hero, options, social |
 | `camera_reset` | camera_reset (hud, 455) | Reset camera while the view is off the map's frame (ours, `cameraKeepsView`); left of the corner minimap and the party list | camera, social, options |
 | `mu_helper_buttons` | mu_helper_buttons (hud, 456) | MU Helper Start / Stop and Settings under the event timers (ours, `muHelperButtons`); only with the `mu_helper` module | mu_helper, events, options |
-| `mobile_controls` | mobile_controls (hud, 490) | touch HUD: move button, skill pad, menu cluster | AppState, hero, skills, warp, social |
+| `mobile_controls` | mobile_controls (hud, 490) | touch HUD: warp and chat buttons, potion and skill pad, menu cluster; under the windows (z 99); moves the helper buttons, event timers and Reset camera out of the cluster's corner | AppState, hero, skills, inventory, warp, social |
 | `name_tags` | - | names and guild marks over characters | Ecs.world, guild, social |
 | `party_list` | party_list (hud, 65) | the always-on member list at the top right (`CNewUIPartyListWindow`); left of the corner minimap while that is on, not moved for open windows (ours are scaled and dragged) | social, skills, Ecs.world |
 | `party_bars` | - | party member HP pips over heads | social |

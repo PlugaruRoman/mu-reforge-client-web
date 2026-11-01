@@ -20,3 +20,8 @@ body.mu-cursor-hidden * {
   image-rendering: pixelated;
   will-change: transform;
 }
+
+// A finger has no cursor: drawn, it would only mark where the last tap was.
+.mu-mobile .mu-cursor {
+  display: none;
+}
