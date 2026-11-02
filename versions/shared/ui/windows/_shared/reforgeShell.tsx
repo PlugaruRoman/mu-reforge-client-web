@@ -16,7 +16,9 @@ import { AccountButton } from './accountWidgets';
  * the message box art at any width, the title banner, a content box 18 in from the sides, 35 under
  * the top and 24 over the bottom, opening in the middle of the screen and dragged from its frame.
  * Sizes are desktop dp: 1 dp is 1 px of the 640x480 stage, so the window follows the stage scale
- * (`scaleBy: 'stage'`, capped at 2) times the interface scale. How to build one: `../readme.md`.
+ * (`scaleBy: 'stage'`, capped at 2) times the interface scale. On a desktop it opens centred above
+ * the bottom bar and is kept there (MuWindows' bar reserve); a double click on the title banner brings
+ * a dragged one back to the middle. How to build one: `../readme.md`.
  */
 
 const TOP = 'newui_msgbox_top.OZT';
@@ -29,6 +31,8 @@ const BACK = 'newui_msgbox_back.OZJ';
 export const SHELL_WIDTH = 230;
 /** Before the first measure of a window whose height follows its content. */
 const AUTO_HEIGHT_GUESS = 200;
+/** reforge_window.rcss: the title banner over the content, where a double click re-centres the window. */
+const BANNER_HEIGHT = 35;
 
 /** A band of the message box art: its two ornamented ends keep their size, the bar between stretches. */
 const Band = observer(({ file, ends, style }: { file: string; ends: number; style: CSSProperties }) => {
@@ -126,6 +130,12 @@ const ShellBody = observer(({ id, title, width = SHELL_WIDTH, height, onClose, c
       tabIndex={-1}
       className={`rf-shell${className ? ` ${className}` : ''}`}
       onPointerDown={chrome.onPointerDown}
+      onDoubleClick={event => {
+        // A double click on the title banner puts a dragged window back in the middle.
+        if ((event.target as HTMLElement).closest('[data-no-drag]')) return;
+        const top = event.currentTarget.getBoundingClientRect().top;
+        if (event.clientY - top <= BANNER_HEIGHT * chrome.scale) MuWindows.reset(id);
+      }}
       style={{ ...chrome.style, height: height ?? 'auto' }}
     >
       <ShellFrame titled={!!title} />
@@ -193,7 +203,7 @@ export const columnStyle = (column: RfColumn): CSSProperties =>
     ? { flex: `0 0 ${column.width}px`, width: column.width, textAlign: column.align }
     : { flex: '1 1 0', minWidth: 0, textAlign: column.align };
 
-/** `.rf-table-head`: the gold captions over a list. */
+/** `.rf-table-head`: the gold captions over a list; a caption cut short by its column says itself on hover. */
 export const RfTableHead = observer(({ columns, className }: { columns: readonly RfColumn[]; className?: string }) => (
   <div className={`rf-table-head${className ? ` ${className}` : ''}`}>
     {columns.map((column, i) => (
@@ -201,7 +211,7 @@ export const RfTableHead = observer(({ columns, className }: { columns: readonly
         key={i}
         className={column.onClick ? 'rf-col clickable' : 'rf-col'}
         style={columnStyle(column)}
-        title={column.title}
+        title={column.title ?? (typeof column.label === 'string' ? column.label : undefined)}
         onClick={column.onClick}
       >
         {column.label}

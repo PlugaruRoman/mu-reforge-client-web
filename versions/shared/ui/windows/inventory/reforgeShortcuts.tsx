@@ -1,7 +1,6 @@
 import { observer } from 'mobx-react-lite';
 import { t, type TextKey } from '@/i18n';
 import { MuWindows } from '@/controllers/interface/windowManager';
-import { dockedLeftOf } from '@/controllers/interface/components/mu_window';
 import { moduleOn } from '@/modules/module';
 import { JEWEL_BANK_WINDOW } from '@/modules/jewel_bank';
 import { VIP_WINDOW } from '@/modules/vip';
@@ -64,29 +63,25 @@ const FIRST_TOP = 325;
 const PITCH = 33;
 
 /**
- * The plates stand down while another classic window is docked to the inventory's left (a vault, a
- * shop, the trade), whose frame they would cover - `FollowInventory` shows them only while the
- * inventory is the world's edge. A plate stays pressed while its window is open.
+ * While another classic window is docked to the inventory's left (a vault, a shop, the trade) the
+ * plates move out past it (SidePlate, `sidePlateLeft`) rather than standing down as our client's do
+ * (`FollowInventory`): the jewel bank stays a click away at the vault. A plate stays pressed while
+ * its window is open.
  */
-export const InventoryShortcuts = observer(
-  ({ windowId }: { windowId: string }) => {
-    if (dockedLeftOf(windowId)) return null;
-    return (
-      <>
-        {SHORTCUTS.map((s, i) =>
-          moduleOn(s.module) ? (
-            <SidePlate
-              key={s.window}
-              top={FIRST_TOP + i * PITCH}
-              file={s.file}
-              title={`${t(s.title)} (${s.key})`}
-              description={t(s.description)}
-              active={MuWindows.isOpen(s.window)}
-              onClick={s.toggle}
-            />
-          ) : null
-        )}
-      </>
-    );
-  }
-);
+export const InventoryShortcuts = observer(() => (
+  <>
+    {SHORTCUTS.map((s, i) =>
+      moduleOn(s.module) ? (
+        <SidePlate
+          key={s.window}
+          top={FIRST_TOP + i * PITCH}
+          file={s.file}
+          title={`${t(s.title)} (${s.key})`}
+          description={t(s.description)}
+          active={MuWindows.isOpen(s.window)}
+          onClick={s.toggle}
+        />
+      ) : null
+    )}
+  </>
+));

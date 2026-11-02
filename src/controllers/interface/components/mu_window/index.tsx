@@ -1,5 +1,5 @@
 import './style.less';
-import { useCallback, useEffect, type CSSProperties } from 'react';
+import { createContext, useCallback, useContext, useEffect, type CSSProperties } from 'react';
 import { observable, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import { MuSpriteFrame, useMuSprite } from '../mu_sprite';
@@ -30,22 +30,65 @@ export const bottomBarScreenHeight = () => BOTTOM_BAR_HEIGHT * MuWindows.scaleOf
 
 /**
  * The classic windows that are open, by id, with the column they dock to. A window the player
- * dragged away is in it too; `dockedLeftOf` leaves those out.
+ * dragged away is in it too; `docked` tells them apart.
  */
 const dockedColumns = observable.map<string, number>();
 
-/**
- * True while another classic window is docked left of `id` (on a higher column): the Mu Reforge
- * plates hanging off that window's left edge stand down, as our client's do
- * (InventoryShortcutColumn.cpp `FollowInventory`).
- */
-export function dockedLeftOf(id: string): boolean {
-  const column = dockedColumns.get(id);
-  if (column === undefined || !docked(id)) return false;
-  for (const [other, otherColumn] of dockedColumns) {
-    if (other !== id && otherColumn > column && docked(other)) return true;
-  }
+/** True while a classic window is docked on the right edge (never dragged): our client hides the
+ * HUD pieces in that corner then (ReforgeMenuLauncher.cpp, `IsWorldCoveredFromRight`). */
+export function worldCoveredFromRight(): boolean {
+  for (const id of dockedColumns.keys()) if (docked(id)) return true;
   return false;
+}
+
+/** The classic window a piece is drawn in (MuItemWindow provides it). */
+const ItemWindowContext = createContext<string | null>(null);
+
+export function useItemWindowId(): string | null {
+  return useContext(ItemWindowContext);
+}
+
+/** Docked windows with plates hanging off their left edge, by id: how many plates each shows. */
+const plateOwners = observable.map<string, number>();
+
+/** A side plate of `id` came on screen; the returned function takes it off again. */
+export function addSidePlate(id: string): () => void {
+  runInAction(() => plateOwners.set(id, (plateOwners.get(id) ?? 0) + 1));
+  return () =>
+    runInAction(() => {
+      const left = (plateOwners.get(id) ?? 1) - 1;
+      if (left > 0) plateOwners.set(id, left);
+      else plateOwners.delete(id);
+    });
+}
+
+/** One column of plates: a 36 wide plate and the 8 between it and what it hangs off. */
+export const SIDE_PLATE_PITCH = 44;
+const PLATE_SIZE = 36;
+
+/**
+ * Where the plates hanging off docked window `id` go, in its logical pixels: `-44`, off its own left
+ * edge, while nothing is docked left of it; otherwise out past the whole dock, so they never cover
+ * the windows beside it (the character window's plates used to sit on the inventory's grid and its
+ * Expand button). Each window's plates keep their own column there, the window nearest the dock's
+ * outer edge innermost, so the inventory's column and the character's never land on one another.
+ * A window dragged to the screen's left edge gets them on its right side.
+ */
+export function sidePlateLeft(id: string): number {
+  const column = dockedColumns.get(id);
+  if (column === undefined || !docked(id)) {
+    // Dragged against the screen's left edge, the plates would hang off it: they go to its right.
+    const { x } = MuWindows.placement(id);
+    return x !== null && x < SIDE_PLATE_PITCH * MuWindows.scaleOf(id) ? WINDOW_WIDTH + SIDE_PLATE_PITCH - PLATE_SIZE : -SIDE_PLATE_PITCH;
+  }
+  let outer = column;
+  let plateColumns = 0;
+  for (const [other, otherColumn] of dockedColumns) {
+    if (other === id || otherColumn <= column || !docked(other)) continue;
+    outer = Math.max(outer, otherColumn);
+    if (plateOwners.has(other)) plateColumns++;
+  }
+  return -SIDE_PLATE_PITCH * (plateColumns + 1) - (outer - column) * WINDOW_WIDTH;
 }
 
 /**
@@ -171,7 +214,7 @@ export const MuItemWindow = observer(
           top: WINDOW_HEIGHT - BOTTOM_HEIGHT,
         }}
       />
-        {children}
+        <ItemWindowContext.Provider value={id}>{children}</ItemWindowContext.Provider>
         <MuResizeGrip id={id} width={WINDOW_WIDTH} />
       </div>
     );

@@ -732,7 +732,7 @@ export const Inventory = observer(() => {
 
       {}
       {}
-      <InventoryShortcuts windowId={WINDOW_ID} />
+      <InventoryShortcuts />
       {bagPurchaseOn() && <BagPurchaseConfirm />}
     </MuItemWindow>
   );

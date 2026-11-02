@@ -1,5 +1,5 @@
 // Plates beside a classic window (sidePlates.tsx). The tooltip opens away from the window, to the
-// plate's left, so it never covers the window it belongs to.
+// plate's left, so it never covers the window it belongs to - unless the screen edge is too near.
 .side-plate {
   position: absolute;
   z-index: 3;
@@ -25,6 +25,13 @@
     right: auto;
     left: 0;
     transform: none;
+  }
+
+  // Too near the screen's left edge for the tip to open leftwards (SidePlate measures on hover).
+  &.tip-right:not(.tip-above):not(.tip-below) .side-plate-tip {
+    right: auto;
+    left: 100%;
+    margin: 0 0 0 4px;
   }
 
   &.tip-above .side-plate-tip {

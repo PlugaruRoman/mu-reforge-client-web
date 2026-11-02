@@ -4,6 +4,7 @@ import { getUiViewport, onUiViewportChanged } from './components/ui_stage';
 import { GameOptions, uiScaleFactor } from '@/controllers/settings';
 import { quietUiSounds } from '@/controllers/sound/sfx';
 import { AppState } from './uiState';
+import { isMobileDevice } from './mobile';
 
 const STORAGE_KEY = 'mu-windows';
 
@@ -57,7 +58,8 @@ export type WindowCloser = () => boolean | void;
 type WindowSize = { width: number; height: number };
 
 /** What `fitScaleOf` measures for a piece that is never stacked: the bar, 640x51 at scale 1. */
-const FIXED_SIZES: Record<string, WindowSize> = { 'bottom-bar': { width: 640, height: 51 } };
+const BOTTOM_BAR = 'bottom-bar';
+const FIXED_SIZES: Record<string, WindowSize> = { [BOTTOM_BAR]: { width: 640, height: 51 } };
 
 export const MuWindows = new (class _MuWindows {
   private placements: Record<string, WindowPlacement> = {};
@@ -101,7 +103,8 @@ export const MuWindows = new (class _MuWindows {
   fitScaleOf(id: string): number {
     const size = this.sizes.get(id) ?? FIXED_SIZES[id];
     if (!size) return MAX_SCALE;
-    const { width, height } = this.viewport;
+    const { width } = this.viewport;
+    const height = this.viewport.height - this.barReserveOf(id);
     const fit = Math.min(
       (width - FIT_MARGIN * 2) / size.width,
       (height - FIT_MARGIN * 2) / size.height
@@ -117,8 +120,18 @@ export const MuWindows = new (class _MuWindows {
     const scale = this.scaleOf(id);
     return {
       x: Math.max(0, Math.round((this.viewport.width - width * scale) / 2)),
-      y: Math.max(0, Math.round((this.viewport.height - height * scale) / 2)),
+      y: Math.max(0, Math.round((this.viewport.height - this.barReserveOf(id) - height * scale) / 2)),
     };
+  }
+
+  /**
+   * Screen pixels at the bottom a window keeps clear: the bottom bar's height for a stage-sized (Mu
+   * Reforge) window on a desktop, so it opens, fits and stays above the potions and skills instead of
+   * over them; nothing for the rest, and nothing on a phone, where every pixel of height counts.
+   */
+  private barReserveOf(id: string): number {
+    if (!this.stageSized.has(id) || isMobileDevice()) return 0;
+    return FIXED_SIZES[BOTTOM_BAR].height * this.scaleOf(BOTTOM_BAR);
   }
 
   /**
@@ -293,9 +306,10 @@ export const MuWindows = new (class _MuWindows {
       };
     }
     const scale = this.scaleOf(id);
+    const bottom = height - this.barReserveOf(id);
     return {
       x: Math.min(Math.max(x, 0), Math.max(0, width - size.width * scale)),
-      y: Math.min(Math.max(y, 0), Math.max(0, height - size.height * scale)),
+      y: Math.min(Math.max(y, 0), Math.max(0, bottom - size.height * scale)),
     };
   }
 

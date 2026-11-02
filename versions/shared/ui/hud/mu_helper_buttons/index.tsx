@@ -16,6 +16,8 @@ import {
 
 const RIGHT = 10;
 const GAP = 6;
+/** A label too long for one line (ru "Запустить помощника") wraps to two inside the 29 high art. */
+const LABEL = { fontWeight: 'bold', fontSize: 11, lineHeight: '11px', textAlign: 'center', padding: '0 4px' } as const;
 
 /**
  * Ours (`muHelperButtons`): the Home and End keys as buttons, top right under the minimap slot
@@ -50,7 +52,7 @@ export const MuHelperButtons = observer(() => {
         height={29}
         frames={{ up: 0, active: 1, down: 2 }}
         label={t(MuHelper.active ? 'muHelperButtons.stop' : 'muHelperButtons.start')}
-        labelStyle={{ fontWeight: 'bold', fontSize: 11, color: MuHelper.active ? '#7CFC7C' : '#FFD700' }}
+        labelStyle={{ ...LABEL, color: MuHelper.active ? '#7CFC7C' : '#FFD700' }}
         onClick={() => MuHelper.toggleMuHelper()}
       />
       <MuButton
@@ -59,7 +61,7 @@ export const MuHelperButtons = observer(() => {
         height={29}
         frames={{ up: 0, active: 1, down: 2 }}
         label={t('muHelperButtons.settings')}
-        labelStyle={{ fontWeight: 'bold', fontSize: 11 }}
+        labelStyle={LABEL}
         onClick={() => toggleMuHelperWindow()}
       />
     </div>

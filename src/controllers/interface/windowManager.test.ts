@@ -69,3 +69,29 @@ describe('MuWindows.fitScaleOf', () => {
     expect(MuWindows.fitScaleOf('never_registered')).toBe(3);
   });
 });
+
+// A Mu Reforge window opens, fits and is dragged above the bottom bar, not over the potions.
+describe('MuWindows stage-sized windows', () => {
+  it('keep the bottom bar clear', () => {
+    const { height } = getUiViewport();
+    const bar = 51 * MuWindows.scaleOf('bottom-bar');
+    MuWindows.sizeToStage('rf_test');
+    MuWindows.register('rf_test', { width: 230, height: 300 });
+    const scale = MuWindows.scaleOf('rf_test');
+    expect(300 * scale).toBeLessThanOrEqual(height - bar);
+    expect(MuWindows.centeredAt('rf_test', 230, 300).y + 300 * scale).toBeLessThanOrEqual(height - bar + 1);
+    MuWindows.moveTo('rf_test', 0, height);
+    expect((MuWindows.placement('rf_test').y ?? Infinity) + 300 * scale).toBeLessThanOrEqual(height - bar + 0.001);
+    MuWindows.reset('rf_test');
+    MuWindows.unregister('rf_test');
+  });
+
+  it('leave a classic window free to go over the bar', () => {
+    const { height } = getUiViewport();
+    MuWindows.register('classic_test', { width: 190, height: 100 });
+    MuWindows.moveTo('classic_test', 0, height);
+    expect((MuWindows.placement('classic_test').y ?? Infinity) + 100 * MuWindows.scaleOf('classic_test')).toBeCloseTo(height);
+    MuWindows.reset('classic_test');
+    MuWindows.unregister('classic_test');
+  });
+});

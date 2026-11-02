@@ -4,7 +4,7 @@ import { runInAction } from 'mobx';
 import { t } from '@/i18n';
 import { MuWindows, STAGE_SCALE_CAP } from '@/controllers/interface/windowManager';
 import { useMuSprite } from '@/controllers/interface/components/mu_sprite';
-import { bottomBarScreenHeight } from '@/controllers/interface/components/mu_window';
+import { bottomBarScreenHeight, worldCoveredFromRight } from '@/controllers/interface/components/mu_window';
 import { useUiViewport } from '@/controllers/interface/components/ui_stage';
 import { GameOptions, uiScaleFactor } from '@/controllers/settings';
 import { playUiSound } from '@/controllers/sound/sfx';
@@ -17,7 +17,8 @@ import { MENU_ENTRIES, activateEntry, type MenuEntry } from '../../windows/refor
  * world above the bottom bar: the column 30 in from the edge and 150 over the bar, the launcher 76 in
  * and 174 over it, right over the column. Sizes are stage units at our client's panel scale. Of the five
  * toggles only those with a web setting are here (Auto Party, Requests); Auto Potion, PvP Attack and
- * Player Names have none.
+ * Player Names have none. Both hide while a classic window is docked on the right, which would cover
+ * them (`IsWorldCoveredFromRight`); N still opens the menu.
  */
 
 const LAUNCHER = { width: 68, height: 20, fromRight: 76, overBar: 174 } as const;
@@ -58,6 +59,7 @@ export const ReforgeLauncher = observer(() => {
   const scale = Math.min(viewport.scale, STAGE_SCALE_CAP) * uiScaleFactor(GameOptions.uiScale);
   const workspaceBottom = viewport.height - bottomBarScreenHeight();
   const open = MuWindows.isOpen(REFORGE_MENU_WINDOW);
+  if (worldCoveredFromRight()) return null;
   const toggles = TOGGLES.flatMap(({ id, glyph }) => {
     const entry = MENU_ENTRIES.find(e => e.id === id);
     return entry ? [{ entry, glyph }] : [];
