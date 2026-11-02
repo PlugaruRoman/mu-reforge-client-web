@@ -102,3 +102,57 @@
     }
   }
 }
+
+// A phone's launcher (index.tsx, our Android client's mobile reforge_main_menu.rcss): three columns
+// of finger-sized tiles filling the window, larger icons and names, no key chips.
+.reforge-menu.launcher {
+  .rm-grid {
+    flex: 1 1 0;
+    height: auto !important;
+    min-height: 0;
+  }
+
+  .rm-tile {
+    width: 32.6%;
+    min-height: 38px;
+    margin-bottom: 4px;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .rm-icon {
+    zoom: 1.3;
+  }
+
+  .rm-label {
+    font-size: 12px;
+    line-height: 15px;
+  }
+
+  .rm-state {
+    font-size: 10px;
+    line-height: 12px;
+  }
+
+  // No keys and no hover on a phone; the corner button closes it.
+  .rm-key,
+  .rm-footer {
+    display: none;
+  }
+
+  // The bar's Menu button art (30 x 41) in a tile's 36 x 29 icon box.
+  .rm-icon-tall {
+    zoom: 0.92;
+    margin: 0 4px;
+  }
+
+  .rf-tabs {
+    height: 30px;
+
+    .rf-tab {
+      height: 29px;
+      line-height: 29px;
+      font-size: 13px;
+    }
+  }
+}
