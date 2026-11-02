@@ -3,18 +3,16 @@ import { LocalStorage } from '../../core/localStorage';
 import { isHotbarSkill } from '../skills/skillCasting';
 
 /**
- * The three skills linked to the mobile pad, per character.
+ * The skill on the touch HUD's large button, per character (-1: the button attacks).
  *
- * Deliberately not `HeroSkills.skillHotkeys`: those ten are the digit keys and are
- * round-tripped to the server through `SaveKeyConfiguration`, so borrowing
- * three of them would rewrite the player's desktop bar from their phone.
- * These live in the browser only, keyed by character name so two characters
- * on one device keep their own pads.
+ * Not a digit key: the bar's keys fill themselves with the learned skills, so key 5 (our Android
+ * client's main slot) would take the plain attack away from most players. The four skill buttons are
+ * the keys 1-4. This lives in the browser only, keyed by character name.
  */
 
-const STORAGE_KEY = 'mu_mobile_skills';
+const STORAGE_KEY = 'mu_mobile_main_skill';
 
-export const MOBILE_SKILL_SLOTS = 3;
+const MOBILE_SKILL_SLOTS = 1;
 
 const EMPTY: number[] = new Array(MOBILE_SKILL_SLOTS).fill(-1);
 
@@ -34,7 +32,7 @@ function load(): Saved {
 export const MobileSkillSlots = new (class _MobileSkillSlots {
   private saved: Saved = load();
   private character = '';
-  /** The live pad: three wire skill numbers, -1 for empty. */
+  /** The live slots: wire skill numbers, -1 for empty. */
   slots: number[] = EMPTY.slice();
 
   constructor() {

@@ -1,133 +1,381 @@
 @import (reference) '@/controllers/interface/components/mu_text/style.less';
 
-// The touch HUD. Anchored to the viewport, not to the 640x480 stage: these
-// are thumb targets and must keep their size on a small screen. Only ever
-// mounted on a touch client (`MobileControls` returns null otherwise), so
-// nothing here needs a `.mu-mobile` guard of its own.
+// The touch HUD, after our Android client's mobile theme (reforge_touch_hud.rcss, main_frame.rcss,
+// workspace.rcss): dark plates with a gold rim, every size in `--mu-u` (1vh, capped; index.tsx sets it
+// on the root). Only ever mounted on a touch client, so the rules under `.mobile-controls` need no
+// guard; the rules that move other HUD pieces are under `.mu-mobile`.
 
-@edge-gap: 12px;
-@button-gap: 8px;
-@bar-clearance: 63px;
-// The notch and the home bar: a button never sits under either.
-@edge-top: max(@edge-gap, env(safe-area-inset-top));
-@edge-right: max(@edge-gap, env(safe-area-inset-right));
-@edge-left: max(@edge-gap, env(safe-area-inset-left));
+@u: var(--mu-u, 3.9px);
+@gold: rgb(212, 172, 88);
+@gold-lit: rgb(255, 228, 150);
+// The notch and the home bar: a control never sits under either.
+@safe-left: env(safe-area-inset-left, 0px);
+@safe-right: env(safe-area-inset-right, 0px);
 
 .mobile-controls {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  // Under every window (WINDOW_Z_BASE is 100): an open window is on top and whole, and the pad
-  // is back when it closes. Over the HUD's own corner widgets (z 10).
+  // Under every window (WINDOW_Z_BASE is 100): an open window is on top and whole. Over the HUD's
+  // own corner widgets (z 10).
   z-index: 99;
   .mu-font();
-  image-rendering: pixelated;
-
-  // Every button opts back in; the layer stays transparent to taps.
-  .mobile-move-button,
-  .mobile-chat-button,
-  .mobile-potion-slot,
-  .mobile-menu-button,
-  .mobile-skill-slot,
-  .mobile-picker-slot,
-  .mobile-picker-action {
-    pointer-events: auto;
-    cursor: pointer;
-    touch-action: none;
-  }
-
-  .mobile-scaled {
-    position: relative;
-    overflow: hidden;
-  }
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
 }
 
-// ---- the warp and chat buttons, top left ----------------------------------
+// ---- the plates ----------------------------------------------------------------------------
 
-.mobile-left-column {
+.touch-btn {
   position: absolute;
-  top: @edge-top;
-  left: @edge-left;
-  display: flex;
-  flex-direction: column;
-  gap: @button-gap;
+  box-sizing: border-box;
+  pointer-events: auto;
+  touch-action: none;
+  overflow: hidden;
+  border: calc(@u * 0.4) solid @gold;
+  background: radial-gradient(circle, rgb(66, 50, 28), rgb(16, 12, 8));
+  box-shadow: 0 calc(@u * 0.6) calc(@u * 1.4) rgba(0, 0, 0, 0.78);
+  cursor: pointer;
+
+  &.held,
+  &.on,
+  &.selected {
+    border-color: @gold-lit;
+    background: radial-gradient(circle, rgb(110, 82, 38), rgb(36, 26, 12));
+  }
 }
 
-.mobile-chat-button .mobile-glyph {
+.touch-round {
+  width: calc(@u * 10);
+  height: calc(@u * 10);
+  border-radius: 50%;
+}
+
+// The pictograms: a dark outline under the gold line, as the Android set's relief.
+.touch-icon {
+  position: absolute;
+  left: 18%;
+  top: 18%;
+  width: 64%;
+  height: 64%;
+  pointer-events: none;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+
+  .touch-icon-outline {
+    stroke: rgba(26, 10, 3, 0.9);
+    stroke-width: 4;
+  }
+
+  .touch-icon-glyph {
+    stroke: rgb(240, 196, 92);
+    stroke-width: 2.2;
+  }
+}
+
+// A skill's 20 x 28 art, centred and scaled inline to the plate.
+.touch-skill-art {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 28px;
+  width: 20px;
   height: 28px;
-  transform: translate(-50%, -50%);
-  fill: none;
-  stroke: #d8c89a;
-  stroke-width: 2;
-  stroke-linejoin: round;
+  image-rendering: auto;
+  pointer-events: none;
 }
 
-.mobile-move-button {
-  .mobile-move-glyph {
+// RenderSkillDelay: dark, rising from the plate's floor.
+.touch-cooldown {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 0;
+  background: rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
+
+// ---- the status plate, top left (main_frame.rcss) -------------------------------------------
+
+.touch-status {
+  position: absolute;
+  left: calc(@u * 1 + @safe-left);
+  top: calc(@u * 1);
+  display: flex;
+  gap: calc(@u * 2);
+  pointer-events: none;
+}
+
+.touch-portrait {
+  position: relative !important;
+  flex: none;
+  width: calc(@u * 11.5);
+  height: calc(@u * 11.5);
+  border-radius: calc(@u * 1.6);
+  border-width: calc(@u * 0.5);
+  overflow: visible;
+
+  .touch-icon {
+    left: 14%;
+    top: 6%;
+    width: 72%;
+    height: 72%;
+  }
+
+  .touch-portrait-level {
     position: absolute;
     left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    background-size: 100% 100%;
-    background-repeat: no-repeat;
+    bottom: calc(@u * -1.8);
+    transform: translateX(-50%);
+    min-width: calc(@u * 8);
+    height: calc(@u * 3.6);
+    padding: 0 calc(@u * 0.6);
+    box-sizing: border-box;
+    line-height: calc(@u * 3.2);
+    text-align: center;
+    font-size: calc(@u * 2.5);
+    font-weight: bold;
+    color: rgb(255, 236, 180);
+    background: rgba(30, 20, 8, 0.94);
+    border: calc(@u * 0.4) solid @gold;
+    border-radius: calc(@u * 2.2);
+    pointer-events: none;
   }
 }
 
-// ---- the five main-frame buttons, top right --------------------------------
-
-.mobile-menu-cluster {
-  position: absolute;
-  top: @edge-top;
-  right: @edge-right;
-  display: flex;
-  gap: @button-gap;
-
-  &.portrait {
-    flex-direction: column;
-    align-items: flex-end;
-  }
-
-  // Landscape has width to spare and no height: the column becomes a row.
-  &.landscape {
-    flex-direction: row;
-    align-items: flex-start;
-  }
-}
-
-// ---- the skill pad, bottom right above the bar -----------------------------
-
-.mobile-skill-pad {
-  position: absolute;
-  right: @edge-right;
-  bottom: @bar-clearance;
+.touch-gauges {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
-  gap: 4px;
+  gap: calc(@u * 0.6);
+  width: calc(@u * 52);
+  padding-top: calc(@u * 0.4);
+}
 
-  .mobile-skill-slots {
-    display: flex;
-    flex-direction: row;
-    gap: @button-gap;
+.touch-gauge-pair {
+  display: flex;
+  flex-direction: column;
+  gap: calc(@u * 0.4);
+}
+
+.touch-bar {
+  position: relative;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.67);
+  border: 1px solid rgba(214, 178, 96, 0.35);
+  border-radius: 2px;
+
+  .touch-bar-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+  }
+
+  .touch-bar-value {
+    position: relative;
+    text-align: center;
+    font-size: calc(@u * 2.6);
+    line-height: calc(@u * 4.2);
+    font-weight: bold;
+    color: #fff;
+    text-shadow:
+      1px 0 0 #000,
+      -1px 0 0 #000,
+      0 1px 0 #000,
+      0 -1px 0 #000;
   }
 }
 
-// The Q/W/E/R potions, a row over the skills.
-.mobile-potion-slots {
-  display: flex;
-  gap: @button-gap;
+.touch-bar-hp,
+.touch-bar-mp {
+  height: calc(@u * 4.2);
+}
 
-  .mobile-potion-slot.empty {
+.touch-bar-sd,
+.touch-bar-ag {
+  height: calc(@u * 1.8);
+}
+
+.touch-bar-exp {
+  height: calc(@u * 0.9);
+  border: none;
+}
+
+.touch-bar-hp .touch-bar-fill {
+  background: linear-gradient(#e05a48, #b02818 45%, #4a0a05);
+}
+.touch-bar-mp .touch-bar-fill {
+  background: linear-gradient(#6a9ae0, #2050b0 45%, #0f2450);
+}
+.touch-bar-sd .touch-bar-fill {
+  background: linear-gradient(#f0d08a, #c8963a 45%, #6c4c1a);
+}
+.touch-bar-ag .touch-bar-fill {
+  background: linear-gradient(#b8e07a, #6aa030 45%, #2e4a12);
+}
+.touch-bar-exp .touch-bar-fill {
+  background: @gold;
+}
+
+// ---- the top right row, left of the radar ---------------------------------------------------
+
+.touch-top-row {
+  position: absolute;
+  top: calc(@u * 1.5);
+  right: calc(@u * 27 + @safe-right);
+  display: flex;
+  flex-direction: row;
+  gap: calc(@u * 2);
+
+  .touch-btn {
+    position: relative;
+  }
+}
+
+// ---- the joystick, bottom left ----------------------------------------------------------------
+
+// Where a thumb starts the stick: the lower left, clear of the chat.
+.touch-joystick-zone {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: calc(@u * 48 + @safe-left);
+  height: calc(@u * 60);
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.touch-joystick {
+  position: absolute;
+  width: calc(@u * 30);
+  height: calc(@u * 30);
+  box-sizing: border-box;
+  border-radius: 50%;
+  border: calc(@u * 0.4) solid rgba(214, 178, 96, 0.43);
+  background: rgba(10, 8, 6, 0.35);
+  pointer-events: none;
+
+  &.at-rest {
+    left: calc(@u * 7 + @safe-left);
+    bottom: calc(@u * 11);
     opacity: 0.55;
   }
 
-  .mobile-potion-art {
+  &.off {
+    visibility: hidden;
+  }
+
+  // Under the thumb: its left / top are its centre.
+  &.live {
+    transform: translate(-50%, -50%);
+  }
+
+  .touch-joystick-knob {
     position: absolute;
-    inset: 6px;
+    left: calc(@u * 9 - @u * 0.4);
+    top: calc(@u * 9 - @u * 0.4);
+    width: calc(@u * 12);
+    height: calc(@u * 12);
+    box-sizing: border-box;
+    border-radius: 50%;
+    border: calc(@u * 0.4) solid @gold;
+    background: radial-gradient(circle, rgb(120, 104, 72), rgb(40, 32, 22));
+  }
+}
+
+// ---- the action cluster, bottom right ------------------------------------------------------
+// A staircase round the large plate where every neighbour pair has 3u of clear space: two skills
+// left of it, two in a row above it, the gear over the left pair, the MU Helper's pair a column
+// further left, the potions in a row above that.
+
+.touch-attack {
+  right: calc(@u * 5 + @safe-right);
+  bottom: calc(@u * 11);
+  width: calc(@u * 22);
+  height: calc(@u * 22);
+  border-radius: 50%;
+  border-width: calc(@u * 0.55);
+
+  &.has-skill {
+    border-radius: calc(@u * 3.2);
+  }
+
+  .touch-icon {
+    left: 20%;
+    top: 20%;
+    width: 60%;
+    height: 60%;
+  }
+}
+
+.touch-skill {
+  width: calc(@u * 13);
+  height: calc(@u * 13);
+  border-radius: calc(@u * 2.2);
+}
+
+.touch-skill-0 {
+  right: calc(@u * 30 + @safe-right);
+  bottom: calc(@u * 11);
+}
+.touch-skill-1 {
+  right: calc(@u * 33 + @safe-right);
+  bottom: calc(@u * 27);
+}
+.touch-skill-2 {
+  right: calc(@u * 17 + @safe-right);
+  bottom: calc(@u * 36);
+}
+.touch-skill-3 {
+  right: calc(@u * 1 + @safe-right);
+  bottom: calc(@u * 36);
+}
+
+.touch-skill-edit {
+  right: calc(@u * 37 + @safe-right);
+  bottom: calc(@u * 43);
+  width: calc(@u * 9);
+  height: calc(@u * 9);
+  border-radius: 50%;
+}
+
+.touch-helper {
+  right: calc(@u * 49 + @safe-right);
+  bottom: calc(@u * 11);
+  width: calc(@u * 12);
+  height: calc(@u * 12);
+  border-radius: 50%;
+
+  &.active {
+    border-color: rgb(140, 230, 120);
+    background: radial-gradient(circle, rgb(40, 96, 32), rgb(12, 30, 10));
+  }
+}
+
+.touch-helper-settings {
+  right: calc(@u * 50 + @safe-right);
+  bottom: calc(@u * 26);
+  width: calc(@u * 10);
+  height: calc(@u * 10);
+  border-radius: 50%;
+}
+
+// The potions: 9u circles 3u apart above the MU Helper's pair, the first nearest the skills.
+.touch-potion {
+  bottom: calc(@u * 40);
+  width: calc(@u * 9);
+  height: calc(@u * 9);
+  border-radius: 50%;
+  border-width: calc(@u * 0.35);
+  overflow: visible;
+
+  .touch-potion-art {
+    position: absolute;
+    inset: 12%;
+    overflow: hidden;
+    border-radius: 50%;
 
     .item-icon {
       width: 100%;
@@ -136,151 +384,224 @@
     }
   }
 
-  .mobile-potion-count {
+  .touch-potion-count {
     position: absolute;
-    right: 4px;
-    bottom: 2px;
-    font-size: 11px;
-    line-height: 12px;
-    color: #fff;
-    text-shadow:
-      1px 0 0 #000,
-      -1px 0 0 #000,
-      0 1px 0 #000,
-      0 -1px 0 #000;
+    left: 12%;
+    right: 12%;
+    bottom: calc(@u * -1.2);
+    height: calc(@u * 2.4);
+    line-height: calc(@u * 2.4);
+    text-align: center;
+    font-size: calc(@u * 1.9);
+    font-weight: bold;
+    color: rgb(255, 236, 180);
+    background: rgba(12, 9, 6, 0.9);
+    border: calc(@u * 0.2) solid @gold;
+    border-radius: calc(@u * 1.2);
     pointer-events: none;
   }
 }
-
-// What a skill is about to hit, so the pad is not fired blind.
-.mobile-target-label {
-  max-width: 60vw;
-  padding: 1px 5px;
-  font-size: 12px;
-  line-height: 16px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: #fff;
-  background: rgba(0, 0, 0, 0.55);
+.touch-potion-0 {
+  right: calc(@u * 49 + @safe-right);
+}
+.touch-potion-1 {
+  right: calc(@u * 61 + @safe-right);
+}
+.touch-potion-2 {
+  right: calc(@u * 73 + @safe-right);
+}
+.touch-potion-3 {
+  right: calc(@u * 85 + @safe-right);
 }
 
-.mobile-skill-slot,
-.mobile-picker-slot {
-  // `RenderSkillIcon(…, x + 6, y + 6)`: the icon inside the box.
-  .mobile-skill-art {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%) scale(1.5);
-    transform-origin: 50% 50%;
-  }
-
-  // RenderSkillDelay: red at half alpha rising from the slot's floor.
-  .mobile-skill-delay {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 0;
-    background: rgba(255, 128, 128, 0.5);
-    pointer-events: none;
-  }
+// The chat button, bottom centre left of the chat lines (workspace.rcss puts them at 62u).
+.touch-chat {
+  left: calc(@u * 51 + @safe-left);
+  bottom: calc(@u * 8);
 }
 
-// ---- the picker ------------------------------------------------------------
+// ---- the skill picker -------------------------------------------------------------------------
 
-.mobile-skill-picker {
+.touch-picker-backdrop {
   position: absolute;
   inset: 0;
-  z-index: 1;
   pointer-events: auto;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 1;
+}
+
+.touch-picker {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(calc(@u * 120), 96vw);
+  max-height: 94%;
+  transform: translate(-50%, -50%);
+  box-sizing: border-box;
+  padding: calc(@u * 2);
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
+  border: calc(@u * 0.5) solid @gold;
+  border-radius: calc(@u * 2);
+  background: rgba(10, 8, 6, 0.92);
+  color: @gold;
 
-  .mobile-picker-panel {
-    max-width: 92vw;
-    max-height: 82vh;
-    overflow-y: auto;
-    padding: 12px;
-    background: rgba(10, 8, 6, 0.95);
-    border: 1px solid rgba(255, 255, 255, 0.25);
+  .touch-picker-title {
+    height: calc(@u * 7);
+    line-height: calc(@u * 7);
+    text-align: center;
+    font-size: calc(@u * 3.8);
+    font-weight: bold;
+  }
+
+  .touch-picker-slots {
     display: flex;
-    flex-direction: column;
-    gap: 10px;
+    justify-content: center;
+    align-items: center;
+    gap: calc(@u * 2);
+    padding-bottom: calc(@u * 2);
   }
 
-  .mobile-picker-title {
-    color: rgb(255, 200, 50);
-    font-size: 14px;
-    text-align: center;
-  }
-
-  .mobile-picker-empty {
-    color: rgba(255, 255, 255, 0.6);
-    font-size: 12px;
-    text-align: center;
-    padding: 12px 24px;
-  }
-
-  .mobile-picker-grid {
+  .touch-picker-skills {
     display: flex;
     flex-wrap: wrap;
-    gap: @button-gap;
     justify-content: center;
+    align-content: flex-start;
+    gap: calc(@u * 2);
+    flex: 1 1 auto;
+    min-height: calc(@u * 14);
+    overflow-y: auto;
+    padding: calc(@u * 1) 0;
+    border-top: calc(@u * 0.2) solid rgba(214, 178, 96, 0.35);
+    pointer-events: auto;
+    touch-action: pan-y;
   }
 
-  .mobile-picker-actions {
-    display: flex;
-    gap: @button-gap;
-    justify-content: center;
+  .touch-picker-empty {
+    padding: calc(@u * 3);
+    color: rgba(255, 255, 255, 0.6);
+    font-size: calc(@u * 3);
   }
 
-  .mobile-picker-action {
-    min-height: 40px;
-    padding: 0 14px;
+  .touch-picker-slot,
+  .touch-picker-skill {
+    position: relative;
+    flex: none;
+    width: calc(@u * 13);
+    height: calc(@u * 13);
+    box-sizing: border-box;
+    overflow: hidden;
+    border: calc(@u * 0.4) solid rgba(214, 178, 96, 0.6);
+    border-radius: calc(@u * 2);
+    background: rgba(30, 24, 16, 0.86);
+    pointer-events: auto;
+    cursor: pointer;
+
+    &.held {
+      border-color: @gold-lit;
+    }
+  }
+
+  .touch-picker-skill {
+    width: calc(@u * 12);
+    height: calc(@u * 12);
+    touch-action: pan-y;
+
+    &.chosen {
+      border-color: rgb(140, 230, 120);
+      background: rgba(30, 80, 24, 0.86);
+    }
+  }
+
+  .touch-picker-slot {
+    &.main {
+      width: calc(@u * 15);
+      height: calc(@u * 15);
+      margin-left: calc(@u * 3);
+      border-radius: calc(@u * 2.4);
+    }
+
+    &.selected {
+      border-color: @gold-lit;
+      border-width: calc(@u * 0.7);
+      background: rgba(90, 70, 30, 0.9);
+    }
+  }
+
+  .touch-picker-buttons {
     display: flex;
-    align-items: center;
     justify-content: center;
-    font-size: 12px;
-    color: #e2e2e2;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.25);
+    gap: calc(@u * 4);
+    padding-top: calc(@u * 1.5);
+  }
+
+  .touch-picker-button {
+    min-width: calc(@u * 30);
+    height: calc(@u * 8.5);
+    line-height: calc(@u * 8.5);
+    padding: 0 calc(@u * 2);
     text-align: center;
+    font-size: calc(@u * 3.6);
+    font-weight: bold;
+    border: calc(@u * 0.4) solid rgba(214, 178, 96, 0.67);
+    border-radius: calc(@u * 2);
+    background: rgba(30, 24, 16, 0.9);
+    pointer-events: auto;
+    cursor: pointer;
+
+    &.primary {
+      background: rgba(90, 70, 30, 0.94);
+      color: rgb(255, 236, 180);
+    }
+
+    &.held {
+      border-color: @gold-lit;
+    }
   }
 }
 
-// ---- the corner widgets the menu cluster displaced ---------------------------
-// The minimap slot they hang from is the cluster's on a phone, so the helper buttons and the
-// event timers move out from under it: below the row in landscape, beside the column in portrait.
-@media (orientation: landscape) {
-  .mu-mobile .mu-helper-buttons {
-    top: calc(@edge-top + 66px) !important;
+// ---- the rest of the HUD on a phone -------------------------------------------------------------
+
+.mu-mobile {
+  // The touch controls do their work: the bar (its art, buttons, hot keys), our client's Menu (N)
+  // launcher and HUD toggles, and the MU Helper's two buttons.
+  .bottom-bar,
+  .reforge-launcher,
+  .reforge-toggles,
+  .mu-helper-buttons {
+    display: none !important;
   }
 
-  .mu-mobile .event-timers {
-    top: calc(@edge-top + 101px) !important;
-  }
-}
-
-@media (orientation: portrait) {
-  .mu-mobile .mu-helper-buttons {
-    top: @edge-top !important;
-    right: calc(@edge-right + 50px) !important;
+  // The chat at the bottom centre, right of its button (workspace.rcss `.chat-stack`), between the
+  // joystick and the skills.
+  .chat-window {
+    left: calc(@u * 62 + @safe-left);
+    bottom: calc(@u * 7 + var(--mu-keyboard, 0px)) !important;
   }
 
-  .mu-mobile .event-timers {
-    top: calc(@edge-top + 35px) !important;
-    right: calc(@edge-right + 50px) !important;
+  // The buffs under the gauges, the party under the top row.
+  .buff-bar {
+    left: calc(@u * 14.5 + @safe-left) !important;
+    top: calc(@u * 18) !important;
+    transform-origin: 0 0;
   }
-}
 
-// Reset camera (after a pinch or a twist) under the warp and chat buttons, the one corner free.
-.mu-mobile .camera-reset {
-  top: calc(@edge-top + 138px) !important;
-  left: @edge-left;
-  right: auto !important;
-  transform-origin: 0 0 !important;
+  .party-list {
+    top: calc(@u * 13.5) !important;
+    right: calc(@u * 27 + @safe-right) !important;
+  }
+
+  // The event timers under the radar, clear of the skills.
+  .event-timers {
+    top: calc(@u * 27) !important;
+    right: calc(@u * 1.5 + @safe-right) !important;
+  }
+
+  // Reset camera (after a pinch or a twist) under the status plate.
+  .camera-reset {
+    top: calc(@u * 21) !important;
+    left: calc(@u * 1 + @safe-left);
+    right: auto !important;
+    transform-origin: 0 0 !important;
+  }
 }

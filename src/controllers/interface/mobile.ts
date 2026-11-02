@@ -28,6 +28,23 @@ const mobile = detect();
 // desktop rule flashes on a phone.
 if (mobile && typeof document !== 'undefined') {
   document.documentElement.classList.add(ROOT_CLASS);
+  watchKeyboard();
+}
+
+/**
+ * `--mu-keyboard`: how much of the layout the on-screen keyboard covers. A phone shrinks only the
+ * visual viewport for it, so a field at the bottom (the chat line) would sit under the keys; the
+ * chat lifts itself by this much.
+ */
+function watchKeyboard(): void {
+  const view = window.visualViewport;
+  if (!view) return;
+  const update = () => {
+    const covered = Math.max(0, window.innerHeight - view.height - view.offsetTop);
+    document.documentElement.style.setProperty('--mu-keyboard', `${Math.round(covered)}px`);
+  };
+  view.addEventListener('resize', update);
+  view.addEventListener('scroll', update);
 }
 
 export function isMobileDevice(): boolean {
@@ -36,4 +53,12 @@ export function isMobileDevice(): boolean {
 
 export function useIsMobile(): boolean {
   return mobile;
+}
+
+/**
+ * The touch HUD's unit (our Android client sizes its touch controls in `vh`): 1% of the screen's
+ * height, capped for a tablet (6.5 px) and for a phone held upright (0.9% of the width).
+ */
+export function touchUnit(width: number, height: number): number {
+  return Math.min(height / 100, width * 0.009, 6.5);
 }

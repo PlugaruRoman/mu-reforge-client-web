@@ -6,6 +6,8 @@ import { Ecs } from '@/ecs/current';
 import { GameOptions, uiScaleFactor } from '@/controllers/settings';
 import type { MinimapMarker } from '@/controllers/terrain/minimapData';
 import { MuTipText } from '@/controllers/interface/components/mu_text';
+import { useUiViewport } from '@/controllers/interface/components/ui_stage';
+import { isMobileDevice, touchUnit } from '@/controllers/interface/mobile';
 import {
   CenterButton,
   Frame,
@@ -116,10 +118,15 @@ export const MinimapCorner = observer(() => {
   const pictureRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
   const coordsRef = useRef<HTMLDivElement>(null);
-  const scale = PANEL_SCALE * uiScaleFactor(GameOptions.uiScale);
+  const viewport = useUiViewport();
+  const mobile = isMobileDevice();
+  // A phone's radar (our Android client's mobile reforge_radar.rcss): 24 touch units, top right.
+  const scale = mobile ? (touchUnit(viewport.width, viewport.height) * 24) / PANEL : PANEL_SCALE * uiScaleFactor(GameOptions.uiScale);
   const mapSize = ZOOM_LEVELS[zoom];
   const rotation = useMapRotation(shown);
   const { dragging, handlers } = useMapDrag(mapSize, scale, rotation, setPan);
+  // On a phone a tap opens the full map (`radar_open_map`); a drag is too fiddly at this size.
+  const tapHandlers = mobile ? { onClick: () => MuWindows.setOpen('minimap', true) } : handlers;
 
   // Before paint, so the picture never shows its top-left corner for a frame.
   useLayoutEffect(() => {
@@ -182,7 +189,7 @@ export const MinimapCorner = observer(() => {
       onWheel={onWheel}
       onContextMenu={e => e.preventDefault()}
     >
-      <div className={`minimap-corner-clip${dragging ? ' is-dragging' : ''}`} {...handlers}>
+      <div className={`minimap-corner-clip${dragging ? ' is-dragging' : ''}`} {...tapHandlers}>
         <div
           className="minimap-corner-spin"
           style={{ transform: `rotate(${rotation}deg)` }}
