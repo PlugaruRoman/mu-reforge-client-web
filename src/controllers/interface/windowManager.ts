@@ -4,6 +4,7 @@ import { getUiViewport, onUiViewportChanged } from './components/ui_stage';
 import { GameOptions, uiScaleFactor } from '@/controllers/settings';
 import { quietUiSounds } from '@/controllers/sound/sfx';
 import { AppState } from './uiState';
+import { isMobileDevice } from './mobile';
 
 const STORAGE_KEY = 'mu-windows';
 
@@ -35,6 +36,14 @@ const EDGE_MARGIN = 32;
 
 /** Screen pixels kept free around a window when fitting its scale to the viewport. */
 const FIT_MARGIN = 12;
+
+/**
+ * A phone's stage scale floor for the Mu Reforge windows: the 640x480 stage on a phone is about 0.8,
+ * which draws their 11 px text at 9. Our Android client lays them out again at 14 dp text; here they
+ * are drawn larger (still fitted to the screen), and the shell's scroll where they no longer fit the
+ * height (`scrollsOnPhone`).
+ */
+const PHONE_STAGE_SCALE = 1.3;
 
 /**
  * z-index of the bottom window. Every stacked window sits at base + its
@@ -71,11 +80,14 @@ export const MuWindows = new (class _MuWindows {
   private viewport = getUiViewport();
   /** Windows laid out in the 640x480 stage's units (the Mu Reforge shell): drawn at the stage scale. */
   private stageSized = new Set<string>();
+  /** Stage-sized windows whose content flows and can scroll on a phone (the shell), not absolutely placed. */
+  private stageScrolls = new Set<string>();
 
   constructor() {
-    makeAutoObservable<this, 'stageSized'>(this, {
+    makeAutoObservable<this, 'stageSized' | 'stageScrolls'>(this, {
       order: true,
       stageSized: false,
+      stageScrolls: false,
     });
     this.load();
     // The interface is back: its windows mount and register again.
@@ -102,10 +114,9 @@ export const MuWindows = new (class _MuWindows {
     const size = this.sizes.get(id) ?? FIXED_SIZES[id];
     if (!size) return MAX_SCALE;
     const { width, height } = this.viewport;
-    const fit = Math.min(
-      (width - FIT_MARGIN * 2) / size.width,
-      (height - FIT_MARGIN * 2) / size.height
-    );
+    const across = (width - FIT_MARGIN * 2) / size.width;
+    // A Mu Reforge window on a phone scrolls instead: only its width has to fit.
+    const fit = this.scrollsOnPhone(id) ? across : Math.min(across, (height - FIT_MARGIN * 2) / size.height);
     return Math.min(MAX_SCALE, Math.max(fit, 0.25));
   }
 
@@ -126,9 +137,26 @@ export const MuWindows = new (class _MuWindows {
    * scale from the options, capped so the whole window still fits.
    */
   scaleOf(id: string): number {
-    const base = this.stageSized.has(id) ? Math.min(this.viewport.scale, STAGE_SCALE_CAP) : this.placement(id).scale;
+    const stage = Math.min(this.viewport.scale, STAGE_SCALE_CAP);
+    const base = this.stageSized.has(id)
+      ? isMobileDevice() ? Math.max(stage, PHONE_STAGE_SCALE) : stage
+      : this.placement(id).scale;
     const wanted = base * uiScaleFactor(GameOptions.uiScale);
     return Math.min(wanted, this.fitScaleOf(id));
+  }
+
+  /** A stage-sized window whose content flows (the shell), on a phone: as tall as the screen at most, scrolling. */
+  scrollsOnPhone(id: string): boolean {
+    return this.stageScrolls.has(id) && isMobileDevice();
+  }
+
+  /**
+   * The tallest a window may be drawn, in its own units: the screen's height on a phone for a window
+   * that scrolls there (`scrollsOnPhone`), else unlimited.
+   */
+  heightCapOf(id: string): number {
+    if (!this.scrollsOnPhone(id)) return Infinity;
+    return (this.viewport.height - FIT_MARGIN * 2) / this.scaleOf(id);
   }
 
   /** Every window back to its default corner and size. */
@@ -143,8 +171,9 @@ export const MuWindows = new (class _MuWindows {
    * `id` is sized in stage units (desktop dp): its scale is the stage's (`min(w/640, h/480)`, capped at
    * `STAGE_SCALE_CAP`) times the interface scale, as our client scales its RmlUi panels, not a saved one.
    */
-  sizeToStage(id: string): void {
+  sizeToStage(id: string, scrolls = false): void {
     this.stageSized.add(id);
+    if (scrolls) this.stageScrolls.add(id);
   }
 
   // ---- open state ---------------------------------------------------------
@@ -176,6 +205,11 @@ export const MuWindows = new (class _MuWindows {
     this.clamp(id);
   }
 
+  /** `id` is a window that told the stack its size (an item window, a Mu Reforge shell), not the chat or a fan. */
+  isSized(id: string): boolean {
+    return this.sizes.has(id);
+  }
+
   unregister(id: string): void {
     // Hiding the interface unmounts every window that is still open: keep its closer for `closeAll`.
     const closer = this.closers.get(id);
@@ -185,6 +219,13 @@ export const MuWindows = new (class _MuWindows {
     runInAction(() => {
       if (this.order.includes(id)) this.order = this.order.filter(w => w !== id);
     });
+  }
+
+  /** What Escape would do to `id` (its closer), wherever it is in the stack: a phone's close button. */
+  close(id: string): void {
+    const closer = this.closers.get(id);
+    if (closer) closer();
+    else this.setOpen(id, false);
   }
 
   /** Brings `id` to the top; a click on any window does this. */
@@ -295,7 +336,7 @@ export const MuWindows = new (class _MuWindows {
     const scale = this.scaleOf(id);
     return {
       x: Math.min(Math.max(x, 0), Math.max(0, width - size.width * scale)),
-      y: Math.min(Math.max(y, 0), Math.max(0, height - size.height * scale)),
+      y: Math.min(Math.max(y, 0), Math.max(0, height - Math.min(size.height, this.heightCapOf(id)) * scale)),
     };
   }
 

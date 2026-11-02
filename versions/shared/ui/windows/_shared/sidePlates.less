@@ -4,6 +4,8 @@
   position: absolute;
   z-index: 3;
   pointer-events: auto;
+  // A phone scales a plate about its right edge (sidePlates.tsx `phonePlace`): the gap to the window stays.
+  transform-origin: 100% 0;
 
   &:hover > div {
     filter: brightness(1.25);

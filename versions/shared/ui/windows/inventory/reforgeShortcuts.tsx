@@ -6,6 +6,7 @@ import { moduleOn } from '@/modules/module';
 import { JEWEL_BANK_WINDOW } from '@/modules/jewel_bank';
 import { VIP_WINDOW } from '@/modules/vip';
 import { SidePlate } from '../_shared/sidePlates';
+import { isMobileDevice } from '@/controllers/interface/mobile';
 import {
   ITEM_COLLECTIONS_ID,
   toggleItemCollections,
@@ -66,11 +67,12 @@ const PITCH = 33;
 /**
  * The plates stand down while another classic window is docked to the inventory's left (a vault, a
  * shop, the trade), whose frame they would cover - `FollowInventory` shows them only while the
- * inventory is the world's edge. A plate stays pressed while its window is open.
+ * inventory is the world's edge. A plate stays pressed while its window is open. A phone has none
+ * (our Android client hides the column): its windows are all in the N menu.
  */
 export const InventoryShortcuts = observer(
   ({ windowId }: { windowId: string }) => {
-    if (dockedLeftOf(windowId)) return null;
+    if (dockedLeftOf(windowId) || isMobileDevice()) return null;
     return (
       <>
         {SHORTCUTS.map((s, i) =>

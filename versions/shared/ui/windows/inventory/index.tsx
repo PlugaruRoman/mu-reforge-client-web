@@ -252,6 +252,13 @@ const EquipmentSlot = observer(
 
 type HoverInfo = { item: Item; slot: number; x: number; y: number };
 
+/**
+ * A phone's inventory (our Android client's mobile my_inventory.rcss): wide and low, the equipment on
+ * the left and the bag right of it (`.inventory-bag` moves 175 right and 157 up), so it fits a phone
+ * held sideways at about 1.35 times and a bag square is 27 px instead of 17.
+ */
+const PHONE_SIZE = { width: 366, height: 271 };
+
 /** V stays a second inventory key unless the user binds it elsewhere. */
 const ALT_HOT_KEY = 'KeyV';
 
@@ -531,6 +538,7 @@ export const Inventory = observer(() => {
     <MuItemWindow
       id={WINDOW_ID}
       className={`inventory${Merchant.repairMode ? ' repair-mode' : ''}`}
+      phoneSize={PHONE_SIZE}
       column={MuWindows.isOpen('character_info') ? 1 : 0}
       onClose={() => {
         // Already shut by `MuWindows.closeAll` (HideAll plays no click).
@@ -568,6 +576,8 @@ export const Inventory = observer(() => {
         />
       ))}
 
+      {/* The bag, the gold and the buttons: on a phone right of the equipment (`.inventory-bag`). */}
+      <div className="inventory-bag">
       <MuTableFrame
         left={GRID_FRAME_X}
         top={GRID_FRAME_Y}
@@ -728,6 +738,7 @@ export const Inventory = observer(() => {
         >
           <span className="button-tooltip">{t(bagPurchaseOn() ? 'inventory.bagClickToBuy' : EXPAND_TOOLTIP)}</span>
         </MuButton>
+      </div>
       </div>
 
       {}

@@ -219,3 +219,20 @@
     margin: 6px auto 0;
   }
 }
+
+// A phone (`MuWindows.scrollsOnPhone`): the window is drawn larger and at most as tall as the screen,
+// so its content scrolls under the banner; a finger drags the list, not the window.
+.rf-shell.phone {
+  .rf-content {
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
+    scrollbar-width: thin;
+  }
+
+  .mu-phone-close {
+    top: 6px;
+    right: 6px;
+  }
+}

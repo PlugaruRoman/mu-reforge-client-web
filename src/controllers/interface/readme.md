@@ -23,7 +23,11 @@ windows themselves are content in `versions/shared/ui/` (see
   closers of the windows that hiding the interface unmounted are kept for it until the interface is back).
   `sizeToStage(id)` (or `useWindowChrome(id, { scaleBy: 'stage' })`): a window laid out in 640x480
   stage units, as our client's RmlUi panels are, drawn at the stage scale (capped at `STAGE_SCALE_CAP`,
-  2) times the interface scale instead of a saved scale; the Mu Reforge shell uses it.
+  2) times the interface scale instead of a saved scale; the Mu Reforge shell uses it. On a phone such
+  a window is drawn at least 1.3 (the stage there is about 0.8), and a shell (`scrolls`) only has to fit
+  the width: `heightCapOf(id)` caps its height and its content scrolls (`scrollsOnPhone`). `close(id)`
+  runs a window's closer from anywhere in the stack (a phone's close button); `isSized(id)` tells a
+  window from the chat or a fan.
 - `components/`: shared widgets. Frames and text: `mu_window` (item window, table frame),
   `mu_frame`, `msg_box_frame` (`top` takes the NPC menus' title bar art, `MSGBOX_TOP_TITLEBAR_SPRITE`), `mu_text`, `mu_number`,
   `mu_button`, `mu_sprite`, `mu_logo`, `mu_flag`. Items: `item_icon`, `item_search` (the grid, the
@@ -45,7 +49,9 @@ windows themselves are content in `versions/shared/ui/` (see
   is the box's Yes and gets the typed text (`msg_window` hands it over), so a chain of boxes, like
   the delete-character one, lives with whoever raises it.
 - `hooks/`: `useEventBus`, `usePositionOnScreen`, `useRenderId`, `useVersionUi`.
-- `mobile.ts` (`isMobileDevice`, `useIsMobile`), `hudFormat.ts`, `tokens.less` (web tokens),
+- `mobile.ts` (`isMobileDevice`, `useIsMobile`, `touchUnit`: the touch HUD's 1vh unit, capped; it also
+  keeps `--mu-keyboard`, the height the on-screen keyboard covers), `touchStick.ts` (`TouchStick`,
+  `setTouchStick`, `releaseTouchStick`: the phone's joystick, read by the walk), `hudFormat.ts`, `tokens.less` (web tokens),
   `root.less` (the root layer pages and windows are drawn in; `boot.tsx` imports it).
 
 ## How it works
@@ -114,8 +120,12 @@ windows themselves are content in `versions/shared/ui/` (see
   `.mu-mobile` rule hang off this answer. Touch means coarse pointer and a touch point (either
   alone is a touch monitor or a trackpad). `?mobile=1|0` lasts for the page only, never stored.
   `main.tsx` imports it before the version loads, so it imports nothing.
-- `MuItemWindow` docks by column and above the bar, but never past the left or top edge: on a phone
-  the fit-capped scale makes it fit, so the column slides in and the window covers the bar.
+- `MuItemWindow` docks by column and above the bar, but never past the left or top edge. On a phone
+  (our Android client's `.dock-mobile`) the docked windows stand side by side in the middle of the
+  screen by their drawn widths; one that opens past the screen's width closes the oldest docked ones
+  (never one that opened with it, as a vault and its inventory); a window gets a 40 px close button
+  (`PhoneClose`) instead of the resize grip; `phoneSize` lets a window lay itself out again there on a
+  flat plate (the inventory). The bar is hidden on a phone, so `bottomBarScreenHeight()` is 0.
   `fitScaleOf` also knows the bar's own 640x51 (`FIXED_SIZES`), so the bar shrinks to a narrow screen.
 - `slideHelp.ts` (`CSlideHelpMgr` / `CUISlideHelp`, UIControls.cpp:4033-4530): two lanes, help
   (`g_hFont`) and notice (`g_hFontBold`), each a queue keyed by the second a text is due.

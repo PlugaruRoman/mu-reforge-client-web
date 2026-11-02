@@ -4,7 +4,7 @@ import { observer } from 'mobx-react-lite';
 import { t, type TextKey } from '@/i18n';
 import type { Item } from '@/ecs/world';
 import { MuWindows } from '@/controllers/interface/windowManager';
-import { MuTableFrame, useWindowChrome } from '@/controllers/interface/components/mu_window';
+import { MuTableFrame, PhoneClose, useWindowChrome } from '@/controllers/interface/components/mu_window';
 import { MuSpriteFrame, useMuSprite } from '@/controllers/interface/components/mu_sprite';
 import { togglesWindow } from '@/controllers/interface/components/module_window';
 import { ItemIcon } from '@/controllers/interface/components/item_icon';
@@ -378,6 +378,7 @@ export const ItemCollectionsWindow = observer(() => {
           </div>
         </div>
       )}
+      <PhoneClose scale={chrome.scale} onClose={() => MuWindows.close(ITEM_COLLECTIONS_ID)} />
     </div>
   );
 });

@@ -2,7 +2,7 @@ import './style.less';
 import { useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { t } from '@/i18n';
-import { MuTableFrame, useWindowChrome } from '@/controllers/interface/components/mu_window';
+import { MuTableFrame, PhoneClose, useWindowChrome } from '@/controllers/interface/components/mu_window';
 import { MuSpriteFrame, useMuSprite } from '@/controllers/interface/components/mu_sprite';
 import { ItemIcon } from '@/controllers/interface/components/item_icon';
 import { mapName } from '@/modules/gm/gmMaps';
@@ -259,6 +259,7 @@ export const ReforgeMarketWindow = observer(() => {
       {m.refusal !== null && <div className="mk-message">{t(teleportText(m.refusal))}</div>}
 
       {hovered?.item && hover && <ItemTooltip item={hovered.item} x={hover.x} y={hover.y} context="plain" />}
+      <PhoneClose scale={chrome.scale} onClose={() => ReforgeMarket.close()} />
     </div>
   );
 });
