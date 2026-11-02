@@ -86,3 +86,50 @@ describe('a ground click while the server slides the hero in', () => {
     expect(world.attackTarget).toBe(monster);
   });
 });
+
+describe("the phone's joystick", () => {
+  it('walks the hero the way the camera looks while pushed up, with the walk keys off', async () => {
+    const { TouchStick, setTouchStick, releaseTouchStick } = await import('../../controllers/interface/touchStick');
+    const { AppState, UIState } = await import('../../controllers/interface/uiState');
+    AppState.uiState = UIState.World;
+    const hero = {
+      localPlayer: true,
+      playerMoveTo: { point: { x: 0, y: 0 }, handled: true },
+      pathfinding: { path: null },
+      transform: { pos: new Vector3(100, 0, 100), rot: new Vector3(), scale: 1 },
+    };
+    // alpha 0: the camera sits on +x and looks down -x.
+    scene.activeCamera = { alpha: 0 } as unknown as Scene['activeCamera'];
+    const world = {
+      scene,
+      playerEntity: hero,
+      pointerPressed: false,
+      rightPointerPressed: false,
+      castRequest: null,
+      with: () => [],
+      isWalkable: () => true,
+      keyboardInput: { pressedKeys: new Set() },
+    } as unknown as World;
+    const walker = PlayerControllerSystem(world);
+
+    setTouchStick(0, -50, 50);
+    expect(TouchStick).toEqual({ x: 0, y: -1, held: true });
+    walker.update?.(1);
+    releaseTouchStick();
+    scene.activeCamera = null;
+
+    expect(hero.playerMoveTo.handled).toBe(false);
+    expect(hero.playerMoveTo.point.x).toBeLessThan(100);
+    expect(Math.floor(hero.playerMoveTo.point.y)).toBe(100);
+  });
+
+  it('reads a thumb inside the dead zone as centred', async () => {
+    const { TouchStick, setTouchStick, releaseTouchStick } = await import('../../controllers/interface/touchStick');
+    setTouchStick(5, 5, 50);
+    expect([TouchStick.x, TouchStick.y]).toEqual([0, 0]);
+    setTouchStick(200, 0, 50);
+    expect(TouchStick.x).toBe(1);
+    releaseTouchStick();
+    expect(TouchStick.held).toBe(false);
+  });
+});
