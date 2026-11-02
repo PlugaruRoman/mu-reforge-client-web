@@ -1,3 +1,4 @@
+import { isMobileDevice } from '@/controllers/interface/mobile';
 import { reaction } from 'mobx';
 import { t } from '../../i18n';
 import { Merchant } from '../npc_shop';
@@ -107,7 +108,9 @@ export const QuickItemActions = new (class _QuickItemActions {
   }
 
   private confirm(item: Item, code: MsgWinCode, go: () => void): void {
-    if (!GameOptions.confirmValuableItems || !isValuableItem(item)) {
+    // A phone asks for every drop: a finger that misses a bag square lands on the ground.
+    const always = code === MsgWinCode.ConfirmDropItem && isMobileDevice();
+    if (!always && (!GameOptions.confirmValuableItems || !isValuableItem(item))) {
       go();
       return;
     }
