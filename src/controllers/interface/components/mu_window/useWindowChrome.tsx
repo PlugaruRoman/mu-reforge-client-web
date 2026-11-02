@@ -34,6 +34,8 @@ type WindowChromeOptions = {
   open?: 'corner' | 'center';
   /** `stage`: the size is in 640x480 stage units and the window follows the stage scale (`MuWindows.sizeToStage`). */
   scaleBy?: 'saved' | 'stage';
+  /** A stage window whose content flows: on a phone it is drawn larger and scrolls (`MuWindows.scrollsOnPhone`). */
+  scrolls?: boolean;
 };
 
 /**
@@ -59,9 +61,9 @@ export function useWindowStackEntry(
 
 export function useWindowChrome(
   id: string,
-  { width, height, onClose, open = 'corner', scaleBy = 'saved' }: WindowChromeOptions
+  { width, height, onClose, open = 'corner', scaleBy = 'saved', scrolls = false }: WindowChromeOptions
 ): WindowChrome {
-  if (scaleBy === 'stage') MuWindows.sizeToStage(id);
+  if (scaleBy === 'stage') MuWindows.sizeToStage(id, scrolls);
   const placement = MuWindows.placement(id);
   const dragging = useRef<{
     pointerId: number;

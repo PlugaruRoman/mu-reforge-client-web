@@ -6,6 +6,8 @@ import { MuSpriteFrame, useMuSprite } from '../mu_sprite';
 import { MuResizeGrip, useWindowChrome } from './useWindowChrome';
 import { MuWindows, type WindowCloser } from '../../windowManager';
 import { useUiViewport } from '../ui_stage';
+import { isMobileDevice } from '../../mobile';
+import { t } from '@/i18n';
 
 const BACK_SPRITE = 'newui_msgbox_back.OZJ';
 const TOP_SPRITE = 'newui_item_back04.OZT';
@@ -26,13 +28,58 @@ const BOTTOM_HEIGHT = 45;
 // bar's on-screen height, not the constant.
 const BOTTOM_BAR_HEIGHT = 51;
 export const BOTTOM_BAR_ID = 'bottom-bar';
-export const bottomBarScreenHeight = () => BOTTOM_BAR_HEIGHT * MuWindows.scaleOf(BOTTOM_BAR_ID);
+// A phone hides the bar (the touch HUD takes its place), so nothing rides on it there.
+export const bottomBarScreenHeight = () => (isMobileDevice() ? 0 : BOTTOM_BAR_HEIGHT * MuWindows.scaleOf(BOTTOM_BAR_ID));
 
 /**
  * The classic windows that are open, by id, with the column they dock to. A window the player
  * dragged away is in it too; `docked` tells them apart.
  */
 const dockedColumns = observable.map<string, number>();
+
+/** A phone: the drawn width of each open classic window, for laying them side by side in the middle. */
+const dockedWidths = observable.map<string, number>();
+
+/**
+ * A phone's docking (our Android client's `.dock-mobile`, workspace.rcss): the docked windows stand
+ * side by side in the middle of the screen, in their columns' order from the right. Returns the
+ * window's distance from the right edge.
+ */
+function phoneRight(id: string, column: number, width: number, viewportWidth: number): number {
+  let total = 0;
+  let before = 0;
+  for (const [other, otherWidth] of dockedWidths) {
+    if (other !== id && !docked(other)) continue;
+    total += otherWidth;
+    const otherColumn = dockedColumns.get(other) ?? 0;
+    if (other !== id && (otherColumn < column || (otherColumn === column && MuWindows.order.indexOf(other) < MuWindows.order.indexOf(id)))) {
+      before += otherWidth;
+    }
+  }
+  const start = Math.max(0, (viewportWidth - total) / 2);
+  return Math.max(0, Math.min(start + before, viewportWidth - width));
+}
+
+/** Opened within this long of each other, two windows came together (a vault and its inventory). */
+const OPENED_TOGETHER_MS = 500;
+const openedAt = new Map<string, number>();
+
+/**
+ * One window at a time where two cannot fit: on a phone, a classic window that opens past the screen's
+ * width closes the oldest docked ones until it fits - never one that opened with it.
+ */
+function makeRoomOnPhone(id: string, viewportWidth: number): void {
+  const now = performance.now();
+  openedAt.set(id, now);
+  const total = () => [...dockedWidths].reduce((sum, [other, w]) => sum + (other === id || docked(other) ? w : 0), 0);
+  for (const other of MuWindows.order) {
+    if (total() <= viewportWidth) return;
+    if (other === id || !dockedWidths.has(other) || !docked(other)) continue;
+    if (now - (openedAt.get(other) ?? 0) < OPENED_TOGETHER_MS) continue;
+    MuWindows.close(other);
+    runInAction(() => void dockedWidths.delete(other));
+  }
+}
 
 /** True while a classic window is docked on the right edge (never dragged): our client hides the
  * HUD pieces in that corner then (ReforgeMenuLauncher.cpp, `IsWorldCoveredFromRight`). */
@@ -120,9 +167,53 @@ function docked(id: string): boolean {
   return x === null || y === null;
 }
 
+/** The classic column art (`RenderFrame`): top, sides and bottom over the message box fill. */
+const ColumnArt = observer(() => (
+  <>
+    <MuSpriteFrame
+      file={TOP_SPRITE}
+      width={WINDOW_WIDTH}
+      height={TOP_HEIGHT}
+      style={{ position: 'absolute', left: 0, top: 0 }}
+    />
+    <MuSpriteFrame
+      file={LEFT_SPRITE}
+      width={SIDE_WIDTH}
+      height={SIDE_HEIGHT}
+      style={{ position: 'absolute', left: 0, top: TOP_HEIGHT }}
+    />
+    <MuSpriteFrame
+      file={RIGHT_SPRITE}
+      width={SIDE_WIDTH}
+      height={SIDE_HEIGHT}
+      style={{
+        position: 'absolute',
+        left: WINDOW_WIDTH - SIDE_WIDTH,
+        top: TOP_HEIGHT,
+      }}
+    />
+    <MuSpriteFrame
+      file={BOTTOM_SPRITE}
+      width={WINDOW_WIDTH}
+      height={BOTTOM_HEIGHT}
+      style={{
+        position: 'absolute',
+        left: 0,
+        top: WINDOW_HEIGHT - BOTTOM_HEIGHT,
+      }}
+    />
+  </>
+));
+
 type MuItemWindowProps = {
   id: string;
   column?: number;
+  /**
+   * The window's size on a phone when it lays itself out again there (the inventory: wide and low,
+   * as our Android client's mobile my_inventory.rcss). It draws on a flat dark plate with a gold rim
+   * instead of the column art (`.phone-plate`).
+   */
+  phoneSize?: { width: number; height: number };
   className?: string;
   style?: CSSProperties;
   /** Read by screen readers; defaults to the id. */
@@ -136,12 +227,16 @@ type MuItemWindowProps = {
 };
 
 export const MuItemWindow = observer(
-  ({ id, column: askedColumn = 0, className, style, label, onClose, children }: MuItemWindowProps) => {
+  ({ id, column: askedColumn = 0, phoneSize, className, style, label, onClose, children }: MuItemWindowProps) => {
     const column = packedColumn(id) ?? askedColumn;
     const back = useMuSprite(BACK_SPRITE);
+    const phone = isMobileDevice();
+    const plate = phone && !!phoneSize;
+    const width = plate ? phoneSize.width : WINDOW_WIDTH;
+    const height = plate ? phoneSize.height : WINDOW_HEIGHT;
     const chrome = useWindowChrome(id, {
-      width: WINDOW_WIDTH,
-      height: WINDOW_HEIGHT,
+      width,
+      height,
       onClose,
     });
     const stackRef = chrome.ref as (el: HTMLElement | null) => void;
@@ -152,9 +247,27 @@ export const MuItemWindow = observer(
     // Docked, a column or the bar may not push the window off a small screen (a phone): the
     // fit-capped scale makes it fit, so it slides left / down over the bar until it does.
     const viewport = useUiViewport();
-    const drawnWidth = WINDOW_WIDTH * chrome.scale;
-    const right = Math.max(0, Math.min(column * drawnWidth, viewport.width - drawnWidth));
-    const bottom = Math.max(0, Math.min(bottomBarScreenHeight(), viewport.height - WINDOW_HEIGHT * chrome.scale));
+    const drawnWidth = width * chrome.scale;
+    useEffect(() => {
+      if (!phone) return;
+      runInAction(() => dockedWidths.set(id, drawnWidth));
+    }, [phone, id, drawnWidth]);
+    useEffect(() => {
+      if (!phone) return;
+      makeRoomOnPhone(id, viewport.width);
+      return () => {
+        openedAt.delete(id);
+        runInAction(() => void dockedWidths.delete(id));
+      };
+      // Once, as it opens: a later resize only re-centres.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [phone, id]);
+    const right = phone
+      ? phoneRight(id, column, drawnWidth, viewport.width)
+      : Math.max(0, Math.min(column * drawnWidth, viewport.width - drawnWidth));
+    const bottom = phone
+      ? Math.max(0, (viewport.height - height * chrome.scale) / 2)
+      : Math.max(0, Math.min(bottomBarScreenHeight(), viewport.height - WINDOW_HEIGHT * chrome.scale));
     // Joins the stack and takes the focus, so the window is the keyboard's
     // target the moment it opens (and Escape scopes to it).
     const ref = useCallback(
@@ -171,55 +284,56 @@ export const MuItemWindow = observer(
         role="dialog"
         aria-label={label ?? id.replace(/-/g, ' ')}
         tabIndex={-1}
-        className={`mu-item-window${className ? ` ${className}` : ''}`}
+        className={`mu-item-window${plate ? ' phone-plate' : ''}${className ? ` ${className}` : ''}`}
         onPointerDown={chrome.onPointerDown}
         style={{
           right,
           bottom,
-          backgroundImage: back ? `url(${back.url})` : undefined,
+          backgroundImage: back && !plate ? `url(${back.url})` : undefined,
           backgroundSize: '100% 100%',
           ...chrome.style,
           ...style,
         }}
       >
-      <MuSpriteFrame
-        file={TOP_SPRITE}
-        width={WINDOW_WIDTH}
-        height={TOP_HEIGHT}
-        style={{ position: 'absolute', left: 0, top: 0 }}
-      />
-      <MuSpriteFrame
-        file={LEFT_SPRITE}
-        width={SIDE_WIDTH}
-        height={SIDE_HEIGHT}
-        style={{ position: 'absolute', left: 0, top: TOP_HEIGHT }}
-      />
-      <MuSpriteFrame
-        file={RIGHT_SPRITE}
-        width={SIDE_WIDTH}
-        height={SIDE_HEIGHT}
-        style={{
-          position: 'absolute',
-          left: WINDOW_WIDTH - SIDE_WIDTH,
-          top: TOP_HEIGHT,
-        }}
-      />
-      <MuSpriteFrame
-        file={BOTTOM_SPRITE}
-        width={WINDOW_WIDTH}
-        height={BOTTOM_HEIGHT}
-        style={{
-          position: 'absolute',
-          left: 0,
-          top: WINDOW_HEIGHT - BOTTOM_HEIGHT,
-        }}
-      />
+      {!plate && <ColumnArt />}
         <ItemWindowContext.Provider value={id}>{children}</ItemWindowContext.Provider>
-        <MuResizeGrip id={id} width={WINDOW_WIDTH} />
+        {phone ? (
+          <PhoneClose scale={chrome.scale} onClose={() => MuWindows.close(id)} />
+        ) : (
+          <MuResizeGrip id={id} width={WINDOW_WIDTH} />
+        )}
       </div>
     );
   }
 );
+
+/** A phone's close button, this many screen pixels square: one big target in the top right corner. */
+const PHONE_CLOSE_PX = 40;
+
+/**
+ * The close button a window gets on a phone (our Android client's `mobile-close` corner button): the
+ * art's own close buttons are 16 px there. Sized in screen pixels whatever the window's scale;
+ * nothing on a desktop.
+ */
+export const PhoneClose = observer(({ scale, onClose }: { scale: number; onClose: () => void }) =>
+  !isMobileDevice() ? null : (
+  <div
+    className="mu-phone-close"
+    role="button"
+    aria-label={t('common.close')}
+    data-no-drag="true"
+    style={{ width: PHONE_CLOSE_PX / scale, height: PHONE_CLOSE_PX / scale }}
+    onPointerDown={e => e.stopPropagation()}
+    onClick={e => {
+      e.stopPropagation();
+      onClose();
+    }}
+  >
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M17 7L7 17M7 7l10 10" />
+    </svg>
+  </div>
+));
 
 const TABLE_TOP_LEFT = 'newui_item_table01(L).OZT';
 const TABLE_TOP_RIGHT = 'newui_item_table01(R).OZT';

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState, type CSSProperties, type ReactElement
 import { observer } from 'mobx-react-lite';
 import { t } from '@/i18n';
 import { MuWindows } from '@/controllers/interface/windowManager';
-import { useWindowChrome } from '@/controllers/interface/components/mu_window';
+import { PhoneClose, useWindowChrome } from '@/controllers/interface/components/mu_window';
 import { useMuSprite } from '@/controllers/interface/components/mu_sprite';
 import { togglesWindow } from '@/controllers/interface/components/module_window';
 import { useEventBus } from '@/controllers/interface/hooks';
@@ -88,11 +88,16 @@ type ShellProps = {
 const ShellBody = observer(({ id, title, width = SHELL_WIDTH, height, onClose, closeButton = true, className, overlay, children }: ShellProps) => {
   const [measured, setMeasured] = useState(height ?? AUTO_HEIGHT_GUESS);
   const close = () => (onClose ? onClose() : MuWindows.setOpen(id, false));
+  // A phone: drawn larger, never taller than the screen; the content scrolls (`MuWindows.scrollsOnPhone`).
+  MuWindows.sizeToStage(id, true);
+  const cap = MuWindows.heightCapOf(id);
+  const phone = cap !== Infinity;
   const chrome = useWindowChrome(id, {
     width,
-    height: height ?? measured,
+    height: Math.min(height ?? measured, cap),
     open: 'center',
     scaleBy: 'stage',
+    scrolls: true,
     onClose: () => {
       const result = close();
       if (result !== false) playUiSound('click');
@@ -128,7 +133,7 @@ const ShellBody = observer(({ id, title, width = SHELL_WIDTH, height, onClose, c
       role="dialog"
       aria-label={title}
       tabIndex={-1}
-      className={`rf-shell${className ? ` ${className}` : ''}`}
+      className={`rf-shell${phone ? ' phone' : ''}${className ? ` ${className}` : ''}`}
       onPointerDown={chrome.onPointerDown}
       onDoubleClick={event => {
         // A double click on the title banner puts a dragged window back in the middle.
@@ -136,7 +141,11 @@ const ShellBody = observer(({ id, title, width = SHELL_WIDTH, height, onClose, c
         const top = event.currentTarget.getBoundingClientRect().top;
         if (event.clientY - top <= BANNER_HEIGHT * chrome.scale) MuWindows.reset(id);
       }}
-      style={{ ...chrome.style, height: height ?? 'auto' }}
+      style={{
+        ...chrome.style,
+        height: height !== undefined ? Math.min(height, cap) : 'auto',
+        maxHeight: phone ? cap : undefined,
+      }}
     >
       <ShellFrame titled={!!title} />
       {title && <div className="rf-shell-title">{title}</div>}
@@ -145,6 +154,7 @@ const ShellBody = observer(({ id, title, width = SHELL_WIDTH, height, onClose, c
         {closeButton && <RfClose onClick={() => void close()} />}
       </div>
       {overlay}
+      {phone && <PhoneClose scale={chrome.scale} onClose={() => MuWindows.close(id)} />}
     </div>
   );
 });

@@ -8,6 +8,7 @@ import type { ISystemFactory, World } from '../world';
 import { Bag } from '../../modules/inventory';
 import { AppState, UIState } from '../../controllers/interface/uiState';
 import { isMobileDevice } from '../../controllers/interface/mobile';
+import { TouchStick } from '../../controllers/interface/touchStick';
 import { MoveTargetEffect } from '../../controllers/fx/moveTargetEffect';
 import { GameOptions } from '@/controllers/settings';
 import { WALK_KEYS } from '../../controllers/interface/keyBindings';
@@ -167,8 +168,8 @@ export const PlayerControllerSystem: ISystemFactory = world => {
   }
 
   /**
-   * Walk on the held W/A/S/D keys, camera-relative: forward is the way the
-   * camera looks, flattened onto the ground. Returns whether a direction is
+   * Walk on the held W/A/S/D keys or the phone's joystick (`TouchStick`), camera-relative:
+   * forward is the way the camera looks, flattened onto the ground. Returns whether a direction is
    * held - the click walk stands down while one is.
    *
    * The hero still walks the tile grid the server knows: the direction is
@@ -186,19 +187,24 @@ export const PlayerControllerSystem: ISystemFactory = world => {
     let strafe = 0;
 
     if (
-      GameOptions.wsadMovement &&
       playerEntity &&
       camera &&
       // Dead until the server respawns us, the same gate the click walk has.
       !playerEntity.dying &&
       AppState.uiState === UIState.World
     ) {
-      const keys = world.keyboardInput.pressedKeys;
+      if (TouchStick.held) {
+        // The phone's joystick: screen up is the way the camera looks, as W is.
+        forward = -TouchStick.y;
+        strafe = TouchStick.x;
+      } else if (GameOptions.wsadMovement) {
+        const keys = world.keyboardInput.pressedKeys;
 
-      if (keys.has(WALK_KEYS.forward)) forward++;
-      if (keys.has(WALK_KEYS.back)) forward--;
-      if (keys.has(WALK_KEYS.right)) strafe++;
-      if (keys.has(WALK_KEYS.left)) strafe--;
+        if (keys.has(WALK_KEYS.forward)) forward++;
+        if (keys.has(WALK_KEYS.back)) forward--;
+        if (keys.has(WALK_KEYS.right)) strafe++;
+        if (keys.has(WALK_KEYS.left)) strafe--;
+      }
     }
 
     if ((!forward && !strafe) || !playerEntity || !camera) {

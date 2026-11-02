@@ -35,7 +35,7 @@ Always-on interface elements, one folder per element, same shape as a window. Re
 | `camera_reset` | camera_reset (hud, 455) | Reset camera while the view is off the map's frame (ours, `cameraKeepsView`); left of the corner minimap and the party list | camera, social, options |
 | `reforge_launcher` | reforge_launcher (hud, 457) | our client's Menu (N) button and HUD toggle column (Auto Party, Requests) at the world's right edge above the bottom bar, stage-scaled; only with the `reforge_hud` module | reforge_menu entries, options, reforge_hud |
 | `mu_helper_buttons` | mu_helper_buttons (hud, 456) | MU Helper Start / Stop and Settings under the event timers (ours, `muHelperButtons`); only with the `mu_helper` module | mu_helper, events, options |
-| `mobile_controls` | mobile_controls (hud, 490) | touch HUD: warp and chat buttons, potion and skill pad, menu cluster; under the windows (z 99); moves the helper buttons, event timers and Reset camera out of the cluster's corner | AppState, hero, skills, inventory, warp, social |
+| `mobile_controls` | mobile_controls (hud, 490) | the phone's touch HUD, laid out as our Android client's mobile theme: status plate top left (portrait, HP/SD/MP/AG, exp), round shortcuts left of the radar (warp, character, shop, inventory, Menu), joystick, attack button, four skill buttons (hot keys 1-4) with the picker, MU Helper pair, potions, chat; the combat controls step aside while a window is open; hides the bottom bar, the Menu (N) launcher, HUD toggles and helper buttons; installs the touch item gestures (`components/item_grid/touchItems.ts`) | AppState, hero, skills, inventory, mu_helper, social |
 | `name_tags` | - | names and guild marks over characters | Ecs.world, guild, social |
 | `party_list` | party_list (hud, 65) | the always-on member list at the top right (`CNewUIPartyListWindow`); left of the corner minimap while that is on, not moved for open windows (ours are scaled and dragged) | social, skills, Ecs.world |
 | `party_bars` | - | party member HP pips over heads | social |
@@ -63,5 +63,6 @@ Always-on interface elements, one folder per element, same shape as a window. Re
 - `match_time/index.test.tsx`: the original's centre line on Classic (red, yellow under a minute, none
   at 0 or past ten minutes); `soccerBoardClock` puts the clock on the board instead.
 - `name_tags/tagSync.test.ts`: the tag layout matches the measuring pass and pushes overlapping
+- `mobile_controls/touchSkills.test.ts`: which skill each touch button casts (hot keys 1-4, a spare learned skill in an empty one).
 - `mu_helper_buttons/index.test.tsx`: the buttons show in the world on Enhanced and draw nothing on Classic.
   slots apart.

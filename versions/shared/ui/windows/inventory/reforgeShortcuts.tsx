@@ -5,6 +5,7 @@ import { moduleOn } from '@/modules/module';
 import { JEWEL_BANK_WINDOW } from '@/modules/jewel_bank';
 import { VIP_WINDOW } from '@/modules/vip';
 import { SidePlate } from '../_shared/sidePlates';
+import { isMobileDevice } from '@/controllers/interface/mobile';
 import {
   ITEM_COLLECTIONS_ID,
   toggleItemCollections,
@@ -66,9 +67,11 @@ const PITCH = 33;
  * While another classic window is docked to the inventory's left (a vault, a shop, the trade) the
  * plates move out past it (SidePlate, `sidePlateLeft`) rather than standing down as our client's do
  * (`FollowInventory`): the jewel bank stays a click away at the vault. A plate stays pressed while
- * its window is open.
+ * its window is open. A phone has none (our Android client hides the column): its windows are all
+ * in the N menu.
  */
-export const InventoryShortcuts = observer(() => (
+export const InventoryShortcuts = observer(() =>
+  isMobileDevice() ? null : (
   <>
     {SHORTCUTS.map((s, i) =>
       moduleOn(s.module) ? (
@@ -84,4 +87,5 @@ export const InventoryShortcuts = observer(() => (
       ) : null
     )}
   </>
-));
+  )
+);

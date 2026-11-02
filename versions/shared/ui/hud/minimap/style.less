@@ -226,7 +226,14 @@
   }
 }
 
-// The menu cluster owns that corner on a phone.
+// A phone's radar: in the top right corner, the touch HUD's top row left of it; its bar (the
+// coordinates) is too small to read there.
 .mu-mobile .minimap-corner-panel {
-  display: none;
+  top: calc(var(--mu-u, 3.9px) * 1.5);
+  right: calc(var(--mu-u, 3.9px) * 1.5 + env(safe-area-inset-right, 0px));
+  pointer-events: auto;
+
+  .minimap-corner-bar {
+    display: none;
+  }
 }

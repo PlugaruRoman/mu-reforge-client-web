@@ -63,3 +63,41 @@
   user-select: text;
   cursor: text;
 }
+
+// A phone: a window laid out again for the screen draws on a flat dark plate with a gold rim
+// (our Android client's mobile sheets) instead of the column art.
+.mu-item-window.phone-plate {
+  box-sizing: border-box;
+  border: 2px solid #b08a40;
+  border-radius: 6px;
+  background-color: rgba(10, 8, 6, 0.92);
+}
+
+// A phone's close button: one big target in the top right corner, sized in screen pixels inline.
+.mu-phone-close {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  z-index: 5;
+  box-sizing: border-box;
+  border: 2px solid #b08a40;
+  border-radius: 4px;
+  background: rgba(20, 14, 8, 0.92);
+  pointer-events: auto;
+  cursor: pointer;
+  touch-action: manipulation;
+
+  svg {
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: rgb(240, 196, 92);
+    stroke-width: 2.4;
+    stroke-linecap: round;
+  }
+
+  &:active {
+    border-color: rgb(255, 228, 150);
+    background: rgba(90, 70, 30, 0.95);
+  }
+}

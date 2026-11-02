@@ -83,6 +83,14 @@ Our client's Mu Reforge windows share one shell (template `window_shell`, `refor
   `RfButtons` (a centred row), `RfClose`.
 - The desktop's size of each window is in its component's doc comment; Market and Item Collections
   keep their own 564 x 440 and 546 x 404 table panels (also stage-scaled), the Hunting Log is a HUD box.
+- On a phone (our Android client's mobile `reforge_window.rcss`): the shell is drawn at least 1.3, as
+  tall as the screen at most, its content scrolling, with a 40 px close button in the corner
+  (`PhoneClose`); Market, Item Collections and the X-shop get the button too. The Mu Reforge menu
+  is the phone's launcher there: 82% x 90% of the screen, three columns of large tiles, no key chips,
+  a tile for the window menu (party, guild, quests, system), and it steps aside for the window a tile
+  opens. The plates hanging off a classic window (`sidePlates.tsx`) are drawn 1.6 times, spread about
+  the window's nearer edge; the inventory's shortcut column is not drawn (its windows are in the menu).
+- On a phone the inventory lays itself out wide and low (`phoneSize`, the bag right of the equipment).
 
 ## Depends on / used by
 - uses: `src/modules/*` (through their doors), `Ecs.world`, `src/controllers/interface` (registry, widgets, hooks)

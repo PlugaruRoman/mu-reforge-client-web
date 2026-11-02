@@ -1,17 +1,18 @@
 # options
 
 The gameplay side of the options: the handler that restores the skill hot keys the server saved
-for the character, and the mobile skill pad's three slots. The player's settings themselves
+for the character, and the skill on the touch HUD's large button. The player's settings themselves
 (`GameOptions`) are engine-level and live in `src/controllers/settings`.
 
 ## Public API
-- `MobileSkillSlots`: `slots`, `use(character)`, `assign(slot, number)`, `prune(learned)`; `MOBILE_SKILL_SLOTS`.
+- `MobileSkillSlots`: `slots`, `use(character)`, `assign(slot, number)`, `prune(learned)`.
 - `PwaInstall`, `installApp()`, `watchInstallState()` (`pwaInstall.ts`): install the client as an
   app, from the options window.
 
 ## How it works
-- `MobileSkillSlots` is browser-only (key `mu_mobile_skills`, per character name). It is not
-  `HeroSkills.skillHotkeys`: those ten are saved to the server, so sharing them would rewrite the desktop bar.
+- `MobileSkillSlots` is browser-only (key `mu_mobile_main_skill`, per character name): one slot, the
+  skill on the touch HUD's large button (-1: it attacks). The four touch skill buttons are the bar's
+  hot keys 1-4 (`HeroSkills.skillHotkeys`, saved to the server), as on our Android client.
 - The ten digit hot keys live in the skills module: `HeroSkills.skillHotkeys`, `savedSkillHotkeys`,
   `applyKeyConfiguration`, `assignSkillHotkey` (which sends `SaveKeyConfiguration`, `SaveOptions`
   in `ZzzOpenData.cpp:4764`).
@@ -30,7 +31,7 @@ for the character, and the mobile skill pad's three slots. The player's settings
 
 ## Depends on / used by
 - uses: `skills` (`HeroSkills`), `core/localStorage`, `skills/skillCasting.ts` (`isHotbarSkill`).
-- used by: `src/app/logic.ts` (net), HUD `mobile_controls/skillPad.tsx` (`MobileSkillSlots`),
+- used by: `src/app/logic.ts` (net), HUD `mobile_controls/` (`MobileSkillSlots`),
   `src/app/main.tsx` and the options window (`pwaInstall.ts`).
 
 ## Change it

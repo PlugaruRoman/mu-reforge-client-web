@@ -3,6 +3,9 @@ import { useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { t } from '@/i18n';
 import { MuSpriteFrame } from '@/controllers/interface/components/mu_sprite';
+import { isMobileDevice } from '@/controllers/interface/mobile';
+import { MuWindows } from '@/controllers/interface/windowManager';
+import { useUiViewport } from '@/controllers/interface/components/ui_stage';
 import { playUiSound } from '@/controllers/sound/sfx';
 import { ReforgeShell, RfFooter, RfList, RfTabs } from '../_shared/reforgeShell';
 import { activateEntry, iconFile, menuEntries, type MenuEntry, type MenuTab } from './entries';
@@ -36,6 +39,8 @@ const Tile = observer(({ entry, onHover }: { entry: MenuEntry; onHover: (entry: 
         }
         playUiSound('click');
         activateEntry(entry);
+        // A phone's launcher steps aside for the window it opened.
+        if (isMobileDevice() && entry.kind !== 'setting') MuWindows.setOpen(REFORGE_MENU_WINDOW, false);
       }}
     >
       {/* The plate's pressed frame while its window is open (rm-icon-*-down). */}
@@ -46,6 +51,29 @@ const Tile = observer(({ entry, onHover }: { entry: MenuEntry; onHover: (entry: 
           {entry.key && <span className="rm-key">{entry.key}</span>}
         </div>
         {state && <div className="rm-state">{state}</div>}
+      </div>
+    </div>
+  );
+});
+
+/**
+ * A phone's way to the classic window menu (party, guild, quests, friends, the system menu): the bar's
+ * Menu button, which the touch HUD has no room for.
+ */
+const GameMenuTile = observer(() => {
+  const on = MuWindows.isOpen('window_menu');
+  return (
+    <div
+      className={`rm-tile${on ? ' open' : ''}`}
+      onClick={() => {
+        playUiSound('click');
+        MuWindows.setOpen('window_menu', !on);
+        MuWindows.setOpen(REFORGE_MENU_WINDOW, false);
+      }}
+    >
+      <MuSpriteFrame file="partCharge1/newui_menu_Bt04.OZJ" y={on ? 82 : 0} width={30} height={41} className="rm-icon rm-icon-tall" />
+      <div className="rm-text">
+        <div className="rm-label">{t('bottomBar.menu')}</div>
       </div>
     </div>
   );
@@ -63,8 +91,23 @@ export const ReforgeMenuWindow = observer(() => {
   const [hovered, setHovered] = useState<MenuEntry | null>(null);
   const entries = menuEntries(tab);
   const hoveredDisabled = hovered?.available ? !hovered.available() : false;
+  const viewport = useUiViewport();
+  // A phone (our Android client's mobile reforge_main_menu.rcss): the finger-sized launcher, most of
+  // the screen, three columns of large tiles. Everything opens from here on a phone.
+  const phone = isMobileDevice();
+  const scale = phone ? MuWindows.scaleOf(REFORGE_MENU_WINDOW) : 1;
+  const width = phone ? Math.round((viewport.width * 0.82) / scale) : 340;
+  const height = phone ? Math.round((viewport.height * 0.9) / scale) : 398;
   return (
-    <ReforgeShell id={REFORGE_MENU_WINDOW} title={t('reforgeMenu.title')} hotKey={HOT_KEY} width={340} height={398} className="reforge-menu">
+    <ReforgeShell
+      id={REFORGE_MENU_WINDOW}
+      title={t('reforgeMenu.title')}
+      hotKey={HOT_KEY}
+      width={width}
+      height={height}
+      className={`reforge-menu${phone ? ' launcher' : ''}`}
+      closeButton={!phone}
+    >
       <RfTabs
         tabs={[
           { id: 'windows' as const, label: t('reforgeMenu.tabWindows') },
@@ -81,6 +124,7 @@ export const ReforgeMenuWindow = observer(() => {
           {entries.map(entry => (
             <Tile key={entry.id} entry={entry} onHover={setHovered} />
           ))}
+          {phone && tab === 'windows' && <GameMenuTile />}
         </div>
       </RfList>
       <RfFooter className={`rm-footer${hoveredDisabled ? ' unavailable' : ''}`}>

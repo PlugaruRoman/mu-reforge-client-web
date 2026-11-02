@@ -1,34 +1,28 @@
+import { flushSync } from 'react-dom';
 import { observer } from 'mobx-react-lite';
 import { t } from '@/i18n';
 import { Social } from '@/modules/social/social';
-import { MobileButton, ScaledFrame } from './mobileButton';
-import { BOX_HEIGHT, BOX_WIDTH, SLOT_SCALE, SKILLBOX_SPRITE, SKILLBOX_USE_SPRITE } from './consts';
+import { MobileButton } from './mobileButton';
+import { TouchIcon } from './icons';
 
 /**
- * Enter, for a phone: opens the chat box (the keyboard comes up with its focus) and closes it
- * again. The box itself is the desktop one.
+ * Enter, for a phone (our Android client's `#chat`): opens the chat line and closes it again (a phone
+ * has no Escape). The line is drawn inside the tap and focused there, synchronously: a phone only
+ * brings its keyboard up for a focus made by the finger's own event.
  */
-export const ChatButton = observer(() => {
-  const open = Social.chatInputOpen;
-
-  return (
-    <MobileButton
-      className="mobile-chat-button"
-      title={t('chat.tab.chat')}
-      onTap={() => (Social.chatInputOpen ? Social.closeChatInput() : Social.openChatInput())}
-    >
-      {pressed => (
-        <ScaledFrame
-          file={pressed || open ? SKILLBOX_USE_SPRITE : SKILLBOX_SPRITE}
-          width={BOX_WIDTH}
-          height={BOX_HEIGHT}
-          scale={SLOT_SCALE}
-        >
-          <svg className="mobile-glyph" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M4 5h16v10H9l-5 4z" />
-          </svg>
-        </ScaledFrame>
-      )}
-    </MobileButton>
-  );
-});
+export const ChatButton = observer(() => (
+  <MobileButton
+    className={`touch-btn touch-round touch-chat${Social.chatInputOpen ? ' on' : ''}`}
+    title={t('chat.tab.chat')}
+    onTap={() => {
+      if (Social.chatInputOpen) {
+        Social.closeChatInput();
+        return;
+      }
+      flushSync(() => Social.openChatInput());
+      document.querySelector<HTMLInputElement>('.chat-text-field')?.focus();
+    }}
+  >
+    {() => <TouchIcon name="chat" />}
+  </MobileButton>
+));

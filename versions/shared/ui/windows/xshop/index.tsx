@@ -2,7 +2,7 @@ import './style.less';
 import { observer } from 'mobx-react-lite';
 import { useState } from 'react';
 import { t } from '@/i18n';
-import { useWindowChrome, MuTableFrame } from '@/controllers/interface/components/mu_window';
+import { useWindowChrome, MuTableFrame, PhoneClose } from '@/controllers/interface/components/mu_window';
 import { useMuSprite } from '@/controllers/interface/components/mu_sprite';
 import { ItemIcon } from '@/controllers/interface/components/item_icon';
 import { togglesWindow } from '@/controllers/interface/components/module_window';
@@ -214,6 +214,7 @@ export const XShopWindow = observer(() => {
       {XShop.message && <div className={`xshop-message${XShop.message.good ? ' good' : ''}`}>{XShop.message.text}</div>}
 
       {XShop.buying && <BuyPanel key={XShop.buying.seq} pkg={XShop.buying} />}
+      <PhoneClose scale={chrome.scale} onClose={() => XShop.close()} />
     </div>
   );
 });
