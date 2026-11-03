@@ -94,18 +94,34 @@ export function installTouchItemGestures(): () => void {
     }
   };
 
-  const cancel = (e: PointerEvent) => {
-    if (!press || e.pointerId !== press.id) return;
+  /** The press ends with nothing done: the tooltip goes, a carried item stays carried. */
+  const drop = () => {
+    if (!press) return;
     window.clearTimeout(press.timer);
     if (press.mode === 'tip') replay('pointerout', press.target, press.x, press.y, press.id, document.body);
     press = null;
+  };
+
+  const cancel = (e: PointerEvent) => {
+    if (press && e.pointerId === press.id) drop();
+  };
+
+  // The page lost the finger (blur, hidden tab) with no pointerup: a press left open would turn
+  // every later touch on an item away (`down` takes one finger at a time).
+  const hidden = () => {
+    if (document.visibilityState === 'hidden') drop();
   };
 
   window.addEventListener('pointerdown', down, true);
   window.addEventListener('pointermove', move, true);
   window.addEventListener('pointerup', up, true);
   window.addEventListener('pointercancel', cancel, true);
+  window.addEventListener('blur', drop);
+  document.addEventListener('visibilitychange', hidden);
   return () => {
+    drop();
+    window.removeEventListener('blur', drop);
+    document.removeEventListener('visibilitychange', hidden);
     window.removeEventListener('pointerdown', down, true);
     window.removeEventListener('pointermove', move, true);
     window.removeEventListener('pointerup', up, true);

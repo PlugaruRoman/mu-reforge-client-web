@@ -390,7 +390,10 @@ function lineKey(lines: number[][], colour: RGB, width: number, opts: JointOptio
 }
 
 function takeLine(scene: Scene, key: string): Line | null {
-  return linePools.get(scene)?.get(key)?.pop() ?? null;
+  const list = linePools.get(scene)?.get(key);
+  // A parked mesh someone else disposed (a scene-wide sweep) is dropped, never revived.
+  for (let line = list?.pop(); line; line = list?.pop()) if (!line.mesh.isDisposed()) return line;
+  return null;
 }
 
 function parkLine(scene: Scene, line: Line): boolean {

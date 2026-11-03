@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { releaseTouchStick, setTouchStick } from '@/controllers/interface/touchStick';
-import { capture } from './mobileButton';
+import { capture, onTouchInterrupted } from './mobileButton';
 
 /**
  * The virtual joystick (our Android client's `#joystick_zone` / `#joystick_base` / `#joystick_live`):
@@ -23,6 +23,10 @@ export const Joystick = observer(() => {
     releaseTouchStick();
     setLive(null);
   };
+
+  // The page lost the thumb (blur, hidden tab) with no pointerup: the hero stops, and the next
+  // touch is not ignored as a second thumb.
+  useEffect(() => (live ? onTouchInterrupted(() => held.current && end()) : undefined), [live]);
 
   return (
     <>
@@ -51,6 +55,7 @@ export const Joystick = observer(() => {
         }}
         onPointerUp={e => held.current?.id === e.pointerId && end()}
         onPointerCancel={e => held.current?.id === e.pointerId && end()}
+        onLostPointerCapture={e => held.current?.id === e.pointerId && end()}
         onContextMenu={e => e.preventDefault()}
       />
       <div ref={base} className={`touch-joystick at-rest${live ? ' off' : ''}`}>

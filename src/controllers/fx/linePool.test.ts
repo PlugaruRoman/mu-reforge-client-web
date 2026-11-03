@@ -46,6 +46,16 @@ describe('the joint line pool', () => {
     expect(optedOut.mesh.isDisposed()).toBe(true);
   });
 
+  it('never revives a parked line whose mesh was disposed meanwhile', () => {
+    const a = makeLine(scene, lines(), [1, 0, 0], 0.25, {}, undefined, true);
+    disposeLine(scene, a, lines());
+    a.mesh.dispose();
+    const again = makeLine(scene, lines(), [1, 0, 0], 0.25, {}, undefined, true);
+    expect(again.mesh).not.toBe(a.mesh);
+    expect(again.mesh.isDisposed()).toBe(false);
+    expect(parkedLineCount()).toBe(0);
+  });
+
   it('disposes the parked lines on a map change', () => {
     const a = makeLine(scene, lines(), [1, 0, 0], 0.25, {}, undefined, true);
     disposeLine(scene, a, lines());

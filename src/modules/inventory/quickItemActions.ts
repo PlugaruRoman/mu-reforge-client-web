@@ -87,12 +87,15 @@ export const QuickItemActions = new (class _QuickItemActions {
 
   /** The carried item let go over the ground (`itemPickupSystem`). */
   dropPickedItem(x: number, y: number): void {
-    const item = Bag.pickedItem?.item;
+    const picked = Bag.pickedItem;
+    const item = picked?.item;
     if (!item) return;
 
-    this.confirm(item, MsgWinCode.ConfirmDropItem, () =>
-      Bag.dropPickedItem(x, y)
-    );
+    // The yes may come after the item was put back and another picked up (a finger can do both
+    // while the box is up): only the item the box named is dropped.
+    this.confirm(item, MsgWinCode.ConfirmDropItem, () => {
+      if (Bag.pickedItem === picked) Bag.dropPickedItem(x, y);
+    });
   }
 
   private sellSlot(slot: number): void {

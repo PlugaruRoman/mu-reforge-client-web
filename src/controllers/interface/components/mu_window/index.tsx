@@ -71,13 +71,17 @@ const openedAt = new Map<string, number>();
 function makeRoomOnPhone(id: string, viewportWidth: number): void {
   const now = performance.now();
   openedAt.set(id, now);
-  const total = () => [...dockedWidths].reduce((sum, [other, w]) => sum + (other === id || docked(other) ? w : 0), 0);
+  // A closed window leaves `dockedWidths` as it unmounts; until then it is only left out of the sum
+  // here, so one whose closer refuses (returns false) keeps its place in the row.
+  const closed = new Set<string>();
+  const total = () =>
+    [...dockedWidths].reduce((sum, [other, w]) => sum + (other === id || (docked(other) && !closed.has(other)) ? w : 0), 0);
   for (const other of MuWindows.order) {
     if (total() <= viewportWidth) return;
     if (other === id || !dockedWidths.has(other) || !docked(other)) continue;
     if (now - (openedAt.get(other) ?? 0) < OPENED_TOGETHER_MS) continue;
     MuWindows.close(other);
-    runInAction(() => void dockedWidths.delete(other));
+    closed.add(other);
   }
 }
 

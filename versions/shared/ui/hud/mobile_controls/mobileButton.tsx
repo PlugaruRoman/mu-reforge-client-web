@@ -1,4 +1,4 @@
-import { useRef, useState, type CSSProperties, type PointerEvent, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type PointerEvent, type ReactNode } from 'react';
 import { observer } from 'mobx-react-lite';
 import { uiClick } from '@/controllers/sound/sfx';
 
@@ -9,6 +9,22 @@ export function capture(e: PointerEvent): void {
   } catch {
     // Nothing to keep.
   }
+}
+
+/**
+ * Runs `stop` when the page loses the finger without a pointerup or pointercancel reaching us: the
+ * window blurs or the tab is hidden (an app switch, a notification pulled down). Returns the removal.
+ */
+export function onTouchInterrupted(stop: () => void): () => void {
+  const hidden = () => {
+    if (document.visibilityState === 'hidden') stop();
+  };
+  window.addEventListener('blur', stop);
+  document.addEventListener('visibilitychange', hidden);
+  return () => {
+    window.removeEventListener('blur', stop);
+    document.removeEventListener('visibilitychange', hidden);
+  };
 }
 
 /**
@@ -64,6 +80,19 @@ export const MobileButton = observer(({
     }
     return held;
   };
+  const endRef = useRef(end);
+  endRef.current = end;
+
+  // A press the page lost (blur, hidden tab) ends there: a held attack must not repeat on its own.
+  useEffect(() => (pressed ? onTouchInterrupted(() => endRef.current()) : undefined), [pressed]);
+  // Unmounted mid-press (a window opened over the HUD): the long press must not fire afterwards.
+  useEffect(
+    () => () => {
+      if (press.current) window.clearTimeout(press.current.timer);
+      press.current = null;
+    },
+    []
+  );
 
   return (
     <div

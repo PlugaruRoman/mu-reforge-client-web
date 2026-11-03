@@ -24,7 +24,14 @@ vi.stubGlobal(
 
 const seen: string[] = [];
 const item = { closest: () => item, dispatchEvent: (e: { type: string }) => seen.push(e.type) };
-vi.stubGlobal('document', { body: {}, elementFromPoint: () => item });
+const page = {
+  body: {},
+  visibilityState: 'visible',
+  elementFromPoint: () => item,
+  addEventListener: (type: string, fn: Handler) => (handlers[`document:${type}`] = fn),
+  removeEventListener: () => {},
+};
+vi.stubGlobal('document', page);
 
 const { installTouchItemGestures } = await import('./touchItems');
 installTouchItemGestures();
@@ -61,6 +68,25 @@ describe('items by finger', () => {
     finger('pointerdown');
     finger('pointermove', 40, 10);
     expect(seen).toEqual(['pointerdown', 'pointerup']);
+  });
+
+  it('forgets a press the page lost without a pointerup (hidden tab, blur)', () => {
+    finger('pointerdown');
+    page.visibilityState = 'hidden';
+    handlers['document:visibilitychange']({});
+    page.visibilityState = 'visible';
+    // The next touch is a new press, not a second finger turned away.
+    expect(finger('pointerdown').stopPropagation).toHaveBeenCalled();
+    finger('pointerup');
+    expect(seen).toEqual(['pointerdown', 'pointerup']);
+
+    seen.length = 0;
+    finger('pointerdown');
+    vi.advanceTimersByTime(500);
+    handlers.blur({});
+    expect(seen).toEqual(['pointerover', 'pointermove', 'pointerout']);
+    expect(finger('pointerdown').stopPropagation).toHaveBeenCalled();
+    finger('pointerup');
   });
 
   it('lets a press through while an item is carried (the tap places it)', () => {
