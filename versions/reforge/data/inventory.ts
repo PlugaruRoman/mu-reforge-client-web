@@ -1,6 +1,6 @@
 /**
  * Every file `Data-reforge/` holds, lower-cased and relative to it: the original-format files Mu
- * Reforge reads in place of Season 6's (our warp list, NPC names and 380 option table) or that Season 6 has no copy
+ * Reforge reads in place of Season 6's (our warp list, NPC names, 380 option table and master tree) or that Season 6 has no copy
  * of (the minimaps of our worlds and of the Arena, our map name banners, the Hero Cape's cloth texture).
  * Everything else is read from Season 6's `Data/`
  * (`borrows.folderPaths` in `index.ts`).
@@ -81,9 +81,12 @@ export const REFORGE_DATA_FILES: readonly string[] = [
   'local/eng/imgsmapname/deepdungeon4.ozt',
   'local/eng/imgsmapname/deepdungeon5.ozt',
   'local/eng/imgsmapname/teamvsteam.ozt',
+  'local/eng/masterskilltooltip_eng.bmd',
   'local/eng/movereq_eng.bmd',
   'local/eng/npcname_eng.txt',
+  'local/eng/skill_eng.bmd',
   'local/itemaddoption.bmd',
+  'local/masterskilltreedata.bmd',
   'world7/mini_map.ozt',
   'world88/mini_map.ozt',
   'world91/mini_map.ozt',

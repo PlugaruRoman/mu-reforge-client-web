@@ -45,9 +45,18 @@ const TOOLTIP_FIELDS: readonly [offset: number, length: number][] = [
 /** `Skill_<lang>.bmd` (`SKILL_ATTRIBUTE_FILE_LEGACY`): 650 records of 88 bytes; the columns the tree uses. */
 const SKILL_RECORDS = 650;
 const SKILL_RECORD_SIZE = 88;
+const SKILL_NAME_LENGTH = 32;
 const SKILL_USE_TYPE_OFFSET = 55;
 const SKILL_BRAND_OFFSET = 56;
 const SKILL_ICON_OFFSET = 72;
+/**
+ * `SKILL_ATTRIBUTE_FILE` (SkillStructs.h), the table Mu Reforge ships: a 50-byte name, so 108-byte
+ * records whose columns sit 20 bytes later (18 for the name, 2 of padding before `Distance`). Told
+ * apart by the file's size, as `SkillDataLoader` does.
+ */
+const SKILL_RECORD_SIZE_WIDE = 108;
+const SKILL_NAME_LENGTH_WIDE = 50;
+const SKILL_WIDE_SHIFT = 20;
 /** `SKILL_USE_TYPE_MASTERACTIVE`: a brand that is itself a master skill needs no check (`CheckBeforeSkill`). */
 const SKILL_USE_TYPE_MASTERACTIVE = 4;
 
@@ -194,8 +203,9 @@ export interface MasterSkillTooltip {
   info: readonly string[];
 }
 
-/** The three `Skill.bmd` columns the tree reads. */
+/** The `Skill.bmd` columns the tree reads. */
 interface MasterSkillAttribute {
+  name: string;
   icon: number;
   useType: number;
   brand: number;
@@ -236,6 +246,11 @@ const infoBySkill = observable.map<number, MasterSkillInfo>();
 /** In the code page of the pack the tooltips came from (`localData.ts`). */
 function cString(bytes: Uint8Array, offset: number, length: number): string {
   return decodeLocalText(bytes, offset, length);
+}
+
+/** A data file, empty when it is not on the server. */
+function optionalDataFile(path: string): Promise<Uint8Array> {
+  return downloadDataFile(path).catch(() => new Uint8Array());
 }
 
 function decodeRecords<T>(
@@ -298,11 +313,25 @@ function parseTooltips(buffer: Uint8Array): MasterSkillTooltip[] {
 }
 
 function parseSkillAttributes(buffer: Uint8Array): MasterSkillAttribute[] {
-  return decodeRecords(buffer, SKILL_RECORD_SIZE, SKILL_RECORDS, (v, b) => ({
-    icon: v.getUint16(SKILL_ICON_OFFSET, true),
-    useType: b[SKILL_USE_TYPE_OFFSET],
-    brand: v.getUint32(SKILL_BRAND_OFFSET, true),
+  const wide = buffer.length === SKILL_RECORD_SIZE_WIDE * SKILL_RECORDS + 4;
+  const size = wide ? SKILL_RECORD_SIZE_WIDE : SKILL_RECORD_SIZE;
+  const nameLength = wide ? SKILL_NAME_LENGTH_WIDE : SKILL_NAME_LENGTH;
+  const shift = wide ? SKILL_WIDE_SHIFT : 0;
+  return decodeRecords(buffer, size, SKILL_RECORDS, (v, b) => ({
+    name: cString(b, 0, nameLength),
+    icon: v.getUint16(SKILL_ICON_OFFSET + shift, true),
+    useType: b[SKILL_USE_TYPE_OFFSET + shift],
+    brand: v.getUint32(SKILL_BRAND_OFFSET + shift, true),
   }));
+}
+
+/**
+ * The language pack's tooltips, plus the English ones for the skills it has no record of: a version
+ * whose tree outgrew the packs (Mu Reforge ships its full tree in English only) still tips every node.
+ */
+function mergeTooltips(pack: MasterSkillTooltip[], english: MasterSkillTooltip[]): MasterSkillTooltip[] {
+  const known = new Set(pack.map(t => `${t.skill}:${t.classCode}`));
+  return [...pack, ...english.filter(t => !known.has(`${t.skill}:${t.classCode}`))];
 }
 
 // The tooltips come out of the language pack; drop them on a language change
@@ -323,11 +352,15 @@ export function ensureMasterTreeData(): Promise<void> {
       downloadDataFile('Local/MasterSkillTreeData.bmd'),
       downloadLocalDataFile('MasterSkillTooltip'),
       downloadLocalDataFile('skill'),
+      // The English tables of the running version: the icons and brands of the tree it carries, and
+      // the tooltips a language pack older than that tree has no record of.
+      optionalDataFile('Local/Eng/MasterSkillTooltip_eng.bmd'),
+      optionalDataFile('Local/Eng/skill_eng.bmd'),
     ])
-      .then(([tree, tips, skill]) => {
+      .then(([tree, tips, skill, englishTips, englishSkill]) => {
         treeRecords = parseTree(tree);
-        tooltipRecords = parseTooltips(tips);
-        skillAttributes = parseSkillAttributes(skill);
+        tooltipRecords = mergeTooltips(parseTooltips(tips), parseTooltips(englishTips));
+        skillAttributes = parseSkillAttributes(englishSkill.length ? englishSkill : skill);
         runInAction(() => {
           dataState.loaded = true;
         });
@@ -522,7 +555,7 @@ function pushLines(
 export function masterSkillTooltipLines(entry: MasterTreeEntry): MasterTooltipLine[] {
   const tip = masterSkillTooltip(entry.skill);
   const lines: MasterTooltipLine[] = [];
-  const name = skillDefinition(entry.skill)?.name ?? `Skill ${entry.skill}`;
+  const name = skillDefinition(entry.skill)?.name ?? (skillAttributes[entry.skill]?.name || `Skill ${entry.skill}`);
   lines.push({ text: name, color: 1, bold: true });
   if (!tip) return lines;
 
