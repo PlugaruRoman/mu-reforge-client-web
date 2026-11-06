@@ -2,6 +2,7 @@ import { observer } from 'mobx-react-lite';
 import { t } from '@/i18n';
 import { MuWindows } from '@/controllers/interface/windowManager';
 import { moduleOn } from '@/modules/module';
+import { Commands } from '@/modules/chat/commands';
 import { MAIN_FRAME_BUTTONS } from '../bottom_bar/mainFrameButtons';
 import { REFORGE_MENU_WINDOW } from '../../windows/reforge_menu';
 import { MobileButton } from './mobileButton';
@@ -22,7 +23,8 @@ const menuWindow = () => (moduleOn('reforge_hud') ? REFORGE_MENU_WINDOW : 'windo
 
 /**
  * Our Android client's top right row (`#warp`, `#character`, `#shop`, `#inventory`, `#menu`): round
- * shortcuts for the keys a phone lacks (M, C, X, I, N), left of the radar.
+ * shortcuts for the keys a phone lacks (M, C, X, I, N), left of the radar - plus the "D" command
+ * window, whose entries a tap on a player then runs (pointerInputSystem).
  */
 export const TopRow = observer(() => {
   const shortcuts: Shortcut[] = [
@@ -30,6 +32,7 @@ export const TopRow = observer(() => {
     { icon: 'character', title: t('bottomBar.characterInfo'), on: () => MuWindows.isOpen('character_info'), toggle: () => flip('character_info') },
     { icon: 'shop', title: t(SHOP.titleKey), on: SHOP.pressed, toggle: SHOP.toggle },
     { icon: 'inventory', title: t('bottomBar.inventory'), on: () => MuWindows.isOpen('inventory'), toggle: () => flip('inventory') },
+    { icon: 'command', title: t('keys.command'), on: () => Commands.windowOpen, toggle: () => Commands.toggleWindow() },
     { icon: 'menu', title: t('bottomBar.menu'), on: () => MuWindows.isOpen(menuWindow()), toggle: () => flip(menuWindow()) },
   ];
   return (

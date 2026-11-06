@@ -12,6 +12,7 @@ export type TouchIconName =
   | 'shop'
   | 'warp'
   | 'menu'
+  | 'command'
   | 'chat'
   | 'helper'
   | 'helperSettings'
@@ -31,6 +32,8 @@ const PATHS: Record<TouchIconName, string> = {
   warp: 'M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z',
   // menu-2
   menu: 'M4 6h16M4 12h16M4 18h16',
+  // list-check
+  command: 'M3.5 5.5l1.5 1.5l2.5 -2.5M3.5 11.5l1.5 1.5l2.5 -2.5M3.5 17.5l1.5 1.5l2.5 -2.5M11 6h9M11 12h9M11 18h9',
   // message-circle
   chat: 'M3 20l1.3 -3.9c-2.324 -3.437 -1.426 -7.872 2.1 -10.374c3.526 -2.501 8.59 -2.296 11.845 .48c3.255 2.777 3.695 7.266 1.029 10.501c-2.666 3.235 -7.615 4.215 -11.574 2.293l-4.7 1',
   // robot

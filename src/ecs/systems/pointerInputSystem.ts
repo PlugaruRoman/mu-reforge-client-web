@@ -273,6 +273,22 @@ export const PointerInputSystem: ISystemFactory = world => {
     // rotate) and must never move or attack.
     if (ev.event.button !== 0) return;
 
+    // A finger is only ever the left button, so on a touch screen a tap on another player does
+    // what the right click does with a mouse: it runs the entry armed in the "D" window, or opens
+    // the quick command menu - unless the hero may attack that player, where the tap attacks.
+    if (ev.type === PointerEventTypes.POINTERDOWN && pointer.pointerType === 'touch') {
+      const tapped = world.currentPointerTarget;
+      if (
+        Commands.isOtherPlayer(tapped) &&
+        !canAttackPlayer(world, tapped!, false) &&
+        // A player out of the menu's reach is walked to, as before.
+        (Commands.runPendingOn(tapped) || Commands.openQuickOn(tapped, ev.event.clientX, ev.event.clientY))
+      ) {
+        state.skipNextObservers = true;
+        return;
+      }
+    }
+
     if (ev.type === PointerEventTypes.POINTERDOWN) {
       world.pointerPressed = true;
       // `MoveHero` returns while the server slides the hero in (`JumpTime > 0`): the click is lost.
