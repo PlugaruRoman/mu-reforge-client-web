@@ -29,14 +29,14 @@ export const JewelBankWindow = observer(() => {
   }, [open]);
 
   return (
-    <ReforgeShell id={JEWEL_BANK_WINDOW} title={t('jewelBank.title')} hotKey={HOT_KEY} width={240} height={440} className="jewel-bank-body">
+    <ReforgeShell id={JEWEL_BANK_WINDOW} title={t('jewelBank.title')} hotKey={HOT_KEY} width={240} height={459} className="jewel-bank-body">
       <RfTabs
         tabs={WITHDRAW_AMOUNTS.map((n, i) => ({ id: i, label: `x${n}` }))}
         active={JewelBank.amountIndex}
         onSelect={i => JewelBank.selectAmount(i)}
       />
       <RfTableHead className="jewel-bank-head" columns={[{ label: t('jewelBank.jewel') }, { label: t('jewelBank.stored'), width: 70, align: 'right' }]} />
-      <RfList height={268}>
+      <RfList height={287}>
         {BANK_JEWELS.map((_, jewel) => {
           const can = JewelBank.canWithdraw(jewel);
           return (

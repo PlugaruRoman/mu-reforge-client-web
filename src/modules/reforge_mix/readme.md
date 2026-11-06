@@ -5,7 +5,9 @@ mix flags of our items. Port of our C++ client's `GameLogic/Reforge/ReforgeMixRe
 
 ## Public API
 - `REFORGE_MIX` (the `MixAdjuster` `install` hands to `chaos_mix`'s `setMixAdjuster`), `MIX` (the mix ids),
-  `adjustGoblinRecipes`, `adjustMixItem`, `recipeName`.
+  `adjustGoblinRecipes`, `adjustMixItem`, `recipeName`, `ancientSmithRecipes`, `ANCIENT_SMITH` (NPC 770, mix type
+  14), `ANCIENT_SOUL_STONE` (14/178).
+- `ancientSoulStoneLines(item)` (`stone.ts`): the stone's two tooltip lines, read by the shared item tooltip.
 
 ## How it works
 - `chaos_mix/mixRecipes.ts` runs every recipe list through the adjuster once (memoised per loaded list);
@@ -26,6 +28,16 @@ mix flags of our items. Port of our C++ client's `GameLogic/Reforge/ReforgeMixRe
 - Names: our records have no `Text.bmd` ids; they show the name of the item they make (or the flower
   they take), the 4th wings `reforgeMix.fourthWings`.
 - The server checks everything and its EC rate packet (`reforge_hud`) replaces the shown rate and zen.
+- The Ancient Smith (S `VersionSeasonSix/AncientSmith.cs`, NPC 770 in Lorencia, Noria, Devias and Elvenland) answers
+  a talk with the goblin's window (0x30, 3). As our client (`ReforgeNpcTalk.cpp` `LastTalkedMonster`, WSclient.cpp
+  `ReceiveTalk` case 3), the talk's NPC number picks his own tray, `MIXTYPE_ANCIENT_SMITH` (14, `npcTray`): no goblin
+  menu, title "Ancient Smith", the chaos machine box (storage 3), the goblin's tax, rate, zen, result lines and close.
+  His recipes (`AddAncientSmithRecipes`), one pair per item block (equipment 0/0-11/511, rings and pendants
+  13/0-13/511): mix 116 merge (a clean ancient item, the same item excellent, the Ancient Soul Stone 14/178, a Jewel
+  of Creation and a Jewel of Chaos; 80 %, 10,000,000 zen; a Talisman of Luck and one Jewel of Chaos Assembly allowed)
+  and mix 117 removal (an excellent ancient item alone; certain, 5,000,000 zen). "Not excellent" and "the same item"
+  are the server's checks; its EC rate (70 / 60 % for two / three options) wins over the shown 80. The tray draws
+  the four description lines of our client's `MixInventory.cpp`, the last in red.
 
 ## Depends on / used by
 - uses: `chaos_mix` (`setMixAdjuster`), `controllers/assets` (`mixRecipes`, `itemOptionTables`).
@@ -33,4 +45,5 @@ mix flags of our items. Port of our C++ client's `GameLogic/Reforge/ReforgeMixRe
 
 ## Tests
 - `recipes.test.ts`: the added, removed and corrected records against a stock-like list, the trays that
-  match them, and the item flags.
+  match them, and the item flags; the Ancient Smith's records, trays, charms, NPC, title, lines and the stone's
+  tooltip lines. `npc_shop/net.test.ts` opens his tray from a talk, `chaos_machine/index.test.tsx` draws it.

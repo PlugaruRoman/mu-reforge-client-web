@@ -13,10 +13,10 @@ import { Notices } from '../chat/notices';
 import { InventoryConstants } from '@/core/inventoryConstants';
 import { fitUtf8, toChatWire } from '@/controllers/net/protocols';
 import { MsgBox, MsgWinCode } from '@/controllers/interface/msgWin';
-import { mixRecipes } from '@/controllers/assets';
+import { mixRecipes, type MixRecipe } from '@/controllers/assets';
 import { findFreeSlot } from '../inventory/inventoryFit';
 import { itemSize } from '../inventory';
-import { checkMix, isMixSource, recipeNameLines, type MixCheck } from '../chaos_mix/mixRecipes';
+import { checkMix, isMixSource, npcMixType, recipeNameLines, type MixCheck } from '../chaos_mix/mixRecipes';
 import { socketsOf } from '@/controllers/item_rules';
 import {
   CHAOS_CARD_WIRE_STORAGE,
@@ -122,6 +122,9 @@ const MIX_KIND = {
   cherryBlossom: MIX_TYPE.cherryBlossom,
 } as const;
 export type MixKind = keyof typeof MIX_KIND;
+
+/** A mix type `Mix.bmd` has no list for (a server's own tray): one empty list, so its adjusted list is built once. */
+const NO_RECIPES: readonly MixRecipe[] = [];
 
 /** `GetMixStorageType` (MixMgr.cpp:1153-1186): the storage byte a tray moves items under; 3 otherwise. */
 const MIX_STORAGE: Readonly<Record<number, number>> = {
@@ -559,9 +562,19 @@ export const Economy = new (class _Economy {
   // Chaos machine
   // =========================================================================
 
-  /** `NpcWindowResponse(ChaosMachine / ChaosCardCombination / PetTrainer / the refineries)` → `OpeningProcess`. */
-  openMix(kind: MixKind = 'chaosMachine'): void {
-    this.openTray(MIX_KIND[kind]);
+  /**
+   * `NpcWindowResponse(ChaosMachine / ChaosCardCombination / PetTrainer / the refineries)` → `OpeningProcess`.
+   * `npcType` is the NPC talked to: a server's own NPC opens the chaos machine as its own tray, with no goblin
+   * menu (our client's ReceiveTalk case 3, the Ancient Smith).
+   */
+  openMix(kind: MixKind = 'chaosMachine', npcType = 0): void {
+    const own = kind === 'chaosMachine' ? npcMixType(npcType) : null;
+    this.openTray(own ?? MIX_KIND[kind]);
+  }
+
+  /** The `Mix.bmd` recipe list of the open tray, the empty one for a server's own tray. */
+  private get mixRecipeList(): readonly MixRecipe[] {
+    return mixRecipes()?.[this.mixInventoryType] ?? NO_RECIPES;
   }
 
   /** `SetMixType` + `Show(INTERFACE_MIXINVENTORY)` + `OpeningProcess` (NewUIMixInventory.cpp:118-128). */
@@ -625,7 +638,7 @@ export const Economy = new (class _Economy {
 
   /** `CheckMixInventory`: the recipe the tray makes, against this window's `Mix.bmd` list. */
   get mixCheck(): MixCheck {
-    const check = checkMix(mixRecipes()?.[this.mixInventoryType] ?? [], this.mixItems, this.mixInventoryType);
+    const check = checkMix(this.mixRecipeList, this.mixItems, this.mixInventoryType);
     const server = this.serverMixRate;
     if (!server || !check.recipe || check.recipe.mixId !== server.mixId) return check;
     return { ...check, successRate: server.rate, requiredZen: server.zen };
@@ -637,7 +650,7 @@ export const Economy = new (class _Economy {
    */
   mixAccepts(item: Item): boolean {
     if (this.mixResult || this.mixPending) return false;
-    return isMixSource(mixRecipes()?.[this.mixInventoryType] ?? [], item, this.mixCheck, this.mixInventoryType);
+    return isMixSource(this.mixRecipeList, item, this.mixCheck, this.mixInventoryType);
   }
 
   /**

@@ -67,6 +67,10 @@ export type ItemRecord = {
   WornModels?: readonly [string, string];
   /** What a bow-group item the launcher tables do not number shoots from (`actors/weaponClass.ts`). */
   Launcher?: 'bow' | 'crossbow';
+  /** A jewel the original's lists do not name (a version's own `jewel` tag): MU Helper picks it, its name is yellow. */
+  Jewel?: true;
+  /** Its ground name's own colour (`#rrggbb`), drawn bold over the original's rules. */
+  Label?: string;
   /** The item's own names by language code (`de`, `es`, ...), shown before a language pack's. */
   Names?: Readonly<Record<string, string>>;
 };

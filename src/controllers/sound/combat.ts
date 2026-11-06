@@ -176,8 +176,8 @@ export function pickupSound(item: Item): 'jewel' | 'gemstone' | 'getItem' {
   if (item.group === 14) {
     if (item.num === 41) return 'gemstone'; // Gemstone
     // Bless 13, Soul 14, Life 16, Creation 22, Guardian 31, Harmony 42, the refining stones 43 / 44, and Mu
-    // Reforge's Skill 124, Luck 125, Chaos Assembly 157 and Sea 176
-    if ([13, 14, 16, 22, 31, 42, 43, 44, 124, 125, 157, 176].includes(item.num)) return 'jewel';
+    // Reforge's Skill 124, Luck 125, Chaos Assembly 157, Sea 176 and the Ancient Soul Stone 178
+    if ([13, 14, 16, 22, 31, 42, 43, 44, 124, 125, 157, 176, 178].includes(item.num)) return 'jewel';
   }
   return 'getItem';
 }

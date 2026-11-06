@@ -49,7 +49,7 @@ plug-ins: the `...Extended` packets and the 5-15 byte `ItemSerializerExtended` i
 - A local checkout plays the live servers with `start-prod.ps1` (`docs/reforge.md`). A world that
   points at a local `-demo` server must name the version (`VITE_CS_VERSION=REFORGE`): without it the
   world boots Season 6, which knows none of our numbers, and every NPC and monster of ours (650, 763,
-  765-769, 603-612, 714-762) is drawn as the fallback Bull Fighter.
+  765-770, 603-612, 714-762) is drawn as the fallback Bull Fighter.
 - `modulesOff`: `marketplace` sends Babylon's escrow request on C1 E7 01, which our server reads
   as its anti-cheat `GuardDetectionReport`. The token login only runs for a world whose
   `server.json` offers it, and our server has none.
@@ -78,12 +78,13 @@ plug-ins: the `...Extended` packets and the 5-15 byte `ItemSerializerExtended` i
 
 ## Monsters, maps and data (our client's World/Reforge)
 - `monsters/<name>/index.ts` (`defineMonster`, glob in `monsters/all.ts`, imported by `index.ts`
-  after Season 6's): the 78 rows of our C++ client's `ReforgeMonsters.cpp`, its numbers, names,
+  after Season 6's): the 79 rows of our C++ client's `ReforgeMonsters.cpp`, its numbers, names,
   models and scales; `maxHealth` is the server's final value (raid boss tiers, arena, Deep Dungeon
-  rosters; NPCs none). 57 are our own art, `Monster<file>.bmd` in slot `file - 1` (Monster218-349
+  rosters; NPCs none). 58 are our own art, `Monster<file>.bmd` in slot `file - 1` (Monster218-350
   -> `Monster/Monster218.glb`...); the rest reuse a stock model (Deep Dungeon 705-713, flowers
   600-602, Lord of Kundun 604, golden 759-762, Fortress 767-769). The NPCs carry `npc: true`
-  (talked to, never attacked, `ecs/systems/attackSystem.ts`); 523 (trap) is `hidden`. Malgruth's
+  (talked to, never attacked, `ecs/systems/attackSystem.ts`); 523 (trap) is `hidden`. The Ancient Smith (770,
+  `Monster350.bmd`, scale 0.95) opens his own chaos machine tray (`src/modules/reforge_mix`). Malgruth's
   green glow is a `bodyFx` cards row; the golden four are classes in
   `versions/shared/monsters/_golden_line/model.ts`. Names: the folder's `Name` when the language
   pack has none (`monstersDatabase.ts`), and our `NpcName_Eng.txt` (ours plus
@@ -95,7 +96,7 @@ plug-ins: the `...Extended` packets and the 5-15 byte `ItemSerializerExtended` i
   is Season 6's `stadium` with our walk map.
 - `data/` (`reforgeData`): Season 6's trees plus two of ours, borrowing every file they lack.
   `public/game-assets-reforge/` (`data/assets.ts`, 50 MB): our item models (`Item/`, `Player/`,
-  `items/readme.md`), the 57 monster GLBs, World88 and
+  `items/readme.md`), the 58 monster GLBs, World88 and
   World91-95 (terrain, tiles) with the object GLBs their `.obj` places, and our
   `World7/EncTerrain7.att` (118 Arena cells opened). `Data-reforge/` (`data/inventory.ts`, 14 MB):
   `MoveReq_eng.bmd` (our warp list, Fort entries), `NpcName_Eng.txt`, `Local/ItemAddOption.bmd` (the 380
@@ -168,7 +169,7 @@ in our client.
   `REPLACED_BY_EXTENDED` and handle the Extended one in its module's `net.ts`.
 
 ## Tests
-- `monsters/monsters.test.ts`: the 78 rows, the 57 own-art GLBs exist, every row resolves to its own body
+- `monsters/monsters.test.ts`: the 79 rows, the 58 own-art GLBs exist, every row resolves to its own body
   (never the Bull Fighter fallback) and the stock bodies exist, scales, NPCs, names.
 - `data/data.test.ts`: the two lists match their trees, own files and borrowed ones resolve, every
   terrain file and tile slot of our worlds exists; Season 6's Lorencia / Noria tile lists unchanged,

@@ -11274,7 +11274,7 @@
       <Code>D3</Code>
       <SubCode>01</SubCode>
       <Name>JewelBankList</Name>
-      <Length>60</Length>
+      <Length>64</Length>
       <Direction>ServerToClient</Direction>
       <SentWhen>After the player entered the game world, in response to a JewelBankListRequest, and after each successful deposit or withdraw, to inform the client about the amount of each jewel stored in the account-wide jewel bank.</SentWhen>
       <CausedReaction>The client updates the jewel bank window with the current counts.</CausedReaction>
@@ -11348,6 +11348,11 @@
           <Index>56</Index>
           <Type>IntegerLittleEndian</Type>
           <Name>JewelOfChaosAssembly</Name>
+        </Field>
+        <Field>
+          <Index>60</Index>
+          <Type>IntegerLittleEndian</Type>
+          <Name>AncientSoulStone</Name>
         </Field>
       </Fields>
     </Packet>

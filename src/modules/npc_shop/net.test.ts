@@ -17,7 +17,7 @@ const { bloodCastleWindow } = await import('../events/bloodCastle');
 const { Session } = await import('@/modules/session');
 const { MuWindows } = await import('@/controllers/interface');
 const { EventBus } = await import('@/core/eventBus');
-const { CloseNpcRequestPacket, EnterMarketPlaceRequestPacket, TradeCancelPacket } = await import('@versions/shared/packets/ClientToServerPackets');
+const { CloseNpcRequestPacket, CraftingDialogCloseRequestPacket, EnterMarketPlaceRequestPacket, TradeCancelPacket } = await import('@versions/shared/packets/ClientToServerPackets');
 const { CastleSiegeTaxRateNotificationPacket, CastleSiegeTaxTypeEnum, NpcWindowResponsePacket, NpcWindowResponseNpcWindowEnum } = await import('@versions/shared/packets/ServerToClientPackets');
 const { JewelMix } = await import('../chaos_mix/jewelMix');
 
@@ -167,5 +167,29 @@ describe('Julia', () => {
     EventBus.emit('MapChanged', new DataView(new ArrayBuffer(8)));
     expect(Julia.open).toBe(false);
     expect(sent).not.toContain(CloseNpcRequestPacket.Code);
+  });
+});
+
+// Our client's ReceiveTalk case 3: the Ancient Smith (770) gets the goblin's window (0x30, 3) and opens his own tray.
+describe('a server NPC with its own tray', () => {
+  it('opens the Ancient Smith tray without the goblin menu, the goblin with it', async () => {
+    const { setMixAdjuster } = await import('../chaos_mix/mixRecipes');
+    const { ANCIENT_SMITH, REFORGE_MIX } = await import('../reforge_mix');
+    setMixAdjuster(REFORGE_MIX);
+    const talked = vi.spyOn(Merchant, 'pendingNpcType', 'get');
+    try {
+      talked.mockReturnValue(ANCIENT_SMITH.npc);
+      npcWindow(NpcWindowResponseNpcWindowEnum.ChaosMachine);
+      expect([Economy.mixInventoryType, Economy.mixMenuOpen, Economy.mixWireStorage]).toEqual([ANCIENT_SMITH.mixType, false, 3]);
+      Economy.closeMix();
+      expect(sent).toContain(CraftingDialogCloseRequestPacket.Code);
+      talked.mockReturnValue(238);
+      npcWindow(NpcWindowResponseNpcWindowEnum.ChaosMachine);
+      expect([Economy.mixInventoryType, Economy.mixMenuOpen]).toEqual([MIX_TYPE.regular, true]);
+      Economy.closeMix(false);
+    } finally {
+      talked.mockRestore();
+      setMixAdjuster(null);
+    }
   });
 });

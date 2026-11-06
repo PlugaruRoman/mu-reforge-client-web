@@ -5,6 +5,7 @@ import { isFastWing, wingLinkMatrix, wingSpec } from '@/controllers/actors/wings
 import { isBow, isCrossbow, isSwordformGloves, swordformGlovesModel } from '@/controllers/actors/weaponClass';
 import { itemHeldSprites } from '@/controllers/item_fx/itemLooks';
 import { ammoReload, attackRange, hasAmmo } from '@/controllers/combat/weaponRange';
+import { dropLabel, isJewel, itemDef } from '@/controllers/item_rules';
 import type { Item } from '@/ecs/world';
 import { reforgeItems } from './all';
 
@@ -72,5 +73,21 @@ describe('reforge items', () => {
     } finally {
       i18n.setLanguage('en');
     }
+  });
+
+  // Our client's `jewel` tag and ReforgeGroundItemLabel.cpp: the Ancient Soul Stone is a jewel, yellow and bold.
+  it('counts our tagged jewels as jewels and draws our ground names', () => {
+    const jewel = (num: number) => {
+      const def = itemDef(14, num);
+      return !!def && isJewel(def);
+    };
+    const ground = (num: number) => dropLabel({ isMoney: false, item: item(14, num), group: 14, num });
+    expect(ItemsDatabase.getItem(14, 178)).toMatchObject({ ItemName: 'Ancient Soul Stone', X: 1, Y: 1, szModelName: 'AncientGem.glb' });
+    expect([124, 125, 157, 176, 178].map(jewel)).toEqual([true, true, true, true, true]);
+    expect([177, 164].map(jewel)).toEqual([false, false]);
+    expect(ground(178)).toEqual({ colour: '#ffcc19', bold: true, setItem: false });
+    expect(ground(157)).toEqual(ground(178));
+    expect(ground(176).colour).toBe('#59d8ff');
+    expect(ground(164).colour).toBe('#e58721');
   });
 });

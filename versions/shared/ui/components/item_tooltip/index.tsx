@@ -33,6 +33,7 @@ import { skills } from '@/modules/skills';
 import { InventoryConstants } from '@/core/inventoryConstants';
 import { stallPriceColor } from './stallPrice';
 import { periodItemLines } from '@/modules/xshop';
+import { ancientSoulStoneLines } from '@/modules/reforge_mix';
 
 /** One inventory square of the picture, as the grids draw it. */
 const PICTURE_SQUARE = 20;
@@ -330,6 +331,8 @@ export const ItemTooltip = observer(
         ? [name, ...priceLines(item, context, name.color, price), ...rest]
         : [...data.lines];
       if (pet !== undefined && petSlot >= 0) all.push(...petLines(pet, petSlot));
+      // Mu Reforge's Ancient Soul Stone: what it does and where (ReforgeItemTooltip.cpp `AddJewelLines`).
+      all.push(...ancientSoulStoneLines(item));
       all.push(...rental);
       return all;
       // Tracked observables (shop, repair mode, pet info) re-run the observer,

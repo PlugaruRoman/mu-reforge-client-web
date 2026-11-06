@@ -47,10 +47,13 @@ export function installNet(): void {
         Merchant.dropNpcTalk();
         Economy.openVault();
         break;
-      case NpcWindowResponseNpcWindowEnum.ChaosMachine:
+      case NpcWindowResponseNpcWindowEnum.ChaosMachine: {
+        // A server's own NPC (Mu Reforge's Ancient Smith) answers with the goblin's window and opens its own tray.
+        const npcType = Merchant.pendingNpcType;
         Merchant.dropNpcTalk();
-        Economy.openMix();
+        Economy.openMix('chaosMachine', npcType);
         break;
+      }
       // The Pet Trainer's Dark Horse / Dark Raven tray.
       case NpcWindowResponseNpcWindowEnum.PetTrainer:
         Merchant.dropNpcTalk();

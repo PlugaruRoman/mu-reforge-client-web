@@ -94,6 +94,9 @@ function tierColour(item: Item, lvl: number): string {
 export function dropLabel(drop: NonNullable<Entity['droppedItem']>): DropLabel {
   const item = drop.item;
   if (drop.isMoney || !item) return { colour: drop.isMoney ? YELLOW : WHITE, bold: false, setItem: false };
+  // An item file's own colour wins, bold (a version's own items, Mu Reforge's ReforgeGroundItemLabel.cpp).
+  const own = itemDef(item.group, item.num)?.groundLabel;
+  if (own) return { colour: own, bold: true, setItem: false };
   const lvl = item.lvl ?? 0;
   const key = id(item.group, item.num);
   // Loch's Feather +1 is the Crest of Monarch model, yellow but not bold.

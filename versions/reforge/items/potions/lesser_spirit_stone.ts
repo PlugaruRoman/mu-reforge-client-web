@@ -16,4 +16,5 @@ export default defineItem({
   ItemLvl: 0,
   szModelFolder: 'Item/',
   szModelName: 'spellstone1.glb',
+  Label: '#e58721',
 });

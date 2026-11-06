@@ -83,7 +83,7 @@ describe('drop sounds', () => {
 
   // Every item our C++ client's tables tag `jewel` (8a931f7ab), the Gemstone keeping its own sound.
   it('rings Harmony, the refining stones and our jewels, the Gemstone with its own sound', () => {
-    for (const num of [42, 43, 44, 124, 125, 157, 176]) {
+    for (const num of [42, 43, 44, 124, 125, 157, 176, 178]) {
       expect(pickupSound({ group: JEWEL_GROUP, num })).toBe('jewel');
       expect(dropSound({ isMoney: false, item: { group: JEWEL_GROUP, num }, group: JEWEL_GROUP, num })).toBe('Sound/eGem');
     }

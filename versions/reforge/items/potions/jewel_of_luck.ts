@@ -16,4 +16,6 @@ export default defineItem({
   ItemLvl: 0,
   szModelFolder: 'Item/',
   szModelName: 'JewelOfLuck.glb',
+  Jewel: true,
+  Label: '#ffcc19',
 });

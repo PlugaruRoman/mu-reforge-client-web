@@ -59,6 +59,13 @@ describe('reforgeItems', () => {
     expect(extras(0, { ...heroBow, weaponKind: 'glove' }, { number: 30, itemEffect: 'heroWeapon' }, () => [{}])).toEqual({});
   });
 
+  it('marks a jewel-tagged row a jewel and gives our ground names their colour', () => {
+    const stone: JsonItem = { number: 178, name: { en: 'Ancient Soul Stone' }, tags: ['jewel'], width: 1, height: 1, durability: 1 };
+    expect(extras(14, stone, { number: 178 }, () => [])).toEqual({ Jewel: true, Label: '#ffcc19' });
+    expect(extras(14, { ...stone, number: 177, tags: [] }, { number: 177 }, () => [])).toEqual({ Label: '#59d8ff' });
+    expect(extras(14, { ...stone, number: 120, tags: [] }, { number: 120 }, () => [])).toEqual({});
+  });
+
   it('writes an item file that defineItem reads', () => {
     expect(itemFile({ Group: 12, Index: 59, ItemName: "Hero's Cape", Wing: { fast: true } })).toContain(
       "  ItemName: 'Hero\\'s Cape',\n  Wing: { fast: true },\n"
@@ -66,7 +73,7 @@ describe('reforgeItems', () => {
   });
 
   it('lists each item once, and the generated folder has every one', () => {
-    expect(NEW_ITEMS).toHaveLength(81);
+    expect(NEW_ITEMS).toHaveLength(82);
     expect(new Set([...NEW_ITEMS, ...RENAMED]).size).toBe(NEW_ITEMS.length + RENAMED.length);
     const files = readdirSync(REFORGE_ITEMS_DIR, { withFileTypes: true })
       .filter(d => d.isDirectory())

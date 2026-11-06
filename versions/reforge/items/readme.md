@@ -16,10 +16,11 @@ all.ts                finds them and adds them to versions/shared/items' registr
 - The source is our C++ client's item tables (`mu-reforge-client-next/src/bin/Data/Items/GroupNN_*.json`
   and `Items/Models/*.json`); the new client has no `Item_eng.bmd`. `tools/reforgeItems.ts` fills each
   group's column layout (the stock files' Item.txt header) from those rows.
-- New items (81): the Olympiad Hero weapons, wings and capes (and their stage 1), the 4th wings, the
+- New items (82): the Olympiad Hero weapons, wings and capes (and their stage 1), the 4th wings, the
   Tigris set (104 in groups 7, 8, 9, 11), the socket spheres 12/71-74, the shop's small wings
   12/130-135, event tickets 13/46-48 and 13/125, and group 14's shop, flower event, wing craft, zen box,
-  jewel and socket gem items. Each was checked against the server's initializers (S
+  jewel and socket gem items, and the Ancient Soul Stone 14/178 (S `AncientSmith.cs`, `Item/AncientGem.glb`).
+  Each was checked against the server's initializers (S
   `Persistence/Initialization/VersionSeasonSix/Items/*.cs`, `GameLogic/Olympiad/OlympiadHeroItems.cs`);
   client-only rows (lucky items 62-72, "-J" items, cash shop items the server does not sell, the rings
   13/107-115 whose server block is commented out) are left out.
@@ -50,6 +51,11 @@ all.ts                finds them and adds them to versions/shared/items' registr
     (the Cape of Emperor's or Overrule's shape, heavy) in the texture of the model's hanging mesh 0
     (`Data-reforge/Item/Cape_Bronze25_0.OZT`), that mesh hidden on the model (`playerObject.setWingsAsync`),
     and the set rebuilt when it goes on or off (`versions/shared/cloaks`).
+  - `Jewel`: the rows our tables tag `jewel` (Skill, Luck, Chaos Assembly, Sea, the Ancient Soul Stone):
+    `isJewel` takes them, so MU Helper picks them, the drop sound filter counts them and their names are yellow.
+  - `Label`: our ground name colour (`UI/Reforge/ReforgeGroundItemLabel.cpp`, `GROUND_LABELS` in the tool), bold:
+    jewel yellow for Skill, Luck, Chaos Assembly and the Ancient Soul Stone, orange for the spirit stones and
+    Garuda's Feather and Flame, cyan for the Jewel of Sea and the Socket Gem.
   - `Names`: our `de` / `es` / `pt` names (those that differ from English). `itemBaseName` shows them in
     that language after the pack's own fixes (`i18n/itemNames.ts`) and before `item_<lang>.bmd`, which
     names a renamed item by its Season 6 name and has none for a new one.

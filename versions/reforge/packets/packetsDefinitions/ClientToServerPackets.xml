@@ -1657,7 +1657,7 @@
           <Index>4</Index>
           <Type>Byte</Type>
           <Name>JewelType</Name>
-          <Description>The type of jewel to withdraw, using the JewelBankItemType enum values (0 = Bless, 1 = Soul, 2 = Life, 3 = Creation, 4 = Guardian, 5 = Gemstone, 6 = Harmony, 7 = Chaos, 8 = LowerRefiningStone, 9 = HigherRefiningStone, 10 = JewelOfSkill, 11 = JewelOfLuck, 12 = JewelOfSea, 13 = JewelOfChaosAssembly).</Description>
+          <Description>The type of jewel to withdraw, using the JewelBankItemType enum values (0 = Bless, 1 = Soul, 2 = Life, 3 = Creation, 4 = Guardian, 5 = Gemstone, 6 = Harmony, 7 = Chaos, 8 = LowerRefiningStone, 9 = HigherRefiningStone, 10 = JewelOfSkill, 11 = JewelOfLuck, 12 = JewelOfSea, 13 = JewelOfChaosAssembly, 14 = AncientSoulStone).</Description>
         </Field>
         <Field>
           <Index>5</Index>

@@ -10,7 +10,7 @@ await import('@versions/shared/skills/skillVisuals');
 const { EventBus } = await import('@/core/eventBus');
 const { Session } = await import('@/modules/session');
 const { installNet } = await import('./net');
-const { JewelBank, isDepositable, JewelBankSource } = await import('./state');
+const { BANK_JEWELS, JewelBank, isDepositable, JewelBankSource } = await import('./state');
 
 installNet();
 const sent: number[][] = [];
@@ -23,10 +23,17 @@ beforeEach(() => {
 });
 
 describe('jewel bank (C1 D3)', () => {
-  it('reads the 14 counts of JewelBankList (D3 01, 60 bytes)', () => {
-    const counts = Array.from({ length: 14 }, (_, i) => i * 10);
-    EventBus.emit('JewelBankList', new DataView(Uint8Array.from([0xc1, 60, 0xd3, 0x01, ...counts.flatMap(u32)]).buffer));
+  it('reads the 15 counts of JewelBankList (D3 01, 64 bytes), the Ancient Soul Stone last', () => {
+    const counts = Array.from({ length: 15 }, (_, i) => i * 10);
+    EventBus.emit('JewelBankList', new DataView(Uint8Array.from([0xc1, 64, 0xd3, 0x01, ...counts.flatMap(u32)]).buffer));
     expect(JewelBank.counts).toEqual(counts);
+    expect(BANK_JEWELS[14]).toEqual({ group: 14, num: 178, packed: 0 });
+  });
+
+  it('reads an older 60-byte list with the Ancient Soul Stone at 0', () => {
+    const counts = Array.from({ length: 14 }, (_, i) => i + 1);
+    EventBus.emit('JewelBankList', new DataView(Uint8Array.from([0xc1, 60, 0xd3, 0x01, ...counts.flatMap(u32)]).buffer));
+    expect(JewelBank.counts).toEqual([...counts, 0]);
   });
 
   it('leaves the jewels a shorter list lacks at 0', () => {
@@ -35,13 +42,15 @@ describe('jewel bank (C1 D3)', () => {
   });
 
   it('withdraws the selected amount (D3 04 [jewel][amount]) only when stored', () => {
-    JewelBank.setCounts([25, 0, ...new Array(12).fill(0)]);
+    JewelBank.setCounts([25, 0, ...new Array(12).fill(0), 10]);
     JewelBank.selectAmount(2); // x20
     expect(JewelBank.withdraw(0)).toBe(true);
     expect(JewelBank.withdraw(1)).toBe(false);
     JewelBank.selectAmount(3); // x30
     expect(JewelBank.withdraw(0)).toBe(false);
-    expect(sent).toEqual([[0xc1, 6, 0xd3, 0x04, 0, 20]]);
+    JewelBank.selectAmount(1); // x10
+    expect(JewelBank.withdraw(14)).toBe(true); // the Ancient Soul Stone
+    expect(sent).toEqual([[0xc1, 6, 0xd3, 0x04, 0, 20], [0xc1, 6, 0xd3, 0x04, 14, 10]]);
   });
 
   it('deposits a bag slot (D3 03 [slot][source]) of a jewel the bank keeps', () => {
@@ -55,8 +64,9 @@ describe('jewel bank (C1 D3)', () => {
     ]);
   });
 
-  it('keeps our four jewels without a packed form', () => {
+  it('keeps our five jewels without a packed form', () => {
     expect(isDepositable({ group: 14, num: 176 })).toBe(true);
+    expect(isDepositable({ group: 14, num: 178 })).toBe(true);
     expect(isDepositable({ group: 12, num: 15 })).toBe(true);
   });
 

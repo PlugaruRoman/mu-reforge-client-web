@@ -16,4 +16,5 @@ export default defineItem({
   ItemLvl: 121,
   szModelFolder: 'Item/',
   szModelName: 'SocketGem.glb',
+  Label: '#59d8ff',
 });

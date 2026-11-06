@@ -41,6 +41,8 @@ export const NEW_ITEMS: readonly string[] = [
   '14/120', '14/121', '14/122', '14/123', '14/124', '14/125', '14/133', '14/157', '14/162', '14/163',
   '14/164', '14/165', '14/166', '14/167', '14/168',
   '14/170', '14/171', '14/172', '14/173', '14/174', '14/175', '14/176', '14/177',
+  // The Ancient Smith's stone (S VersionSeasonSix/AncientSmith.cs).
+  '14/178',
 ];
 
 /**
@@ -75,6 +77,17 @@ const BONE_GLOWS: Record<string, { color: [number, number, number]; size: number
   referreCloak: { color: [1, 0.85, 0.45], size: 1, everyBone: false, stars: false },
   heroWings: { color: [0.85, 0.62, 0.22], size: 1, everyBone: false, stars: false },
   heroWeapon: { color: [0.85, 0.62, 0.22], size: 0.9, everyBone: true, stars: true },
+};
+
+/**
+ * Our ground name colours (`UI/Reforge/ReforgeGroundItemLabel.cpp` `LabelColor`, drawn bold): the jewel yellow of
+ * our jewels and the Ancient Soul Stone, the material orange of the wing craft stones, the upgrade cyan of the Jewel of
+ * Sea and the Socket Gem.
+ */
+const GROUND_LABELS: Readonly<Record<string, string>> = {
+  ...Object.fromEntries([124, 125, 157, 178].map(n => [`14/${n}`, '#ffcc19'])),
+  ...Object.fromEntries([164, 165, 166, 167, 168].map(n => [`14/${n}`, '#e58721'])),
+  ...Object.fromEntries([176, 177].map(n => [`14/${n}`, '#59d8ff'])),
 };
 
 export type JsonItem = {
@@ -213,6 +226,10 @@ export function extras(
     };
   }
   if (item.weaponKind === 'bow' || item.weaponKind === 'crossbow') out.Launcher = item.weaponKind;
+  // The `jewel` tag (`IsJewelItem`, GameLogic/Items/ItemCategories.cpp): MU Helper's jewel pick, the yellow name.
+  if (item.tags?.includes('jewel')) out.Jewel = true;
+  const label = GROUND_LABELS[`${group}/${item.number}`];
+  if (label) out.Label = label;
   return out;
 }
 

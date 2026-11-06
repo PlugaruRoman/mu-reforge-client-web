@@ -8,7 +8,7 @@ import { isTypingInField } from '@/ecs/systems/keyboardInputSystem';
 import { Bag } from '@/modules/inventory';
 import { Economy, MIX_TYPE } from '@/modules/economy/economy';
 import { StorageKind } from '@/modules/inventory/itemStorage';
-import { recipeNameLines, recipeTextLines, sourceStatus, type MixCheck } from '@/modules/chaos_mix/mixRecipes';
+import { ownMixTray, recipeNameLines, recipeTextLines, sourceStatus, type MixCheck, type MixTray } from '@/modules/chaos_mix/mixRecipes';
 import { MuButton } from '@/controllers/interface/components/mu_button';
 import { MuItemWindow } from '@/controllers/interface/components/mu_window';
 import { MsgBoxFrame, MSGBOX_TOP_TITLEBAR_SPRITE, MSGBOX_WIDTH, msgBoxHeight } from '@/controllers/interface/components/msg_box_frame';
@@ -165,11 +165,11 @@ const zen = (amount: number) => amount.toLocaleString('en-US');
 const SOURCE_COLOR = { yes: '#ffff30', partly: '#d2e6ff', no: '#ff3214' } as const;
 
 /** `RenderFrame`'s recipe block (NewUIMixInventory.cpp:421-640). */
-const RecipeText = observer(({ check, type }: { check: MixCheck; type: number }) => {
+const RecipeText = observer(({ check, type, own }: { check: MixCheck; type: number; own: MixTray | null }) => {
   const ready = !!check.recipe;
   const names = check.recipe ? recipeNameLines(check.recipe, check.firstItemType) : [t('chaos.improper')];
-  // The rate shows for the goblin and the Seed Master; the zen for them and the Seed Researcher too.
-  const rated = isGoblin(type) || type === MIX_TYPE.extractSeed || type === MIX_TYPE.seedSphere;
+  // The rate shows for the goblin, a server's own tray and the Seed Master; the zen for them and the Seed Researcher too.
+  const rated = isGoblin(type) || !!own || type === MIX_TYPE.extractSeed || type === MIX_TYPE.seedSphere;
   const priced = rated || isSocketTray(type);
   const taxed = Math.trunc(check.requiredZen + (check.requiredZen * Economy.chaosTaxRate) / 100);
   const potion = ready && check.recipe?.zenType === 'C';
@@ -218,11 +218,17 @@ const RecipeText = observer(({ check, type }: { check: MixCheck; type: number })
           </>
         )}
         <div className="chaos-gap" />
-        {recipeTextLines(check.recipe ? check.recipe.descriptions : (similar?.advice ?? [])).map((line, i) => (
-          <div key={i} className="chaos-plate warn">
-            {line}
-          </div>
-        ))}
+        {own
+          ? own.lines.map((line, i) => (
+              <div key={i} className={`chaos-plate ${line.warn ? 'warn' : 'own'}`}>
+                {line.text}
+              </div>
+            ))
+          : recipeTextLines(check.recipe ? check.recipe.descriptions : (similar?.advice ?? [])).map((line, i) => (
+              <div key={i} className="chaos-plate warn">
+                {line}
+              </div>
+            ))}
       </div>
     </>
   );
@@ -431,8 +437,10 @@ export const ChaosMachine = observer(() => {
   const picked = Bag.pickedItem;
   const type = Economy.mixInventoryType;
   const card = type === MIX_TYPE.chaosCard;
-  const goblin = isGoblin(type);
-  const title = titleOf(type);
+  // A server's own tray (Mu Reforge's Ancient Smith): its title and lines, the goblin's tax and layout.
+  const own = ownMixTray(type);
+  const goblin = isGoblin(type) || !!own;
+  const title = own?.title ?? titleOf(type);
   // MIX_FINISHED: only the title (and tax) stay up (`RenderFrame` returns early).
   const finished = Economy.mixResult !== null;
   const accepts = !picked || picked.fromStorage === StorageKind.ChaosMachine || Economy.mixAccepts(picked.item);
@@ -458,7 +466,7 @@ export const ChaosMachine = observer(() => {
           onClick={() => Economy.closeMix()}
         />
 
-        {!finished && !Economy.mixMenuOpen && <RecipeText check={Economy.mixCheck} type={type} />}
+        {!finished && !Economy.mixMenuOpen && <RecipeText check={Economy.mixCheck} type={type} own={own} />}
         {card && <CardText />}
         {isSocketTray(type) && <SocketList type={type} />}
 
@@ -487,7 +495,7 @@ export const ChaosMachine = observer(() => {
             disabled={Economy.mixPending || finished}
             onClick={() => Economy.mix()}
           >
-            <span className="button-tooltip">{type >= MIX_TYPE.extractSeed ? title : t(MIX_TOOLTIP)}</span>
+            <span className="button-tooltip">{type >= MIX_TYPE.extractSeed && !own ? title : t(MIX_TOOLTIP)}</span>
           </MuButton>
         </div>
       </MuItemWindow>

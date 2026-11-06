@@ -83,6 +83,10 @@ export type ItemDef = {
   twoHand: boolean;
   modelFolder: string;
   modelName: string;
+  /** The item file's `Jewel`: a jewel the original's list does not name. */
+  jewel?: boolean;
+  /** The item file's `Label`: its own ground name colour. */
+  groundLabel?: string;
 };
 
 const defCache = new Map<string, ItemDef | null>();
@@ -148,6 +152,8 @@ export function itemDef(group: number, index: number): ItemDef | null {
     twoHand: raw.TwoHand === 1,
     modelFolder: String(raw.szModelFolder ?? ''),
     modelName: String(raw.szModelName ?? ''),
+    jewel: raw.Jewel === true || undefined,
+    groundLabel: typeof raw.Label === 'string' ? raw.Label : undefined,
   };
 
   defCache.set(key, def);
@@ -264,6 +270,7 @@ export function isPendant(def: ItemDef): boolean {
 }
 
 export function isJewel(def: ItemDef): boolean {
+  if (def.jewel) return true; // a version's own jewel (Mu Reforge's `jewel` tag)
   if (def.group === ItemGroup.Wing && def.index === 15) return true; // Chaos
   if (def.group !== ItemGroup.Potion) return false;
   return [13, 14, 16, 22, 31, 41, 42, 43, 44].includes(def.index);

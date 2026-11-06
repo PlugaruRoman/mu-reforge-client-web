@@ -16,4 +16,6 @@ export default defineItem({
   ItemLvl: 90,
   szModelFolder: 'Item/',
   szModelName: 'JewelOfSea.glb',
+  Jewel: true,
+  Label: '#59d8ff',
 });

@@ -9,7 +9,8 @@ vi.hoisted(() => {
 });
 
 const { checkMix, setMixAdjuster } = await import('../chaos_mix/mixRecipes');
-const { MIX, adjustGoblinRecipes, adjustMixItem, recipeName } = await import('./recipes');
+const { ANCIENT_SMITH, ANCIENT_SOUL_STONE, MIX, REFORGE_MIX, adjustGoblinRecipes, adjustMixItem, ancientSmithRecipes, recipeName } = await import('./recipes');
+const { ancientSoulStoneLines } = await import('./stone');
 const { loadItemOptionTables } = await import('@/controllers/assets');
 
 const code = (group: number, num: number) => group * 512 + num;
@@ -88,6 +89,68 @@ describe('our goblin recipes (ReforgeMixRecipes.cpp AdjustRecipes)', () => {
     const wing = { ...mix, type: code(12, 52), chaosCharm: false };
     adjustMixItem(wing, { group: 12, num: 52 } as Item);
     expect(wing.thirdWing).toBe(true);
+  });
+});
+
+// The Ancient Smith (our ReforgeMixRecipes.cpp AddAncientSmithRecipes, S AncientOptionMergeCrafting.cs).
+describe('the Ancient Smith', () => {
+  const SMITH = ancientSmithRecipes();
+  const ancient = (group = 0, num = 5) => ({ group, num, lvl: 9, durability: 30, isAncient: true, ancientDiscriminator: 1 }) as Item;
+  const excellent = (group = 0, num = 5) => ({ group, num, lvl: 9, durability: 30, isExcellent: true, excellentFlags: 3 }) as Item;
+  const both = { ...ancient(), isExcellent: true, excellentFlags: 3 } as Item;
+  const creation = it14(22);
+  const chaos = { group: 12, num: 15, durability: 1 } as Item;
+  const stone = it14(ANCIENT_SOUL_STONE);
+  const SMITH_TYPE = ANCIENT_SMITH.mixType;
+
+  it('has a merge and a removal over the equipment range, numbered by place', () => {
+    expect(SMITH.map(r => r.mixId)).toEqual([116, 117]);
+    expect(SMITH.every((r, i) => r.index === i)).toBe(true);
+    expect(SMITH.map(r => [r.zenType, r.zen, r.maxRate, r.charmOption, r.chaosCharmOption])).toEqual([
+      ['A', 10_000_000, 80, 'A', 'A'],
+      ['A', 5_000_000, 100, '', ''],
+    ]);
+  });
+
+  it('merges a clean ancient and the excellent same item with the stone, Creation and Chaos', () => {
+    const check = checkMix(SMITH, [ancient(), excellent(), stone, creation, chaos], SMITH_TYPE);
+    expect(check.recipe?.mixId).toBe(MIX.ancientOptionMerge);
+    expect([check.successRate, check.requiredZen]).toEqual([80, 10_000_000]);
+    expect(check.recipe && recipeName(check.recipe)).toBe('Ancient Option Merge');
+    // A ring matches the same record, and there is no merge without the stone.
+    expect(checkMix(SMITH, [ancient(13, 21), excellent(13, 21), stone, creation, chaos], SMITH_TYPE).recipe?.index).toBe(0);
+    expect(checkMix(SMITH, [ancient(), excellent(), creation, chaos], SMITH_TYPE).recipe).toBeNull();
+  });
+
+  it('takes a Talisman of Luck and one Jewel of Chaos Assembly into the merge', () => {
+    const talisman = { group: 14, num: 53, durability: 2 } as Item;
+    const check = checkMix(SMITH, [ancient(), excellent(), stone, creation, chaos, talisman, it14(157)], SMITH_TYPE);
+    expect([check.recipe?.mixId, check.successRate, check.chaosCharms]).toEqual([MIX.ancientOptionMerge, 82, 1]);
+  });
+
+  it('removes the excellent options of an ancient item alone, certain, for 5,000,000', () => {
+    const check = checkMix(SMITH, [both], SMITH_TYPE);
+    expect([check.recipe?.mixId, check.successRate, check.requiredZen]).toEqual([MIX.ancientOptionRemoval, 100, 5_000_000]);
+    expect(check.recipe && recipeName(check.recipe)).toBe('Ancient Option Removal');
+    expect(checkMix(SMITH, [ancient()], SMITH_TYPE).recipe).toBeNull();
+  });
+
+  it('opens his own tray for NPC 770, the goblin\'s list stays the goblin\'s', () => {
+    expect([REFORGE_MIX.npcTray?.(770), REFORGE_MIX.npcTray?.(238)]).toEqual([SMITH_TYPE, null]);
+    expect(REFORGE_MIX.recipes([], SMITH_TYPE).map(r => r.mixId)).toEqual([116, 117]);
+    expect(REFORGE_MIX.recipes(LIST, 3)).toBe(LIST);
+    const tray = REFORGE_MIX.tray?.(SMITH_TYPE);
+    expect(tray?.title).toBe('Ancient Smith');
+    expect(tray?.lines.map(l => !!l.warn)).toEqual([false, false, false, true]);
+    expect(REFORGE_MIX.tray?.(0)).toBeNull();
+  });
+
+  it('describes the stone in its tooltip, white then green', () => {
+    expect(ancientSoulStoneLines(stone).map(l => [l.text, l.color])).toEqual([
+      ['Moves every excellent option of an item onto a clean ancient copy of the same item.', 'white'],
+      ['Combine it at the Ancient Smith with a Jewel of Creation and a Jewel of Chaos.', 'green'],
+    ]);
+    expect(ancientSoulStoneLines(it14(157))).toEqual([]);
   });
 });
 

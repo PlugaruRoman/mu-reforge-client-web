@@ -44,3 +44,33 @@ describe('a refused mix level box', () => {
     Economy.closeMixNotice();
   });
 });
+
+// A server's own tray (Mu Reforge's Ancient Smith, our client's MixInventory.cpp MIXTYPE_ANCIENT_SMITH).
+describe("a server's own tray", () => {
+  it('draws its title, the tax, the rate and zen and its description lines', async () => {
+    const { setMixAdjuster } = await import('@/modules/chaos_mix/mixRecipes');
+    const { ANCIENT_SMITH, REFORGE_MIX } = await import('@/modules/reforge_mix');
+    setMixAdjuster(REFORGE_MIX);
+    try {
+      runInAction(() => {
+        Economy.mixOpen = true;
+        Economy.mixMenuOpen = false;
+        Economy.mixResult = null;
+        Economy.mixInventoryType = ANCIENT_SMITH.mixType;
+        Economy.chaosTaxRate = 3;
+      });
+      const html = renderToStaticMarkup(<ChaosMachine />);
+      expect(html).toContain('Ancient Smith');
+      expect(html).toContain('chaos-tax');
+      expect(html).toContain('Merge: a clean ancient item + the same item with excellent options');
+      expect(html).toContain('chaos-plate warn">A failed merge destroys the ancient item unless a Jewel of Chaos Assembly is added');
+    } finally {
+      runInAction(() => {
+        Economy.mixOpen = false;
+        Economy.mixInventoryType = 0;
+        Economy.chaosTaxRate = 0;
+      });
+      setMixAdjuster(null);
+    }
+  });
+});

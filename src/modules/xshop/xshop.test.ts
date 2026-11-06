@@ -193,6 +193,19 @@ describe('catalog', () => {
     expect(catalog.tiers(backpack).map(t => t.priceSeq)).toEqual([349]);
   });
 
+  it('sells the Ancient Soul Stone in both W Coin zones, every year', () => {
+    for (const year of [76, 77]) {
+      const shop = new Catalog(CATALOGS[year]);
+      const credit = shop.packagesOf(13).find(p => p.seq === 917);
+      const prepaid = shop.packagesOf(27).find(p => p.seq === 918);
+      if (!credit || !prepaid) throw new Error(`no Ancient Soul Stone package in ${year}`);
+      expect([credit.price, prepaid.price, credit.itemCode]).toEqual([120, 240, 7346]);
+      expect(itemOfCode(credit.itemCode)).toEqual({ group: 14, num: 178 });
+      expect(shop.tiers(credit).map(t => t.priceSeq)).toEqual([1456]);
+      expect(shop.tiers(prepaid).map(t => t.priceSeq)).toEqual([3456]);
+    }
+  });
+
   it('knows which balance pays a unit', () => {
     expect(['W Coin(C)', 'W Coin(P)', 'Goblin Point', '?'].map(balanceOf)).toEqual(['credit', 'prepaid', 'points', 'total']);
   });

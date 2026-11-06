@@ -8,6 +8,7 @@
  *   find public/game-assets-reforge -type f ! -name '*.gz' | sed 's#^public/game-assets-reforge/##' | tr 'A-Z' 'a-z' | LC_ALL=C sort
  */
 export const REFORGE_ASSET_FILES: readonly string[] = [
+  'item/ancientgem.glb',
   'item/garudafeather.glb',
   'item/garudaflame.glb',
   'item/heroaxe.glb',
@@ -101,6 +102,7 @@ export const REFORGE_ASSET_FILES: readonly string[] = [
   'monster/monster346.glb',
   'monster/monster348.glb',
   'monster/monster349.glb',
+  'monster/monster350.glb',
   'object1/fort01.glb',
   'object1/fort02.glb',
   'object1/fort03.glb',

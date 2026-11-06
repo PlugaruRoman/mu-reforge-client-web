@@ -11,7 +11,8 @@ talk in flight with the merchant window's state and actions (`Merchant`).
 
 ## How it works
 - `Merchant.talkToNpc` (called from ecs `npcTalkSystem`) sends `TalkToNpcRequest`; `NpcWindowResponse` says which
-  window to open. Merchants open the shop (`Merchant.openNpcShop`); vault, chaos machine, Chaos Card Master,
+  window to open. Merchants open the shop (`Merchant.openNpcShop`); vault, chaos machine (with the talk's NPC
+  number: Mu Reforge's Ancient Smith opens his own tray, `chaos_mix` `npcMixType`), Chaos Card Master,
   Pet Trainer, the refineries (Elpis, Osbourne, Jerridon) and the Spirit of Cherry Blossoms open `Economy`
   trays (our client shows Elpis's menu and Osbourne's warning first; their one way on is the tray);
   Julia (0x25, our server's Lorencia - Loren Market warp, S AddLorenMarketJuliaWarpPlugIn.cs) opens her

@@ -9,7 +9,7 @@ const server = vi.hoisted(() => ({ jewelryUpgrade: true }));
 vi.mock('../servers/serverManifest', () => ({
   serverSetting: (key: string) => (key === 'jewelryUpgrade' ? server.jewelryUpgrade : false),
 }));
-const { jewelTargetError } = await import('./jewelUpgrade');
+const { isUpgradeJewel, jewelTargetError } = await import('./jewelUpgrade');
 const { jewelryUpgradeAllowed } = await import('./jewelryUpgrade');
 const { jewelTargetFacts } = await import('./reforgeJewelFacts');
 const { loadGameVersion } = await import('@/version');
@@ -91,6 +91,11 @@ describe('our jewels', () => {
     expect(err(GEM, { ...socketSword, socketCount: 3 }, IN_BAG)).toBeNull();
     expect(err(GEM, { ...socketSword, socketCount: 5 }, IN_BAG)).not.toBeNull();
     expect(err(GEM, BLADE, IN_BAG)).not.toBeNull();
+  });
+
+  it('leaves the Ancient Soul Stone alone: it goes to the Ancient Smith, not onto an item', () => {
+    expect(isUpgradeJewel(item(14, 178))).toBe(false);
+    expect(isUpgradeJewel(SEA)).toBe(true);
   });
 
   it('is refused on worn gear, as the server refuses it', () => {

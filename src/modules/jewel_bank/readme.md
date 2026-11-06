@@ -1,7 +1,8 @@
 # jewel_bank
 
-Mu Reforge's account-wide jewel bank (C1 D3): 14 jewels stored as counts, withdrawn 1/10/20/30 at a
-time, deposited by a right click in the bag while the bank is open. A port of our client's
+Mu Reforge's account-wide jewel bank (C1 D3): 15 jewels stored as counts, withdrawn 1/10/20/30 at a
+time, deposited by a right click in the bag while the bank is open. The last, the Ancient Soul Stone (14/178), is banked but is no market price currency
+(the market's jewels stay 10..23, `reforge_market/rules.ts`). A port of our client's
 `UI/JewelBank/JewelBankWindow.cpp`, `JewelBankDeposit.cpp`, `Network/Reforge/JewelBankPackets.cpp`
 and `GameLogic/Reforge/ReforgeJewelBank.cpp`. Reforge only (`versions/shared/reforgeOnlyModules.ts`).
 

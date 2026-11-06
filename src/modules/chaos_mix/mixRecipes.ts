@@ -51,32 +51,44 @@ const MIX_VALUE: Readonly<Record<number, number>> = {
  * its server sets it in `install`; with none set, everything is `Mix.bmd`'s.
  */
 export type MixAdjuster = {
-  /** The recipe list of one mix type, with the server's records added, removed or corrected. */
-  recipes(list: readonly MixRecipe[]): readonly MixRecipe[];
+  /** The recipe list of one mix type (`Mix.bmd`'s, empty for a type of the server's own), with its records added, removed or corrected. */
+  recipes(list: readonly MixRecipe[], mixType: number): readonly MixRecipe[];
   /** Corrects the flags `toMixItem` derived; `mixType` is the window's (`GetMixInventoryType`). */
   item(mix: MixItem, item: Item, mixType: number): void;
   /** The name of a recipe that carries no `Text.bmd` ids, or null. */
   name(recipe: MixRecipe): string | null;
+  /** The mix type the chaos machine window of NPC `npcType` opens as (a tray of the server's own), or null for the goblin's. */
+  npcTray?(npcType: number): number | null;
+  /** A tray of the server's own: its title and description lines (red when `warn`); taxed, rated and priced as the goblin's. */
+  tray?(mixType: number): MixTray | null;
 };
 
+export type MixTray = { title: string; lines: readonly { text: string; warn?: boolean }[] };
+
 let adjuster: MixAdjuster | null = null;
-let adjustedLists = new WeakMap<readonly MixRecipe[], readonly MixRecipe[]>();
+let adjustedLists = new Map<number, { list: readonly MixRecipe[]; out: readonly MixRecipe[] }>();
 
 export function setMixAdjuster(next: MixAdjuster | null): void {
   adjuster = next;
-  adjustedLists = new WeakMap();
+  adjustedLists = new Map();
 }
 
-/** The adjusted list, built once per loaded list. */
-function adjusted(list: readonly MixRecipe[]): readonly MixRecipe[] {
+/** The adjusted list of one mix type, built once per loaded list. */
+function adjusted(list: readonly MixRecipe[], mixType: number): readonly MixRecipe[] {
   if (!adjuster) return list;
-  let out = adjustedLists.get(list);
-  if (!out) {
-    out = adjuster.recipes(list);
-    adjustedLists.set(list, out);
+  let held = adjustedLists.get(mixType);
+  if (held?.list !== list) {
+    held = { list, out: adjuster.recipes(list, mixType) };
+    adjustedLists.set(mixType, held);
   }
-  return out;
+  return held.out;
 }
+
+/** The mix type NPC `npcType`'s chaos machine window opens as, or null for the goblin's menu (`MixAdjuster.npcTray`). */
+export const npcMixType = (npcType: number): number | null => adjuster?.npcTray?.(npcType) ?? null;
+
+/** A tray of the server's own (`MixAdjuster.tray`), or null for every `Mix.bmd` type. */
+export const ownMixTray = (mixType: number): MixTray | null => adjuster?.tray?.(mixType) ?? null;
 
 /** `CMixItem`: one kind of item in the tray, its count summed over the stacks of it. */
 export type MixItem = {
@@ -317,7 +329,7 @@ export type MixCheck = {
 
 /** `CMixRecipeMgr::CheckMixInventory`: `CheckRecipe`, then `CheckRecipeSimilarity`. */
 export function checkMix(loaded: readonly MixRecipe[], tray: readonly (Item | null)[], mixType = 0): MixCheck {
-  const recipes = adjusted(loaded);
+  const recipes = adjusted(loaded, mixType);
   const items = mixItemsOf(tray, mixType);
   const charmBonus = items.reduce((sum, item) => sum + (item.charm ? item.count : 0), 0);
   const chaosCharms = items.filter(item => item.chaosCharm).length;
@@ -366,7 +378,7 @@ export function checkMix(loaded: readonly MixRecipe[], tray: readonly (Item | nu
 
 /** `IsMixSource` (MixMgr.cpp:254-302): whether the machine takes the item at all. */
 export function isMixSource(loaded: readonly MixRecipe[], item: Item, check: MixCheck, mixType = 0): boolean {
-  const recipes = adjusted(loaded);
+  const recipes = adjusted(loaded, mixType);
   // The Lucky armour (indexes 62-72 of groups 7-11) goes to Jerridon only (`Check_LuckyItem`).
   if (item.group >= 7 && item.group <= 11 && item.num >= 62 && item.num <= 72) return false;
   const mix = toMixItem(item, mixType);

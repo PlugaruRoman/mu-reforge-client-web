@@ -1,8 +1,8 @@
 import type { Item } from '@/ecs/world';
-import { itemOptionTables, mixRecipes, type MixRecipe, type MixRateToken, type MixSource } from '@/controllers/assets';
+import { itemOptionTables, type MixRecipe, type MixRateToken, type MixSource } from '@/controllers/assets';
 import { t } from '@/i18n';
 import { itemBaseName } from '@versions/shared/items/itemsDatabase';
-import type { MixAdjuster, MixItem } from '../chaos_mix/mixRecipes';
+import type { MixAdjuster, MixItem, MixTray } from '../chaos_mix/mixRecipes';
 
 /**
  * Port of our C++ client's GameLogic/Reforge/ReforgeMixRecipes.cpp: the Chaos Machine recipes our
@@ -34,7 +34,12 @@ export const MIX = {
   garudasFeather: 113,
   lesserStoneCombine: 114,
   intermediateStoneCombine: 115,
+  ancientOptionMerge: 116,
+  ancientOptionRemoval: 117,
 } as const;
+
+/** The Ancient Smith (S VersionSeasonSix/AncientSmith.cs `NpcNumber`), and his own tray, `MIXTYPE_ANCIENT_SMITH` (our MixMgr.h). */
+export const ANCIENT_SMITH = { npc: 770, mixType: 14 } as const;
 
 const FLOWERS = [120, 121, 122] as const;
 const LUCKY_COIN = 123;
@@ -42,6 +47,8 @@ const LUCKY_COIN = 123;
 const SCRAP_OF_PAPER = 101;
 const JEWEL_OF_CHAOS_ASSEMBLY = code(14, 157);
 const SPIRIT_STONES = [164, 165, 166] as const;
+/** Ancient Soul Stone (14/178): the merge's stone. */
+export const ANCIENT_SOUL_STONE = 178;
 const GARUDAS_FEATHER = 167;
 const GARUDAS_FLAME = 168;
 /** Our 4th wings (12/51-57) and the Olympiad Hero wings and capes. */
@@ -172,6 +179,41 @@ export function adjustGoblinRecipes(list: readonly MixRecipe[]): MixRecipe[] {
   return out.map((r, index) => (r.index === index ? r : { ...r, index }));
 }
 
+/**
+ * `AddAncientSmithRecipes` (our ReforgeMixRecipes.cpp): over one range from the swords to the rings and pendants
+ * (Mix.bmd's own "equipment" range; wings are never ancient and never excellent) the merge (a clean ancient item, the same item excellent, the stone, Creation and Chaos; 80 %, 10,000,000 zen, the
+ * Talisman of Luck and one Jewel of Chaos Assembly allowed) and the removal (an excellent ancient item alone; certain,
+ * 5,000,000 zen). "Not excellent" and "the same item" are the server's checks (S AncientOptionMergeCrafting.cs).
+ */
+export function ancientSmithRecipes(): MixRecipe[] {
+  const out: MixRecipe[] = [];
+  for (const [typeMin, typeMax] of [[code(0, 0), code(13, 511)]]) {
+    const merge = recipe(MIX.ancientOptionMerge, 80, 'A', 10_000_000, [
+      source({ typeMin, typeMax, special: SP.set }),
+      source({ typeMin, typeMax, special: SP.excellent }),
+      item(14, ANCIENT_SOUL_STONE),
+      item(14, 22),
+      item(12, 15),
+    ]);
+    out.push({ ...merge, chaosCharmOption: 'A' });
+    out.push(recipe(MIX.ancientOptionRemoval, CERTAIN, 'A', 5_000_000, [source({ typeMin, typeMax, special: SP.set | SP.excellent })]));
+  }
+  return out.map((r, index) => ({ ...r, index }));
+}
+
+/** The Ancient Smith's tray: his title, and the description lines our client draws (MixInventory.cpp). */
+function ancientSmithTray(): MixTray {
+  return {
+    title: t('reforgeMix.ancientSmith'),
+    lines: [
+      { text: t('reforgeMix.mergeHelp') },
+      { text: t('reforgeMix.mergeIngredients') },
+      { text: t('reforgeMix.removeHelp') },
+      { text: t('reforgeMix.mergeLoss'), warn: true },
+    ],
+  };
+}
+
 /** `CanReceiveGuardianOption`: the equipment `ItemAddOption.bmd` lists. */
 function canReceiveGuardianOption(type: number): boolean {
   if (type >= code(12, 0)) return false;
@@ -214,13 +256,21 @@ const NAMED_BY_ITEM: Readonly<Record<number, readonly [number, number]>> = {
 /** `GetRecipeName` for our records: the item it makes (the flower it trades), the 4th wings by text. */
 export function recipeName(r: MixRecipe): string | null {
   if (r.mixId === MIX.fourthWings) return t('reforgeMix.fourthWings');
+  if (r.mixId === MIX.ancientOptionMerge) return t('reforgeMix.ancientOptionMerge');
+  if (r.mixId === MIX.ancientOptionRemoval) return t('reforgeMix.ancientOptionRemoval');
   const named = NAMED_BY_ITEM[r.mixId];
   return named ? itemBaseName(named[0], named[1]) || null : null;
 }
 
-/** The goblin's list is type 0 (`MIXTYPE_GOBLIN_NORMAL`); every other type stays `Mix.bmd`'s. */
+/**
+ * The goblin's list is type 0 (`MIXTYPE_GOBLIN_NORMAL`), the Ancient Smith's ours (`ANCIENT_SMITH.mixType`); every
+ * other type stays `Mix.bmd`'s. The server answers a talk to the Ancient Smith with the goblin's window (0x30, 3);
+ * our client opens his tray instead (WSclient.cpp `ReceiveTalk` case 3, `LastTalkedMonster`).
+ */
 export const REFORGE_MIX: MixAdjuster = {
-  recipes: list => (list === mixRecipes()?.[0] ? adjustGoblinRecipes(list) : list),
+  recipes: (list, mixType) => (mixType === 0 ? adjustGoblinRecipes(list) : mixType === ANCIENT_SMITH.mixType ? ancientSmithRecipes() : list),
   item: adjustMixItem,
   name: recipeName,
+  npcTray: npc => (npc === ANCIENT_SMITH.npc ? ANCIENT_SMITH.mixType : null),
+  tray: mixType => (mixType === ANCIENT_SMITH.mixType ? ancientSmithTray() : null),
 };

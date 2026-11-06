@@ -19,6 +19,7 @@ the table would import itself.
   version names (`gameVersion.protocol.itemCodec`). Every packet handler that reads items goes through these.
 - `itemDef(group, num)`: the normalised item record (cached), or null.
 - `ItemGroup`, `isWeapon`, `isShield`, `isWing`, `isJewel`, `isRing`, `isPendant`, `isStaff`, ... : item kinds.
+  `isJewel` also takes an item file's `Jewel` (`ItemDef.jewel`: a version's own jewel, MU Helper's pick).
 - `itemStats(item)`: damage, defence, durability and requirements for one item. `calcMaxDurability`.
 - `HeroStats`, `classOf(charClass)`, `classCanUse(def, hero)`, `classUnrestricted(def)`: who may use an item.
 - `itemValue(item, goldType)`, `repairCost`, `repairAllCost`, `isSellingBanned`, `isRepairBanned`,
@@ -29,7 +30,8 @@ the table would import itself.
 - `equipSlots(item)` (inner), `isEquipable(slot, item)`, `equipDestination(item, worn)`: worn slots.
 - `dropTier(drop)`, `HIGH_DROP_LEVEL`: a drop's glow tier. `dropLabel(drop)` (`dropLabel.ts`): its ground name's colour,
   bold face and set box, as `BuildGroundItemLabelDescriptor` draws it (ZzzInventory.cpp:6280-6663): the white,
-  yellow and orange item sets, jewels, the models some levels show, then level and option tints.
+  yellow and orange item sets, jewels, the models some levels show, then level and option tints. An item file's
+  `Label` (`ItemDef.groundLabel`, a version's own colour) wins over all of them, bold.
 - `learnableSkill(item)` (`skillItems.ts`, with `learnableSkillNumber`): the skill an orb, scroll or
   crystal teaches.
 - `dropModelProxy(group, num, lvl)`, `archangelWeapon(level)` (`dropModelProxy.ts`, was `modules/drops`):

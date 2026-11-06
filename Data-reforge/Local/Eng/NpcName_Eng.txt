@@ -757,4 +757,5 @@ end
 767	1	"Fortress Herald"
 768	1	"Fortress Gate"
 769	1	"Fortress Crystal"
+770	1	"Ancient Smith"
 end

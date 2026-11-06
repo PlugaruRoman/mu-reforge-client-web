@@ -12,7 +12,9 @@ in the `Economy` store ([../economy/readme.md](../economy/readme.md)); this fold
 - `mixRecipes.ts`: `checkMix(recipes, tray)` (the recipe the tray makes, the closest one, its rate and zen),
   `isMixSource`, `sourceStatus`, `recipeNameLines`, `recipeTextLines`. Used by `Economy` and the window.
 - `setMixAdjuster(adjuster)`: a server's own recipes, item flags and recipe names over `Mix.bmd`
-  (`MixAdjuster`), set by `reforge_mix` on Mu Reforge.
+  (`MixAdjuster`), set by `reforge_mix` on Mu Reforge. `recipes(list, mixType)` gets the type, and an empty list
+  for a type `Mix.bmd` has none of; `npcTray(npcType)` names the tray a server's own NPC opens instead of the
+  goblin's (`npcMixType`), `tray(mixType)` its title and description lines (`ownMixTray`, `MixTray`).
 
 ## How it works
 - The window opens from `NpcWindowResponse(ChaosMachine)` or `(ChaosCardCombination)` and its tray arrives as
@@ -25,6 +27,9 @@ in the `Economy` store ([../economy/readme.md](../economy/readme.md)); this fold
 - The mix button is `Economy.mix`: zen, a matched recipe, its level and bag room, then the confirm box; it
   sends `ChaosMachineMixRequest` with the recipe's `m_iMixID`, which is OpenMU's crafting number
   (`ChaosMixHandlerPlugIn` looks the crafting up by it). Closing is `Economy.closeMix` (`CraftingDialogCloseRequest`).
+- A server's own NPC answered with `NpcWindowResponse(ChaosMachine)` (Mu Reforge's Ancient Smith, 770) opens the
+  tray its adjuster names (`npcTray`), with no goblin menu; the window draws it as the goblin's (tax, rate, taxed zen)
+  with the adjuster's title and lines. Moves, the mix, the close and the result lines are the goblin's.
 - The goblin asks first which mix type to match (`CChaosMixMenuMsgBox`: regular, chaos weapon, 380 option);
   the Chaos Card Master is type 8, the Seed Master's trays 10 and 11, the Seed Researcher's 12 and 13 (their
   menus are `Economy.seedMenu`). The type picks the recipes and the storage byte; the mix id goes out.
