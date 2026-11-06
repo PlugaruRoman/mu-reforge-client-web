@@ -280,7 +280,7 @@ export const PointerInputSystem: ISystemFactory = world => {
       const tapped = world.currentPointerTarget;
       if (
         Commands.isOtherPlayer(tapped) &&
-        !canAttackPlayer(world, tapped!, false) &&
+        !canAttackPlayer(world, tapped, false) &&
         // A player out of the menu's reach is walked to, as before.
         (Commands.runPendingOn(tapped) || Commands.openQuickOn(tapped, ev.event.clientX, ev.event.clientY))
       ) {

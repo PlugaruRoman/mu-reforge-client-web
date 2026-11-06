@@ -194,7 +194,7 @@ export const Commands = new (class _Commands {
    * A player other than the hero, near or far: on a touch screen a tap on one is a command (the
    * armed entry, else the quick menu), a tap on anything else still walks.
    */
-  isOtherPlayer(entity: Entity | null | undefined): boolean {
+  isOtherPlayer(entity: Entity | null | undefined): entity is Entity {
     if (!entity || entity.localPlayer || entity.netId === undefined || entity.npcType !== undefined) return false;
     return !!entity.playerAnimation || entity.skin !== undefined;
   }
