@@ -10,7 +10,7 @@ await import('@versions/shared/skills/skillVisuals');
 const { EventBus } = await import('@/core/eventBus');
 const { Session } = await import('@/modules/session');
 const { installNet } = await import('./net');
-const { BANK_JEWELS, JewelBank, isDepositable, JewelBankSource } = await import('./state');
+const { BANK_JEWELS, JewelBank, isDepositable, JewelBankSource, depositAmount, inventoryJewels } = await import('./state');
 
 installNet();
 const sent: number[][] = [];
@@ -68,6 +68,38 @@ describe('jewel bank (C1 D3)', () => {
     expect(isDepositable({ group: 14, num: 176 })).toBe(true);
     expect(isDepositable({ group: 14, num: 178 })).toBe(true);
     expect(isDepositable({ group: 12, num: 15 })).toBe(true);
+  });
+
+  it('counts a bundle by its level for "store all"', () => {
+    expect(depositAmount({ group: 14, num: 13, lvl: 0 })).toBe(1);
+    expect(depositAmount({ group: 14, num: 13, lvl: 1 })).toBe(0);
+    expect(depositAmount({ group: 12, num: 31, lvl: 0 })).toBe(10);
+    expect(depositAmount({ group: 12, num: 31, lvl: 2 })).toBe(30);
+    expect(depositAmount({ group: 0, num: 0 })).toBe(0);
+  });
+
+  it('"store all" counts the inventory and its bags, never the equipment or the personal store', () => {
+    const items = new Array(236).fill(null);
+    items[9] = { group: 14, num: 13, lvl: 0 }; // equipped slot
+    items[12] = { group: 14, num: 13, lvl: 0 };
+    items[13] = { group: 12, num: 30, lvl: 1 };
+    items[100] = { group: 14, num: 14, lvl: 0 }; // a bag
+    items[204] = { group: 14, num: 13, lvl: 0 }; // personal store
+    expect(inventoryJewels(items)).toBe(1 + 20 + 1);
+  });
+
+  it('"store all" sends D3 05 once until the server answers', () => {
+    const items = new Array(76).fill(null);
+    items[12] = { group: 14, num: 13, lvl: 0 };
+    JewelBank.endStoreAllWait();
+    expect(JewelBank.depositAll(items, true)).toBe(false);
+    expect(JewelBank.depositAll(new Array(76).fill(null), false)).toBe(false);
+    expect(JewelBank.depositAll(items, false)).toBe(true);
+    expect(JewelBank.depositAll(items, false)).toBe(false);
+    JewelBank.setCounts(new Array(15).fill(0));
+    expect(JewelBank.depositAll(items, false)).toBe(true);
+    JewelBank.endStoreAllWait();
+    expect(sent).toEqual([[0xc1, 4, 0xd3, 0x05], [0xc1, 4, 0xd3, 0x05]]);
   });
 
   it('asks for the list (D3 02)', () => {

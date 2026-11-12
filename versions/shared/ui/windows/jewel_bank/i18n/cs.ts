@@ -8,6 +8,8 @@ export default {
   'jewelBank.stored': 'Stored',
   'jewelBank.take': 'Take',
   'jewelBank.hint': 'Right-click jewels in the bag to store',
+  'jewelBank.storeAll': 'Uložit vše',
+  'jewelBank.storeAllCount': 'Uložit vše ({n})',
   'jewelBank.vip': 'VIP',
   'jewelBank.jewel.0': 'Bless',
   'jewelBank.jewel.1': 'Soul',

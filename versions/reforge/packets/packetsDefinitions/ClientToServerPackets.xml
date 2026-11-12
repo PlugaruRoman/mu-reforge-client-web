@@ -1669,6 +1669,18 @@
     </Packet>
     <Packet>
       <HeaderType>C1HeaderWithSubCode</HeaderType>
+      <Code>D3</Code>
+      <SubCode>05</SubCode>
+      <Name>JewelBankDepositAllRequest</Name>
+      <Length>4</Length>
+      <Direction>ClientToServer</Direction>
+      <SentWhen>The player presses the "store all" button of the jewel bank window.</SentWhen>
+      <CausedReaction>Every jewel which can be stored (loose or packed) in the inventory and its extension bags is moved into the account jewel bank - equipped items and the personal store are not touched - and an updated JewelBankList is sent.</CausedReaction>
+      <Fields>
+      </Fields>
+    </Packet>
+    <Packet>
+      <HeaderType>C1HeaderWithSubCode</HeaderType>
       <Code>DC</Code>
       <SubCode>02</SubCode>
       <Name>GuildBankListRequest</Name>

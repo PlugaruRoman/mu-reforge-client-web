@@ -5,9 +5,11 @@ import { MuWindows } from '@/controllers/interface/windowManager';
 import { ItemIcon } from '@/controllers/interface/components/item_icon';
 import { playUiSound } from '@/controllers/sound/sfx';
 import { moduleOn } from '@/modules/module';
-import { BANK_JEWELS, JEWEL_BANK_WINDOW, JewelBank, WITHDRAW_AMOUNTS } from '@/modules/jewel_bank';
+import { BANK_JEWELS, JEWEL_BANK_WINDOW, JewelBank, WITHDRAW_AMOUNTS, inventoryJewels } from '@/modules/jewel_bank';
+import { Hero } from '@/modules/hero';
+import { Bag } from '@/modules/inventory';
 import { AccountButton, amount } from '../_shared/accountWidgets';
-import { ReforgeShell, RfFooter, RfList, RfTableHead, RfTabs } from '../_shared/reforgeShell';
+import { ReforgeShell, RfButton, RfFooter, RfList, RfTableHead, RfTabs } from '../_shared/reforgeShell';
 import type { Item } from '@/ecs/world';
 import './style.less';
 
@@ -18,8 +20,9 @@ const ICONS: readonly Item[] = BANK_JEWELS.map(j => ({ group: j.group, num: j.nu
 
 /**
  * `CJewelBankWindow` (UI/JewelBank/JewelBankWindow.cpp, reforge_jewel_bank.rml): the amount one
- * withdrawal takes, one row per jewel with its stored count and take button, the deposit hint.
- * Deposits are a right click on a jewel in the bag while this is open (`depositFromBag`).
+ * withdrawal takes, one row per jewel with its stored count and take button, the deposit hint, and
+ * "store all" beside Close. Deposits are a right click on a jewel in the bag while this is open
+ * (`depositFromBag`), or every jewel of the bag and its extensions at once (`storeAll`).
  */
 export const JewelBankWindow = observer(() => {
   const open = MuWindows.isOpen(JEWEL_BANK_WINDOW);
@@ -28,8 +31,13 @@ export const JewelBankWindow = observer(() => {
     if (open) JewelBank.requestList();
   }, [open]);
 
+  // Recounted on every change of the hero's items (observer), so the caption follows the bag.
+  const jewels = inventoryJewels(Hero.items);
+  const busy = Bag.pickedItem !== null || Bag.pendingItemMove !== null;
+  const canStoreAll = jewels > 0 && !busy && !JewelBank.storeAllPending;
+
   return (
-    <ReforgeShell id={JEWEL_BANK_WINDOW} title={t('jewelBank.title')} hotKey={HOT_KEY} width={240} height={459} className="jewel-bank-body">
+    <ReforgeShell id={JEWEL_BANK_WINDOW} title={t('jewelBank.title')} hotKey={HOT_KEY} width={240} className="jewel-bank-body">
       <RfTabs
         tabs={WITHDRAW_AMOUNTS.map((n, i) => ({ id: i, label: `x${n}` }))}
         active={JewelBank.amountIndex}
@@ -58,9 +66,25 @@ export const JewelBankWindow = observer(() => {
         })}
       </RfList>
       <RfFooter className="jewel-bank-hint">{t('jewelBank.hint')}</RfFooter>
+      <div className="jewel-bank-actions">
+        <RfButton
+          width={128}
+          className="jewel-bank-store-all"
+          label={jewels > 0 ? t('jewelBank.storeAllCount', { n: jewels }) : t('jewelBank.storeAll')}
+          disabled={!canStoreAll}
+          onClick={storeAll}
+        />
+        <RfButton small label={t('common.close')} onClick={() => MuWindows.close(JEWEL_BANK_WINDOW)} />
+      </div>
     </ReforgeShell>
   );
 });
+
+/** "Store all" (JewelBankDeposit.cpp `TryDepositAllFromInventory`): D3 05, once until the server answers. */
+function storeAll(): void {
+  const busy = Bag.pickedItem !== null || Bag.pendingItemMove !== null;
+  if (JewelBank.depositAll(Hero.items, busy)) playUiSound('getItem');
+}
 
 /**
  * The bag's right click while the bank is open (JewelBankDeposit.cpp `TryDepositAtPointer`): a

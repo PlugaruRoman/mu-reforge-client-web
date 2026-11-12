@@ -4616,6 +4616,51 @@ export class JewelBankWithdrawRequestPacket {
     this.buffer.setUint8(5, SetByteValue(oldByte, value, 8, 0));
   }
 }
+export class JewelBankDepositAllRequestPacket {
+  buffer!: DataView;
+  static readonly Name = `JewelBankDepositAllRequest`;
+  static readonly HeaderType = `C1HeaderWithSubCode`;
+  static readonly HeaderCode = 0xC1;
+  static readonly Direction = 'ClientToServer';
+  static readonly SentWhen = `The player presses the "store all" button of the jewel bank window.`;
+  static readonly CausedReaction = `Every jewel which can be stored (loose or packed) in the inventory and its extension bags is moved into the account jewel bank - equipped items and the personal store are not touched - and an updated JewelBankList is sent.`;
+  static readonly Length = 4;
+  static readonly LengthSize = 1;
+  static readonly DataOffset = 2;
+  static readonly Code = 0xD3;
+  static readonly SubCode = 0x05;
+
+  static getRequiredSize(dataSize:number){
+    return JewelBankDepositAllRequestPacket.DataOffset + 1 + 1 + dataSize;
+  }
+
+  constructor(buffer?: DataView){
+    buffer && (this.buffer = buffer);
+  }
+
+  writeHeader(){
+    const b = this.buffer;
+    b.setUint8(0, JewelBankDepositAllRequestPacket.HeaderCode);
+    b.setUint8(JewelBankDepositAllRequestPacket.DataOffset, JewelBankDepositAllRequestPacket.Code);
+  b.setUint8(JewelBankDepositAllRequestPacket.DataOffset + 1, JewelBankDepositAllRequestPacket.SubCode);
+    return this;
+  }
+
+  writeLength(l: number|undefined = JewelBankDepositAllRequestPacket.Length){
+    const b = this.buffer;
+    l = l ?? b.byteLength;
+    b.setUint8(1, l);
+    return this;
+  }
+
+  static createPacket(requiredSize: number = 4): JewelBankDepositAllRequestPacket {
+    const p = new JewelBankDepositAllRequestPacket();
+    p.buffer = new DataView(new ArrayBuffer(requiredSize));
+    p.writeHeader();
+    p.writeLength();
+    return p;
+  }
+}
 export class GuildBankListRequestPacket {
   buffer!: DataView;
   static readonly Name = `GuildBankListRequest`;
@@ -13072,6 +13117,7 @@ export const ClientToServerPackets = [
   JewelBankListRequestPacket,
   JewelBankDepositRequestPacket,
   JewelBankWithdrawRequestPacket,
+  JewelBankDepositAllRequestPacket,
   GuildBankListRequestPacket,
   GuildBankDepositRequestPacket,
   GuildBankWithdrawRequestPacket,

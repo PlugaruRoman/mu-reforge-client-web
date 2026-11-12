@@ -7,4 +7,6 @@ export {
   JEWEL_COUNT,
   WITHDRAW_AMOUNTS,
   isDepositable,
+  depositAmount,
+  inventoryJewels,
 } from './state';

@@ -8,6 +8,8 @@ export default {
   'jewelBank.stored': 'В банке',
   'jewelBank.take': 'Взять',
   'jewelBank.hint': 'ПКМ по камню в сумке - положить в банк',
+  'jewelBank.storeAll': 'Сложить все',
+  'jewelBank.storeAllCount': 'Сложить все ({n})',
   'jewelBank.vip': 'VIP',
   'jewelBank.jewel.0': 'Блесс',
   'jewelBank.jewel.1': 'Соул',
