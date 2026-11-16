@@ -206,13 +206,14 @@ const berserkRate = (bare: CharacterStatsInput) => Math.fround(Math.trunc(bare.e
 
 /**
  * The window's buffs on a range (NewUICharacterInfoWindow.cpp:529-552, :1329-1335, :1387-1393): the NPC buff adds
- * level / 3 + 45 to damage (level 180 at most); Berserker a share of strength + agility to damage, of energy to the rest.
+ * level / 10 + 15 to damage, our server's Elf Soldier buff (NerfElfSoldierBuffUpdateSeason6, no level cap); Berserker a
+ * share of strength + agility to damage, of energy to the rest.
  */
 function windowBuffs<T extends Range>(range: T, input: CharacterStatsInput, bare: CharacterStatsInput, kind: 'damage' | 'magic'): T {
   let { min, max } = range;
   if (kind === 'damage' && input.buffs?.includes(HELP_NPC)) {
-    min += Math.trunc(Math.min(input.level, 180) / 3) + 45;
-    max += Math.trunc(Math.min(input.level, 180) / 3) + 45;
+    min += Math.trunc(input.level / 10) + 15;
+    max += Math.trunc(input.level / 10) + 15;
   }
   if (input.buffs?.includes(BERSERKER)) {
     const source = kind === 'damage' ? input.strength + input.agility : input.energy;
@@ -222,9 +223,9 @@ function windowBuffs<T extends Range>(range: T, input: CharacterStatsInput, bare
   return { ...range, min, max };
 }
 
-/** The window's buffs on defense (:908-925): the NPC buff adds level / 5 + 50, Berserker takes agility / 3 times 40 - Energy / 60 percent, 10% at least. */
+/** The window's buffs on defense (:908-925): the NPC buff adds level / 8 + 20 (our server), Berserker takes agility / 3 times 40 - Energy / 60 percent, 10% at least. */
 function windowDefense(defense: number, input: CharacterStatsInput, bare: CharacterStatsInput): number {
-  if (input.buffs?.includes(HELP_NPC)) defense += Math.trunc(Math.min(input.level, 180) / 5) + 50;
+  if (input.buffs?.includes(HELP_NPC)) defense += Math.trunc(input.level / 8) + 20;
   if (!input.buffs?.includes(BERSERKER)) return defense;
   const rate = Math.max(Math.fround((40 - Math.trunc(bare.energy / 60)) / 100), Math.fround(0.1));
   return floatAdd(defense, -Math.trunc(input.agility / 3), rate);

@@ -298,12 +298,13 @@ describe('the character window under the window buffs', () => {
     deriveCharacterStats({ charClass, level, strength: 600, agility: 300, vitality: 100, energy: 450, leadership: 0, items: [], buffs, partySize });
   const bare = hero([]);
 
-  it('adds level / 3 + 45 damage and level / 5 + 50 defense for the NPC buff, level 180 at most', () => {
+  it('adds level / 10 + 15 damage and level / 8 + 20 defense for the NPC buff, as our server, with no level cap', () => {
     const low = hero([], 0, CharacterClassNumber.DarkKnight, 150);
-    expect(hero([3], 0, CharacterClassNumber.DarkKnight, 150).damageMin).toBe(low.damageMin + 50 + 45);
-    expect(hero([3], 0, CharacterClassNumber.DarkKnight, 150).defense).toBe(low.defense + 30 + 50);
+    expect(hero([3], 0, CharacterClassNumber.DarkKnight, 150).damageMin).toBe(low.damageMin + 15 + 15);
+    expect(hero([3], 0, CharacterClassNumber.DarkKnight, 150).defense).toBe(low.defense + 18 + 20);
     const high = hero([], 0, CharacterClassNumber.DarkKnight, 400);
-    expect(hero([3], 0, CharacterClassNumber.DarkKnight, 400).damageMax).toBe(high.damageMax + 60 + 45);
+    expect(hero([3], 0, CharacterClassNumber.DarkKnight, 400).damageMax).toBe(high.damageMax + 40 + 15);
+    expect(hero([3], 0, CharacterClassNumber.DarkKnight, 400).defense).toBe(high.defense + 50 + 20);
   });
 
   it('adds the Berserker share of strength and agility to damage and takes some defense', () => {
