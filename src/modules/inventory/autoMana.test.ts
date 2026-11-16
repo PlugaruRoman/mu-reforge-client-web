@@ -16,7 +16,7 @@ vi.mock('../servers/serverManifest', async importOriginal => ({
 
 // Skills first: they keep the app import cycle in order (versions/shared/skills/readme.md).
 await import('@versions/shared/skills/skillVisuals');
-const { installAutoMana } = await import('./autoMana');
+const { installAutoMana, drinkManaForCast } = await import('./autoMana');
 const { Bag } = await import('./state');
 const { Hero } = await import('@/modules/hero');
 const { Ecs } = await import('@/ecs/current');
@@ -89,5 +89,53 @@ describe('the automatic mana potion', () => {
       Hero.items[MANA_SLOT] = null;
     });
     expect(dropTo(5)).toEqual([]);
+  });
+});
+
+describe('a cast the mana cannot pay for', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    world.allows = false;
+    runInAction(() => {
+      Ecs.world = { playerEntity: {} } as unknown as typeof Ecs.world;
+      Hero.currentHP = 50;
+      Hero.items[MANA_SLOT] = { group: 14, num: 5, durability: 3 } as Item;
+    });
+  });
+
+  afterEach(() => {
+    vi.advanceTimersByTime(5000);
+    vi.useRealTimers();
+    world.allows = true;
+    runInAction(() => {
+      Hero.items[MANA_SLOT] = null;
+      Ecs.world = null;
+    });
+  });
+
+  /** The bag slots `drinkManaForCast` asked for. */
+  function refuse(): number[] {
+    const used = vi.spyOn(Bag, 'consumeItemRequest').mockImplementation(() => {});
+    drinkManaForCast();
+    const slots = used.mock.calls.map(c => c[0]);
+    used.mockRestore();
+    return slots;
+  }
+
+  it('drinks a mana potion on every server and with the option off, once a second', () => {
+    expect(refuse()).toEqual([MANA_SLOT]);
+    expect(refuse()).toEqual([]);
+    vi.advanceTimersByTime(1000);
+    expect(refuse()).toEqual([MANA_SLOT]);
+  });
+
+  it('drinks nothing for a dead hero or with no mana potion in the bag', () => {
+    runInAction(() => (Hero.currentHP = 0));
+    expect(refuse()).toEqual([]);
+    runInAction(() => {
+      Hero.currentHP = 50;
+      Hero.items[MANA_SLOT] = null;
+    });
+    expect(refuse()).toEqual([]);
   });
 });

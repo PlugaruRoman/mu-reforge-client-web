@@ -50,6 +50,9 @@ items themselves are the hero's (`Hero.items`, `Hero.money`).
   and the player's option of that name is on, mana under a tenth drinks the potion the unbound W
   key would (`findHotkeyItem`, the same `consumeItemRequest`), at most once a second, alive and in
   the world. The original never drinks by itself, so both default off.
+- Mana potion on a refused cast (`drinkManaForCast`, the original's `CheckMana`): a skill refused
+  for its mana alone drinks the same potion instead, on every server and with no option, once a
+  second at most. The MU Helper casts through the same gate (`skillCastSystem.ts` `castable`).
 
 - Right click use (`itemUse.ts`): our C++ client's `TryConsumeItem` kept to the items our server has a
   consume handler or a `ConsumeEffect` for: potions, Town Portal, the X-shop buff scrolls (14/72-77, 97,

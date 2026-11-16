@@ -35,3 +35,22 @@ export function installAutoMana(): void {
     }
   );
 }
+
+/** The last drink sent for a cast the mana refused. */
+let lastCastDrink = -Infinity;
+
+/**
+ * The original's own rule, every server: a skill the mana cannot pay for is not cast, and the
+ * biggest mana potion in the bag is drunk instead (`CheckMana` and the `FindManaItemIndex` calls in
+ * SkillCast.cpp / ClassAttack.cpp). The MU Helper casts through the same gate, so it keeps a caster
+ * going while away from the keyboard. Once a second at most: the cast is retried every frame.
+ */
+export function drinkManaForCast(): void {
+  if (Hero.currentHP <= 0 || !Ecs.world?.playerEntity) return;
+  const now = Date.now();
+  if (now - lastCastDrink < DRINK_MS) return;
+  const slot = findHotkeyItem(Hero.items, MANA_KEY, UNBOUND_HOTKEY);
+  if (slot < 0) return;
+  lastCastDrink = now;
+  Bag.consumeItemRequest(slot);
+}

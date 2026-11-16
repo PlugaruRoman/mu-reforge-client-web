@@ -1,5 +1,6 @@
 import type { Entity, ISystemFactory } from '../world';
 import { Bag } from '../../modules/inventory';
+import { drinkManaForCast } from '../../modules/inventory/autoMana';
 import { Hero } from '../../modules/hero';
 import { Session } from '../../modules/session';
 import { applyPlayerActionSpeed, serverMinAttackInterval } from '../../controllers/anim/playSpeed';
@@ -61,6 +62,13 @@ import { lighting } from '../../controllers/lighting';
 import { isPlayerAttackAction } from '../../controllers/anim/playerActionMapper';
 import { heldWeapons } from '../../controllers/actors';
 import { isSliding } from './positionSlideSystem';
+
+/** `skills.canUse`, and a skill refused for its mana alone drinks a mana potion, like the original. */
+function castable(num: number): boolean {
+  const { usable, blocks } = skills.usability(num);
+  if (!usable && blocks.length === 1 && blocks[0] === 'mana') drinkManaForCast();
+  return usable;
+}
 
 /** The first lighting tier that draws the improved looks (controllers/skills/visuals.ts). */
 const ENHANCED_TIER = 1;
@@ -268,7 +276,7 @@ export const SkillCastSystem: ISystemFactory = world => {
         return false;
       }
     }
-    if (!skills.canUse(def.num)) return false;
+    if (!castable(def.num)) return false;
     skills.startCooldown(def.num);
 
     // The hero stops: no path, no swing target, no walk into a cast, no pickup.
@@ -609,7 +617,7 @@ export const SkillCastSystem: ISystemFactory = world => {
       // ---- Nova: the press starts the charge on the hero, no target needed.
       if (def.num === combat.novaSkill) {
         const beginDef = skillDefinition(combat.novaBeginSkill) ?? def;
-        if (!skills.canUse(def.num) || !combat.beginNova()) {
+        if (!castable(def.num) || !combat.beginNova()) {
           world.castRequest = null;
           return;
         }
@@ -677,7 +685,7 @@ export const SkillCastSystem: ISystemFactory = world => {
 
       // Mana / AG / re-use delay / requirements are gated client-side first
       // (the skill layer's verdict; the server re-checks everything).
-      if (!skills.canUse(def.num)) {
+      if (!castable(def.num)) {
         world.castRequest = null;
         return;
       }
