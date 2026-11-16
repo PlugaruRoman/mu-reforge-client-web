@@ -68,13 +68,18 @@ const SATURDAY = 6;
 /** TvT: 3 minutes of registration and the 10-minute battle (the Battle Master's window shows it too). */
 export const TVT_TIMETABLE = dailyAt([at(2, 0), at(10, 0), at(18, 0), at(22, 0)], 13);
 
+/** Blood Castle at :01, Devil Square right after it at :28, in 16 hours of the day (server: BloodCastleStartConfiguration.RunHours). */
+const MINI_GAME_HOURS = [0, 1, 3, 5, 7, 8, 9, 11, 12, 13, 14, 15, 17, 19, 21, 23];
+const BLOOD_CASTLE_TIMES = MINI_GAME_HOURS.map(h => at(h, 1));
+const DEVIL_SQUARE_TIMES = MINI_GAME_HOURS.map(h => at(h, 28));
+
 const row = (id: string, where: string, tab: TimerTab, timetable: Timetable, statusId = 0, miniGame = 0): TimerEntry =>
   ({ id, where, tab, timetable, statusId, miniGame });
 
 /** EventTimerEntries.cpp `Table`, in its order (the order ties keep). */
 export const TIMER_ENTRIES: readonly TimerEntry[] = [
-  row('bloodCastle', 'bloodCastle18', 'events', every(120, at(0, 30), 5), 0, MiniGameType.BloodCastle),
-  row('devilSquare', 'devilSquare17', 'events', every(240, at(0, 15), 1), 0, MiniGameType.DevilSquare),
+  row('bloodCastle', 'bloodCastle18', 'events', dailyAt(BLOOD_CASTLE_TIMES, 5), 0, MiniGameType.BloodCastle),
+  row('devilSquare', 'devilSquare17', 'events', dailyAt(DEVIL_SQUARE_TIMES, 1), 0, MiniGameType.DevilSquare),
   row('chaosCastle', 'chaosCastle17', 'events', every(120, at(1, 25), 5), 0, MiniGameType.ChaosCastle),
   row('illusionTemple', 'illusionTemple', 'events', every(120, at(1, 10), 5), 0, MiniGameType.IllusionTemple),
   row('happyHour', 'everywhere', 'events', every(360, at(0, 5), 60)),

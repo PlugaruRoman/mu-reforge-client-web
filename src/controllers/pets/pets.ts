@@ -3,6 +3,7 @@ import { Vector3 } from '../render/babylon/exports';
 import { loadGLTF } from '../assets';
 import { ModelObject } from '../render';
 import type { Item } from '../../ecs/world';
+import { itemDef } from '@/controllers/items';
 import { PlayerAction } from '@versions/shared/objects/enum';
 import {
   improvedItemEffectsOn,
@@ -409,10 +410,31 @@ export function fenrirShine(
   shine.improved.set(rim[0] * scale, rim[1] * scale, rim[2] * scale);
 }
 
+/** One spec per model for the version's own followers, so a pet keeps its spec object across frames. */
+const ownFollowers = new Map<string, PetSpec>();
+
+/**
+ * A pet-slot item the table does not name whose item file carries `Follower` (Mu Reforge's muun pets,
+ * 13/150-155): the Pet Panda's follower, drawn from the item's own model at the file's scale. Our client
+ * gives them the Panda's actions and speeds (`PetProcess::LoadData`, GameLogic/Pets/w_PetProcess.cpp).
+ */
+function ownFollowerSpec(item: Item): PetSpec | null {
+  const record = itemDef(item.group, item.num);
+  const own = record?.Follower;
+  if (!own || !record.szModelName.endsWith('.glb')) return null;
+  const model = record.szModelFolder + record.szModelName;
+  let spec = ownFollowers.get(model);
+  if (!spec) {
+    spec = { ...PETS[PET_PANDA], model, scale: own.scale };
+    ownFollowers.set(model, spec);
+  }
+  return spec;
+}
+
 export function petSpec(item: Item | null | undefined): PetSpec | null {
   if (!item || item.group !== PET_GROUP) return null;
   if (item.num === HORN_OF_FENRIR) return FENRIRS[fenrirVariant(item)];
-  return PETS[item.num] ?? null;
+  return PETS[item.num] ?? ownFollowerSpec(item);
 }
 
 /** True while the pet slot holds a Horn of Uniria or Dinorant. */

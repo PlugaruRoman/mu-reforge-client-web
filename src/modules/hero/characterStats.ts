@@ -153,15 +153,8 @@ type CharacterStatsInput = {
   partySize?: number;
 };
 
-/** eBuff_Hp_up_Ourforces and eBuff_Def_up_Ourforces (_enum.h:4019-4020). */
-const HP_UP_OURFORCES = 130;
+/** eBuff_Def_up_Ourforces (_enum.h:4020). */
 const DEF_UP_OURFORCES = 131;
-
-/** `CalculateBasicState`'s party buff vitality (ZzzInfomation.cpp:3492-3503): 30 + (Energy - 132) / 10 from 132 energy, at most 200. */
-function buffVitality(input: CharacterStatsInput): number {
-  if (!input.buffs?.includes(HP_UP_OURFORCES) || input.energy < 132) return 0;
-  return Math.min(200, 30 + Math.trunc((input.energy - 132) / 10));
-}
 
 /** ItemAddOption's first value of potion `num` (ITEM_POTION + num), what the item buffs add. */
 function potionValue(input: CharacterStatsInput, num: number): number {
@@ -171,11 +164,14 @@ function potionValue(input: CharacterStatsInput, num: number): number {
 /** eBuff_SecretPotion1-5 (_enum.h) by the stat they raise, ITEM_POTION + 78 to 82; only the first one counts. */
 const SECRET_POTIONS = [[50, 'str', 78], [51, 'agi', 79], [52, 'vit', 80], [53, 'ene', 81], [54, 'cmd', 82]] as const;
 
-/** `CalculateBasicState` (ZzzInfomation.cpp:3465-3503): the first secret potion and the party buff vitality. */
+/**
+ * `CalculateBasicState` (ZzzInfomation.cpp:3465-3503): the first secret potion. The Rage Fighter's Increase Health
+ * (eBuff_Hp_up_Ourforces, 130) adds no vitality here: on our server it adds a share of the maximum health, which comes
+ * from the server (`maxLife`).
+ */
 function buffStats(input: CharacterStatsInput, add: Record<'str' | 'agi' | 'vit' | 'ene' | 'cmd', number>): void {
   const potion = SECRET_POTIONS.find(([buff]) => input.buffs?.includes(buff));
   if (potion) add[potion[1]] += potionValue(input, potion[2]);
-  add.vit += buffVitality(input);
 }
 
 /** The scroll, Jack O'Lantern and Cherry Blossom buffs by line: [eBuff id, ITEM_POTION + n] (ZzzInfomation.cpp:2785-2806, :3009-3026, :3337-3346). */

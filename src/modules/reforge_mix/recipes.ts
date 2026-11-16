@@ -36,6 +36,7 @@ export const MIX = {
   intermediateStoneCombine: 115,
   ancientOptionMerge: 116,
   ancientOptionRemoval: 117,
+  muunPet: 118,
 } as const;
 
 /** The Ancient Smith (S VersionSeasonSix/AncientSmith.cs `NpcNumber`), and his own tray, `MIXTYPE_ANCIENT_SMITH` (our MixMgr.h). */
@@ -49,6 +50,14 @@ const JEWEL_OF_CHAOS_ASSEMBLY = code(14, 157);
 const SPIRIT_STONES = [164, 165, 166] as const;
 /** Ancient Soul Stone (14/178): the merge's stone. */
 export const ANCIENT_SOUL_STONE = 178;
+/** Jewel of Nightmare (14/179): turns a Gold Fenrir into a random muun pet (mix 118). */
+export const JEWEL_OF_NIGHTMARE = 179;
+/** Mix 118 caps the fed item's rate five points under the Gold Fenrir's 79 (S MuunPetCrafting.MaximumRateByItems). */
+const MUUN_PET_MAX_RATE = 74;
+/** `MAX_MIX_SOURCES`: a record holds at most eight kinds of item. */
+const MAX_MIX_SOURCES = 8;
+/** The Fenrir upgrade's fed item (horn, life, chaos, then the weapon or armour). */
+const FENRIR_FED_ITEM = 3;
 const GARUDAS_FEATHER = 167;
 const GARUDAS_FLAME = 168;
 /** Our 4th wings (12/51-57) and the Olympiad Hero wings and capes. */
@@ -162,6 +171,25 @@ export function adjustGoblinRecipes(list: readonly MixRecipe[]): MixRecipe[] {
     if (r.mixId === MIX.fenrirUpgrade && r.mixOption === 'D') out[i] = { ...out[i], mixOption: '' };
   }
 
+  // Mix 118 (`AddMuunPetRecipes`): the stock Fenrir records with a Gold Fenrir in place of the horn (the client
+  // cannot tell a gold horn from a plain one, the server can), the fed item narrowed like the Golden Fenrir's and a
+  // Jewel of Nightmare on top. Built from the stock records only, before the golden copies; no Mix.bmd text ids,
+  // the name is ours (`recipeName`). A failure burns everything, the horn included.
+  const muun = out
+    .filter(r => r.mixId === MIX.fenrirUpgrade && r.sources.length > FENRIR_FED_ITEM && r.sources.length < MAX_MIX_SOURCES)
+    .map(r => ({
+      ...r,
+      mixId: MIX.muunPet,
+      names: [0, 0, 0] as MixRecipe['names'],
+      maxRate: MUUN_PET_MAX_RATE,
+      mixOption: '',
+      sources: [
+        ...r.sources.map((s, j) => (j === FENRIR_FED_ITEM ? { ...s, levelMin: 11, optionMin: 4, special: s.special | SP.excellent } : s)),
+        item(14, JEWEL_OF_NIGHTMARE),
+      ],
+    }));
+  out.push(...muun);
+
   // The Golden Fenrir: the stock records with the fed item narrowed to an excellent +11 with an
   // option, in front of them (the first match wins), weapon record first.
   const firstFenrir = out.findIndex(r => r.mixId === MIX.fenrirUpgrade);
@@ -258,6 +286,7 @@ export function recipeName(r: MixRecipe): string | null {
   if (r.mixId === MIX.fourthWings) return t('reforgeMix.fourthWings');
   if (r.mixId === MIX.ancientOptionMerge) return t('reforgeMix.ancientOptionMerge');
   if (r.mixId === MIX.ancientOptionRemoval) return t('reforgeMix.ancientOptionRemoval');
+  if (r.mixId === MIX.muunPet) return t('reforgeMix.muunPet');
   const named = NAMED_BY_ITEM[r.mixId];
   return named ? itemBaseName(named[0], named[1]) || null : null;
 }

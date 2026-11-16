@@ -95,6 +95,8 @@ describe('our jewels', () => {
 
   it('leaves the Ancient Soul Stone alone: it goes to the Ancient Smith, not onto an item', () => {
     expect(isUpgradeJewel(item(14, 178))).toBe(false);
+    // The Jewel of Nightmare goes into the chaos machine with a Gold Fenrir (mix 118), never onto an item.
+    expect(isUpgradeJewel(item(14, 179))).toBe(false);
     expect(isUpgradeJewel(SEA)).toBe(true);
   });
 

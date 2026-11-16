@@ -9,8 +9,9 @@ vi.hoisted(() => {
 });
 
 const { checkMix, setMixAdjuster } = await import('../chaos_mix/mixRecipes');
-const { ANCIENT_SMITH, ANCIENT_SOUL_STONE, MIX, REFORGE_MIX, adjustGoblinRecipes, adjustMixItem, ancientSmithRecipes, recipeName } = await import('./recipes');
+const { ANCIENT_SMITH, ANCIENT_SOUL_STONE, JEWEL_OF_NIGHTMARE, MIX, REFORGE_MIX, adjustGoblinRecipes, adjustMixItem, ancientSmithRecipes, recipeName } = await import('./recipes');
 const { ancientSoulStoneLines } = await import('./stone');
+const { isMuunPet, jewelOfNightmareLines, muunPetLines } = await import('./muun');
 const { loadItemOptionTables } = await import('@/controllers/assets');
 
 const code = (group: number, num: number) => group * 512 + num;
@@ -151,6 +152,61 @@ describe('the Ancient Smith', () => {
       ['Combine it at the Ancient Smith with a Jewel of Creation and a Jewel of Chaos.', 'green'],
     ]);
     expect(ancientSoulStoneLines(it14(157))).toEqual([]);
+  });
+});
+
+// The muun pets (our ReforgeMixRecipes.cpp AddMuunPetRecipes, ReforgeItemTooltip.cpp AddMuunPetLines; S MuunPetCrafting.cs).
+describe('the muun pets (mix 118)', () => {
+  const MUUN = ADJUSTED.filter(r => r.mixId === MIX.muunPet);
+  const horn = { group: 13, num: 37, durability: 255, excellentFlags: 4 } as Item;
+  const life = it14(16);
+  const chaos = { group: 12, num: 15, durability: 1 } as Item;
+  const sword = { group: 0, num: 5, lvl: 11, optionLevel: 4, isExcellent: true, excellentFlags: 1, durability: 30 } as Item;
+  const nightmare = it14(JEWEL_OF_NIGHTMARE);
+
+  it('copies each stock Fenrir record with the fed item narrowed and a Jewel of Nightmare on top, at 74 %', () => {
+    expect(MUUN).toHaveLength(1);
+    const [muun] = MUUN;
+    expect([muun.names, muun.maxRate, muun.mixOption]).toEqual([[0, 0, 0], 74, '']);
+    expect(muun.sources).toHaveLength(5);
+    expect(muun.sources[3]).toMatchObject({ levelMin: 11, optionMin: 4, special: 1 });
+    expect(muun.sources[4]).toMatchObject({ typeMin: code(14, 179), typeMax: code(14, 179), countMin: 1, countMax: 1 });
+    // Built from the stock record, not from the golden copy in front of it.
+    expect(ADJUSTED.filter(r => r.mixId === MIX.fenrirUpgrade)).toHaveLength(2);
+  });
+
+  it('matches the Gold Fenrir box with the jewel, the Golden Fenrir upgrade without it', () => {
+    const check = checkMix(ADJUSTED, [horn, life, chaos, sword, nightmare]);
+    expect(check.recipe?.mixId).toBe(MIX.muunPet);
+    expect(check.successRate).toBeLessThanOrEqual(74);
+    expect(check.recipe && recipeName(check.recipe)).toBe('Muun Pet');
+    expect(checkMix(ADJUSTED, [horn, life, chaos, sword]).recipe?.mixId).toBe(MIX.fenrirUpgrade);
+    // A plain +11 item is no muun box.
+    expect(checkMix(ADJUSTED, [horn, life, chaos, { ...sword, isExcellent: false, excellentFlags: 0 }, nightmare]).recipe?.mixId).not.toBe(MIX.muunPet);
+  });
+
+  it('lists a pet\'s Gold Fenrir bonuses by total level, its own in yellow, its origin in green', () => {
+    expect([150, 155, 156, 149].map(num => isMuunPet({ group: 13, num }))).toEqual([true, true, false, false]);
+    expect(muunPetLines({ group: 13, num: 152 }, 400).map(l => [l.text, l.color])).toEqual([
+      ['Increase final damage 40%', 'blue'],
+      ['Absorb final damage 25%', 'blue'],
+      ['Added 200 of Life', 'blue'],
+      ['Added 200 of Mana', 'blue'],
+      ['Added 33 Attack', 'blue'],
+      ['Added 16 Wizardry', 'blue'],
+      ['Defense success rate +10%', 'yellow'],
+      ['The power of a Gold Fenrir, without the mount', 'green'],
+    ]);
+    expect(muunPetLines({ group: 13, num: 155 }, 0).at(-2)?.text).toBe('Reflects 5% of the damage taken');
+    expect(muunPetLines({ group: 13, num: 37 }, 400)).toEqual([]);
+  });
+
+  it('describes the Jewel of Nightmare in lines short enough for the unwrapped tooltip', () => {
+    const lines = jewelOfNightmareLines(nightmare);
+    expect(lines.map(l => l.color)).toEqual(['white', 'green', 'green']);
+    expect(lines[0].text).toBe('Turns a Gold Fenrir into a random muun pet.');
+    for (const l of lines) expect(l.text.length).toBeLessThanOrEqual(72);
+    expect(jewelOfNightmareLines(it14(178))).toEqual([]);
   });
 });
 

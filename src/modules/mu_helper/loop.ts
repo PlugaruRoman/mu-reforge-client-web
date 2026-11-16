@@ -42,6 +42,7 @@ const STOP_REQUEST_INTERVAL = 3;
 const MOVE_REISSUE_SECONDS = 1;
 
 const HEAL_SKILL = 26; // Heal (Elf)
+const HEAL_STRENGTHENER_SKILL = 413; // the master tree rank which takes Heal's place in the skill list
 const DRAIN_LIFE_SKILL = 214; // Drain Life (Summoner)
 
 /**
@@ -82,7 +83,6 @@ let originMap = -1;
 let lastHeroTile: Point | null = null;
 let buffIndex = 0;
 let buffPartyIndex = 0;
-let healPartyIndex = 0;
 let comboState = 0;
 let currentTarget: Entity | null = null;
 let petActivated = false;
@@ -100,7 +100,6 @@ function resetRuntime(): void {
   secondsAway = 0;
   buffIndex = 0;
   buffPartyIndex = 0;
-  healPartyIndex = 0;
   comboState = 0;
   currentTarget = null;
   petActivated = false;
@@ -287,32 +286,44 @@ function countTargetsNearby(world: World, hero: Entity, maxDistance: number): nu
 function recoverHealth(world: World, hero: Entity, config: MuHelperConfig): boolean {
   const hpPercent = heroHpPercent();
 
-  if (config.autoHeal && isLearned(HEAL_SKILL)) {
+  // Whichever rank of Heal the hero owns: the Strengthener replaces Heal in the skill list.
+  const healSkill = isLearned(HEAL_STRENGTHENER_SKILL) ? HEAL_STRENGTHENER_SKILL : HEAL_SKILL;
+  if (config.autoHeal && isLearned(healSkill)) {
     if (config.autoHealParty && Social.partyMembers.length > 0) {
-      const members = Social.partyMembers;
-      const member = members[healPartyIndex % members.length];
-      healPartyIndex = (healPartyIndex + 1) % members.length;
-      if (member) {
+      // The whole party every tick, the one with the least health below his threshold first (the hero's
+      // own threshold for himself). One member per tick, moving on whether the cast went out or not, lost
+      // nearly every heal on the others: the hero's slot let the attack queue its cast, and the next
+      // member's slot met that pending cast and was skipped (MuHelperReforge.cpp, ReforgeHeal).
+      let neediest: Entity | null = null;
+      let lowestPercent = 101;
+      for (const member of Social.partyMembers) {
+        let percent: number;
+        let target: Entity | null;
         if (member.name === Hero.name) {
-          if (hpPercent <= config.healThreshold && castSkill(world, HEAL_SKILL, hero)) {
-            return false;
-          }
-        } else if (
-          member.mapId === world.mapIndex &&
-          member.healthStep >= 0 &&
-          member.healthStep * 10 <= config.healPartyThreshold
-        ) {
-          const target = findPartyEntity(world, member.name);
+          if (hpPercent > config.healThreshold) continue;
+          percent = hpPercent;
+          target = hero;
+        } else {
           if (
-            target &&
-            tileDistance(heroTile(hero), entityTile(target)) <= MAX_ACTIONABLE_DISTANCE &&
-            castSkill(world, HEAL_SKILL, target)
+            member.mapId !== world.mapIndex ||
+            member.healthStep <= 0 ||
+            member.healthStep * 10 > config.healPartyThreshold
           ) {
-            return false;
+            continue;
           }
+          target = findPartyEntity(world, member.name);
+          if (!target || tileDistance(heroTile(hero), entityTile(target)) > MAX_ACTIONABLE_DISTANCE) continue;
+          percent = member.healthStep * 10;
+        }
+        if (percent < lowestPercent) {
+          lowestPercent = percent;
+          neediest = target;
         }
       }
-    } else if (hpPercent <= config.healThreshold && castSkill(world, HEAL_SKILL, hero)) {
+      if (neediest && castSkill(world, healSkill, neediest)) {
+        return false;
+      }
+    } else if (hpPercent <= config.healThreshold && castSkill(world, healSkill, hero)) {
       return false;
     }
   }

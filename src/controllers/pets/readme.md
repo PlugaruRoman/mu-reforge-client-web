@@ -6,7 +6,9 @@ pets module (`src/modules/pets`) keeps the pet packets; the item numbers are
 `versions/shared/items/petItems.ts`.
 
 ## Public API
-- `petSpec(item)`: the `PetSpec` (kind, model, scale, follow motion, light, Fenrir look) or null.
+- `petSpec(item)`: the `PetSpec` (kind, model, scale, follow motion, light, Fenrir look) or null. A pet-slot item
+  the table does not name whose item file carries `Follower` (a version's own pet: Mu Reforge's muun pets
+  13/150-155) gets the Pet Panda's spec on the item's own model at the file's scale.
 - `isRidingMount(item)`: the slot holds a pet whose kind is `mount`.
 - `mountKind(item, inSafeZone)`: `'uniria' | 'dinorant' | 'horse' | 'fenrir'` or null (on foot,
   also in a safe zone).

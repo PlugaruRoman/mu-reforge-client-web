@@ -27,8 +27,8 @@ other folders share.
   sets, the +1 or better arrows' share, then the sockets; `GetAttackDamage` still counts a weapon dragged out of a
   hand (`picked`, ZzzInventory.cpp:5900-5911). Defense reads the left hand to the wing, unbroken, with the option and
   worn by durability, then 5% to 30% for a whole +10 to +15 set (`CalculateDefense`, :3251-3333; `CheckFullSet`,
-  ZzzCharacter.cpp:5386-5470). Under `buffs`, the first secret potion adds its ItemAddOption value to its stat and the
-  Rage Fighter's party buff its vitality (`CalculateBasicState`, :3465-3503); the damage and defense scrolls, Jack
+  ZzzCharacter.cpp:5386-5470). Under `buffs`, the first secret potion adds its ItemAddOption value to its stat
+  (`CalculateBasicState`, :3465-3503; the Rage Fighter's party buff adds maximum health on our server, not vitality); the damage and defense scrolls, Jack
   O'Lanterns, Cherry Blossom petal, Christmas blessing and Santa buffs add to damage, wizardry, curse and defense (:2785-2830,
   :3009-3042, :3097-3103, :3335-3358), the Swell of Magic Power a fifth of Energy / 9 to the wizardry minimum.
   The window's own buffs (NewUICharacterInfoWindow.cpp:517-552, :908-925, :1329-1335, :1387-1393): the NPC buff adds

@@ -25,10 +25,10 @@ describe('the Event Timer timetable (EventTimerEntries.cpp)', () => {
   });
 
   it('counts down to the next start of an interval timetable, strictly after now', () => {
-    // Blood Castle: every 120 minutes from 00:30, 5 minutes open.
+    // Blood Castle: at :01 in 16 hours of the day (not 02, 04, 06, 10, 16, 18, 20, 22), 5 minutes open.
     const bc = entry('bloodCastle').timetable;
-    expect(stateAt(bc, utcMomentOf(at(1, 0)))).toEqual({ running: false, secondsToStart: 90 * 60, secondsToEnd: 0 });
-    expect(stateAt(bc, utcMomentOf(at(2, 32)))).toEqual({ running: true, secondsToStart: 118 * 60, secondsToEnd: 180 });
+    expect(stateAt(bc, utcMomentOf(at(1, 30)))).toEqual({ running: false, secondsToStart: 91 * 60, secondsToEnd: 0 });
+    expect(stateAt(bc, utcMomentOf(at(3, 3)))).toEqual({ running: true, secondsToStart: 118 * 60, secondsToEnd: 180 });
   });
 
   it('keeps a run going across midnight', () => {

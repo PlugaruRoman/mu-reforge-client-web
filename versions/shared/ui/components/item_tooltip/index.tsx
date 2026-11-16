@@ -33,7 +33,7 @@ import { skills } from '@/modules/skills';
 import { InventoryConstants } from '@/core/inventoryConstants';
 import { stallPriceColor } from './stallPrice';
 import { periodItemLines } from '@/modules/xshop';
-import { ancientSoulStoneLines } from '@/modules/reforge_mix';
+import { ancientSoulStoneLines, isMuunPet, jewelOfNightmareLines, muunPetLines } from '@/modules/reforge_mix';
 
 /** One inventory square of the picture, as the grids draw it. */
 const PICTURE_SQUARE = 20;
@@ -326,13 +326,18 @@ export const ItemTooltip = observer(
 
     const lines = useMemo(() => {
       if (!data) return null;
-      const [name, ...rest] = data.lines;
+      const [first, ...rest] = data.lines;
+      // Mu Reforge's muun pets are named in yellow, like our jewels (ReforgeItemTooltip.cpp `NameColor`).
+      const name = first && isMuunPet(item) ? { ...first, color: 'yellow' as const } : first;
       const all = name
         ? [name, ...priceLines(item, context, name.color, price), ...rest]
         : [...data.lines];
       if (pet !== undefined && petSlot >= 0) all.push(...petLines(pet, petSlot));
-      // Mu Reforge's Ancient Soul Stone: what it does and where (ReforgeItemTooltip.cpp `AddJewelLines`).
+      // Mu Reforge's Ancient Soul Stone and Jewel of Nightmare: what they do and where (ReforgeItemTooltip.cpp `AddJewelLines`).
       all.push(...ancientSoulStoneLines(item));
+      all.push(...jewelOfNightmareLines(item));
+      // A muun pet: the Gold Fenrir's bonuses by the hero's total level, and its own (`AddMuunPetLines`).
+      all.push(...muunPetLines(item, hero.level + maxima.masterLevel));
       all.push(...rental);
       return all;
       // Tracked observables (shop, repair mode, pet info) re-run the observer,

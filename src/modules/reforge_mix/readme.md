@@ -6,8 +6,10 @@ mix flags of our items. Port of our C++ client's `GameLogic/Reforge/ReforgeMixRe
 ## Public API
 - `REFORGE_MIX` (the `MixAdjuster` `install` hands to `chaos_mix`'s `setMixAdjuster`), `MIX` (the mix ids),
   `adjustGoblinRecipes`, `adjustMixItem`, `recipeName`, `ancientSmithRecipes`, `ANCIENT_SMITH` (NPC 770, mix type
-  14), `ANCIENT_SOUL_STONE` (14/178).
+  14), `ANCIENT_SOUL_STONE` (14/178), `JEWEL_OF_NIGHTMARE` (14/179).
 - `ancientSoulStoneLines(item)` (`stone.ts`): the stone's two tooltip lines, read by the shared item tooltip.
+- `isMuunPet(item)`, `muunPetLines(item, totalLevel)`, `jewelOfNightmareLines(item)` (`muun.ts`): the muun pets
+  13/150-155 and the jewel that makes them, read by the shared item tooltip.
 
 ## How it works
 - `chaos_mix/mixRecipes.ts` runs every recipe list through the adjuster once (memoised per loaded list);
@@ -22,6 +24,15 @@ mix flags of our items. Port of our C++ client's `GameLogic/Reforge/ReforgeMixRe
   rates (38: 20 + set value / 60,000, max 60; 39: 10 + excellent value / 500,000, max 32), the Fenrir
   upgrade's 'D' veto dropped (the server re-colours a horn), and a Golden Fenrir copy of mix 28 in front
   of the stock records (fed item excellent, +11, with an option; name GlobalText 1871).
+- The muun pets (S `VersionSeasonSix/MuunPets.cs`, our `AddMuunPetRecipes`): mix 118 is a copy of each stock mix 28
+  record (built before the golden copies) with the fed item narrowed like the Golden Fenrir's and a Jewel of Nightmare
+  (14/179) added; max 74 %, no `Text.bmd` ids (`reforgeMix.muunPet`). The client cannot tell a gold horn from a plain
+  one; the server checks it, and its EC rate replaces the shown one. Result: a random pet 13/150-155.
+- Tooltips (`muun.ts`, our `ReforgeItemTooltip.cpp`): a muun pet's name in yellow, the Gold Fenrir's bonuses in blue
+  (final damage 40 %, absorb 25 %, life and mana total level / 2, attack / 12, wizardry / 25; total level = level +
+  master level), its own bonus in yellow, "The power of a Gold Fenrir, without the mount" in green. The Jewel of
+  Nightmare: one white line, the recipe in green on two lines (the desktop's one line is 131 characters and the
+  tooltip does not wrap).
 - Items: the 380 flag only for items `ItemAddOption.bmd` lists and with no sockets, the Jewel of Chaos
   Assembly (14/157) as a chaos charm, our 4th and Hero wings as third-level wings, the flowers and the
   Lucky Coin counted by stack.
@@ -46,4 +57,4 @@ mix flags of our items. Port of our C++ client's `GameLogic/Reforge/ReforgeMixRe
 ## Tests
 - `recipes.test.ts`: the added, removed and corrected records against a stock-like list, the trays that
   match them, and the item flags; the Ancient Smith's records, trays, charms, NPC, title, lines and the stone's
-  tooltip lines. `npc_shop/net.test.ts` opens his tray from a talk, `chaos_machine/index.test.tsx` draws it.
+  tooltip lines; mix 118 and the muun pet and Jewel of Nightmare lines. `npc_shop/net.test.ts` opens his tray from a talk, `chaos_machine/index.test.tsx` draws it.

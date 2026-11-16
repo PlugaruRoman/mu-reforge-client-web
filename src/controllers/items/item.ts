@@ -71,9 +71,16 @@ export type ItemRecord = {
   Jewel?: true;
   /** Its ground name's own colour (`#rrggbb`), drawn bold over the original's rules. */
   Label?: string;
+  /**
+   * A pet-slot item the pet table (`controllers/pets`) does not name that walks next to its owner like the Pet
+   * Panda, drawn from its own model (`szModelFolder` + `szModelName`) at `scale` (Mu Reforge's muun pets).
+   */
+  Follower?: ItemFollower;
   /** The item's own names by language code (`de`, `es`, ...), shown before a language pack's. */
   Names?: Readonly<Record<string, string>>;
 };
+
+export type ItemFollower = { readonly scale: number };
 
 export type ItemWing = {
   readonly link?: { readonly angle: [number, number, number]; readonly offset: [number, number, number] };

@@ -5,7 +5,8 @@ import { isFastWing, wingLinkMatrix, wingSpec } from '@/controllers/actors/wings
 import { isBow, isCrossbow, isSwordformGloves, swordformGlovesModel } from '@/controllers/actors/weaponClass';
 import { itemHeldSprites } from '@/controllers/item_fx/itemLooks';
 import { ammoReload, attackRange, hasAmmo } from '@/controllers/combat/weaponRange';
-import { dropLabel, isJewel, itemDef } from '@/controllers/item_rules';
+import { dropLabel, isJewel, itemDef, itemValue } from '@/controllers/item_rules';
+import { isRidingMount, mountKind, petSpec } from '@/controllers/pets';
 import type { Item } from '@/ecs/world';
 import { reforgeItems } from './all';
 
@@ -89,5 +90,23 @@ describe('reforge items', () => {
     expect(ground(157)).toEqual(ground(178));
     expect(ground(176).colour).toBe('#59d8ff');
     expect(ground(164).colour).toBe('#e58721');
+  });
+
+  // Our client's muun pets and Jewel of Nightmare (w_PetProcess.cpp, ReforgeGroundItemLabel.cpp; S MuunPets.cs).
+  it('makes the muun pets Pet Panda followers on their own models, the Jewel of Nightmare a yellow jewel', () => {
+    expect(ItemsDatabase.getItem(13, 155)).toMatchObject({ ItemName: 'Medusa', X: 1, Y: 2, ItemSlot: 8, szModelFolder: 'Item/Muun/', szModelName: 'medusaUp.glb' });
+    const panda = petSpec(item(13, 80));
+    const muun = petSpec(item(13, 150));
+    expect(muun).toMatchObject({ kind: 'follower', model: 'Item/Muun/DragonKnight.glb', scale: 0.9, follow: panda?.follow });
+    expect(petSpec(item(13, 150))).toBe(muun);
+    for (const num of [151, 152, 153, 154, 155]) expect(petSpec(item(13, num))?.kind).toBe('follower');
+    expect([isRidingMount(item(13, 150)), mountKind(item(13, 150))]).toEqual([false, null]);
+    expect(petSpec(item(13, 156))).toBeNull();
+    expect(itemValue({ group: 13, num: 150, lvl: 0, durability: 255 } as Item, 0)).toBe(150_000);
+
+    const def = itemDef(14, 179);
+    expect(def && isJewel(def)).toBe(true);
+    expect(ItemsDatabase.getItem(14, 179)).toMatchObject({ ItemName: 'Jewel of Nightmare', X: 1, Y: 1, szModelName: 'JewelOfNightmare.glb' });
+    expect(dropLabel({ isMoney: false, item: item(14, 179), group: 14, num: 179 })).toEqual({ colour: '#ffcc19', bold: true, setItem: false });
   });
 });

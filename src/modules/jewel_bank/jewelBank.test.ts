@@ -68,6 +68,8 @@ describe('jewel bank (C1 D3)', () => {
     expect(isDepositable({ group: 14, num: 176 })).toBe(true);
     expect(isDepositable({ group: 14, num: 178 })).toBe(true);
     expect(isDepositable({ group: 12, num: 15 })).toBe(true);
+    // The Jewel of Nightmare is a jewel but no bank row (S JewelBank types).
+    expect(isDepositable({ group: 14, num: 179 })).toBe(false);
   });
 
   it('counts a bundle by its level for "store all"', () => {

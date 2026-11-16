@@ -154,6 +154,9 @@ export function itemValue(item: Item, goldType: GoldType): number {
   } else if (group === ItemGroup.Helper && index === 20) {
     // Wizard's Ring: OpenMU's price (ItemPriceCalculator), so the merchant line shows what the sale pays
     gold = level === 0 ? 30000 : 0;
+  } else if (group === ItemGroup.Helper && index >= 150 && index <= 155) {
+    // Mu Reforge's muun pets: OpenMU's price (S ItemPriceCalculator, the Horn of Fenrir's 150,000), not 100 + 300³
+    gold = 150000;
   } else if (group === ItemGroup.Helper && index === 31) {
     // Spirit (Dark Horse / Raven spirit)
     gold = (level === 0 ? 10000000 : 5000000) * 3;

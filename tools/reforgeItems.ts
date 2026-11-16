@@ -43,6 +43,8 @@ export const NEW_ITEMS: readonly string[] = [
   '14/170', '14/171', '14/172', '14/173', '14/174', '14/175', '14/176', '14/177',
   // The Ancient Smith's stone (S VersionSeasonSix/AncientSmith.cs).
   '14/178',
+  // The muun pets and the Jewel of Nightmare that makes them (S VersionSeasonSix/MuunPets.cs).
+  '13/150', '13/151', '13/152', '13/153', '13/154', '13/155', '14/179',
 ];
 
 /**
@@ -85,10 +87,17 @@ const BONE_GLOWS: Record<string, { color: [number, number, number]; size: number
  * Sea and the Socket Gem.
  */
 const GROUND_LABELS: Readonly<Record<string, string>> = {
-  ...Object.fromEntries([124, 125, 157, 178].map(n => [`14/${n}`, '#ffcc19'])),
+  ...Object.fromEntries([124, 125, 157, 178, 179].map(n => [`14/${n}`, '#ffcc19'])),
   ...Object.fromEntries([164, 165, 166, 167, 168].map(n => [`14/${n}`, '#e58721'])),
   ...Object.fromEntries([176, 177].map(n => [`14/${n}`, '#59d8ff'])),
 };
+
+/**
+ * The muun pets (`IsMuunPet`, GameLogic/Reforge/ReforgeItemTypes.h): no record in pet.bmd, they walk next to their
+ * owner like the Pet Panda at a scale of their own (`MuunPetScale`, GameLogic/Pets/w_PetProcess.cpp).
+ */
+const MUUN_PETS: ReadonlySet<string> = new Set([150, 151, 152, 153, 154, 155].map(n => `13/${n}`));
+const MUUN_PET_SCALE = 0.9;
 
 export type JsonItem = {
   number: number;
@@ -230,6 +239,7 @@ export function extras(
   if (item.tags?.includes('jewel')) out.Jewel = true;
   const label = GROUND_LABELS[`${group}/${item.number}`];
   if (label) out.Label = label;
+  if (MUUN_PETS.has(`${group}/${item.number}`)) out.Follower = { scale: MUUN_PET_SCALE };
   return out;
 }
 
