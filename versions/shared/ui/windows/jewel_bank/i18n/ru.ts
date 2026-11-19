@@ -26,4 +26,6 @@ export default {
   'jewelBank.jewel.12': 'Море',
   'jewelBank.jewel.13': 'Хаос-сб.',
   'jewelBank.jewel.14': 'Древн. душа',
+  'jewelBank.jewel.15': 'Камень сокета',
+  'jewelBank.jewel.16': 'Кошмар',
 } satisfies Partial<Record<keyof typeof en, string>>;

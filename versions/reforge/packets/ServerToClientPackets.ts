@@ -19370,7 +19370,7 @@ export class JewelBankListPacket {
   static readonly Direction = 'ServerToClient';
   static readonly SentWhen = `After the player entered the game world, in response to a JewelBankListRequest, and after each successful deposit or withdraw, to inform the client about the amount of each jewel stored in the account-wide jewel bank.`;
   static readonly CausedReaction = `The client updates the jewel bank window with the current counts.`;
-  static readonly Length = 64;
+  static readonly Length = 72;
   static readonly LengthSize = 1;
   static readonly DataOffset = 2;
   static readonly Code = 0xD3;
@@ -19399,7 +19399,7 @@ export class JewelBankListPacket {
     return this;
   }
 
-  static createPacket(requiredSize: number = 64): JewelBankListPacket {
+  static createPacket(requiredSize: number = 72): JewelBankListPacket {
     const p = new JewelBankListPacket();
     p.buffer = new DataView(new ArrayBuffer(requiredSize));
     p.writeHeader();
@@ -19495,6 +19495,18 @@ export class JewelBankListPacket {
   }
   set AncientSoulStone(value: number){
     this.buffer.setUint32(60, value, true);
+  }
+  get SocketGem(){
+    return this.buffer.getUint32(64, true);
+  }
+  set SocketGem(value: number){
+    this.buffer.setUint32(64, value, true);
+  }
+  get JewelOfNightmare(){
+    return this.buffer.getUint32(68, true);
+  }
+  set JewelOfNightmare(value: number){
+    this.buffer.setUint32(68, value, true);
   }
 }
 export class GuildBankItemListPacket {

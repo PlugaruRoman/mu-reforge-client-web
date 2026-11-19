@@ -103,6 +103,11 @@ export type MonsterDef = {
    * sparks and SOUND_MENU01 (WSclient.cpp:2134-2141, ZzzCharacter.cpp:3192-3203; `ecs/systems/positionSlideSystem.ts`).
    */
   ball?: true;
+  /**
+   * Attackable, but never dies (Mu Reforge's training dummies): the MU Helper leaves it alone, it would hit it
+   * forever (our client's `IsTrainingDummy`, MuHelperReforge.cpp).
+   */
+  helperIgnores?: true;
   stats?: MonsterStats;
 };
 

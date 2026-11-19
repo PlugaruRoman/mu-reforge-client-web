@@ -23,17 +23,19 @@ beforeEach(() => {
 });
 
 describe('jewel bank (C1 D3)', () => {
-  it('reads the 15 counts of JewelBankList (D3 01, 64 bytes), the Ancient Soul Stone last', () => {
-    const counts = Array.from({ length: 15 }, (_, i) => i * 10);
-    EventBus.emit('JewelBankList', new DataView(Uint8Array.from([0xc1, 64, 0xd3, 0x01, ...counts.flatMap(u32)]).buffer));
+  it('reads the 17 counts of JewelBankList (D3 01, 72 bytes), the Socket Gem and the Jewel of Nightmare last', () => {
+    const counts = Array.from({ length: 17 }, (_, i) => i * 10);
+    EventBus.emit('JewelBankList', new DataView(Uint8Array.from([0xc1, 72, 0xd3, 0x01, ...counts.flatMap(u32)]).buffer));
     expect(JewelBank.counts).toEqual(counts);
     expect(BANK_JEWELS[14]).toEqual({ group: 14, num: 178, packed: 0 });
+    expect(BANK_JEWELS[15]).toEqual({ group: 14, num: 177, packed: 0 });
+    expect(BANK_JEWELS[16]).toEqual({ group: 14, num: 179, packed: 0 });
   });
 
   it('reads an older 60-byte list with the Ancient Soul Stone at 0', () => {
     const counts = Array.from({ length: 14 }, (_, i) => i + 1);
     EventBus.emit('JewelBankList', new DataView(Uint8Array.from([0xc1, 60, 0xd3, 0x01, ...counts.flatMap(u32)]).buffer));
-    expect(JewelBank.counts).toEqual([...counts, 0]);
+    expect(JewelBank.counts).toEqual([...counts, 0, 0, 0]);
   });
 
   it('leaves the jewels a shorter list lacks at 0', () => {
@@ -64,12 +66,13 @@ describe('jewel bank (C1 D3)', () => {
     ]);
   });
 
-  it('keeps our five jewels without a packed form', () => {
+  it('keeps our seven jewels without a packed form', () => {
     expect(isDepositable({ group: 14, num: 176 })).toBe(true);
     expect(isDepositable({ group: 14, num: 178 })).toBe(true);
     expect(isDepositable({ group: 12, num: 15 })).toBe(true);
-    // The Jewel of Nightmare is a jewel but no bank row (S JewelBank types).
-    expect(isDepositable({ group: 14, num: 179 })).toBe(false);
+    expect(isDepositable({ group: 14, num: 177 })).toBe(true);
+    expect(isDepositable({ group: 14, num: 179 })).toBe(true);
+    expect(isDepositable({ group: 14, num: 179, lvl: 1 })).toBe(false);
   });
 
   it('counts a bundle by its level for "store all"', () => {

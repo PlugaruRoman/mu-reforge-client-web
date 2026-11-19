@@ -21,9 +21,18 @@ describe('master skills cast as the skill they replace', () => {
     expect(shape(422)).toEqual(shape(28));
   });
 
-  it('keeps the master skill its own reach, costs, requirements and damage', () => {
-    const { distance, mana, ag, level, energy, damage, name } = { ...raw(331) };
-    expect(skillDefinition(331)).toMatchObject({ distance, mana, ag, level, energy, damage, name });
+  it('keeps the master skill its own reach, costs, requirements and name', () => {
+    const { distance, mana, ag, level, energy, name } = { ...raw(331) };
+    expect(skillDefinition(331)).toMatchObject({ distance, mana, ag, level, energy, name });
+  });
+
+  it('gives the master skill the damage of its base skill, as OpenMU copies AttackDamage', () => {
+    expect(skillDefinition(331)?.damage).toBe(raw(42)?.damage);
+    // Multi-Shot Strengthener and Mastery: 22 and 1 of their own, 40 like Multi-Shot on the server.
+    expect(MASTER_REPLACES[411]).toBe(235);
+    expect(MASTER_REPLACES[431]).toBe(411);
+    expect(skillDefinition(411)?.damage).toBe(40);
+    expect(skillDefinition(431)?.damage).toBe(40);
   });
 
   it('leaves the passive tree entries and the replaced skills alone', () => {

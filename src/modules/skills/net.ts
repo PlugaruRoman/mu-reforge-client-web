@@ -7,7 +7,8 @@ import { HeroSkills } from './state';
 import { Ecs } from '@/ecs/current';
 import { TELEPORT } from './skillCasting';
 import { setObjectEffect } from './objectEffects';
-import { setBuffTime } from './buffs';
+import { setBuffTime, setBuffValues } from './buffs';
+import { readBuffValues } from '@versions/reforge/packets/buffValues';
 import { Hero } from '../hero';
 import { Social } from '../social/social';
 import { t as text } from '@/i18n';
@@ -145,6 +146,14 @@ export function installNet(): void {
     setObjectEffect(Hero.playerId, p.MagicEffectNumber, add);
     if (add) setBuffTime(p.MagicEffectNumber, p.RemainingSeconds);
     if (add && p.MagicEffectNumber === HELP_NPC) Social.systemMessage(text('buff.npcBlessing'));
+  });
+
+  // C1 ED 02 (Mu Reforge, hand-written): the real remaining time and the values of one of the hero's own
+  // effects, on every activation and renewal (S RemoteView/World/MagicEffectValuesPacket.cs; client
+  // Network/Reforge/BuffValuePackets.cpp HandleBuffValues). It comes after the effect's 0x07 / 0x2D.
+  EventBus.on('BuffValues', packet => {
+    const update = readBuffValues(packet);
+    if (update) setBuffValues(update.effect, update.seconds, update.values);
   });
 
   EventBus.on('MagicEffectCancelled', packet => {

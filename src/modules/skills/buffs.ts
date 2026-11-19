@@ -3,9 +3,9 @@
  *
  * Driven by `HeroSkills.buffs` (MagicEffectStatus 0x07 / MagicEffectCancelled,
  * `net.ts`): a MobX reaction stamps every newly present effect id with the
- * layer clock. OpenMU S6 sends a duration only for item effects (0x2D,
- * `setBuffTime`); otherwise `buffRemaining` counts down for effects whose
- * duration formula the client knows (`recipes.ts`) and answers `null`.
+ * layer clock. The remaining time is only ever the server's: an item effect's 0x2D (`setBuffTime`)
+ * and, for every effect of the hero, our server's C1 ED 02 (`setBuffValues`), which also carries what
+ * the effect adds for the tip. No formula of the client guesses a time.
  *
  * Read by the buff bar (`versions/shared/ui/hud/buff_bar`) through `skills.activeBuffs`
  * / `skills.buffRemaining`, and by the usability rules (`usability.ts`).
@@ -18,6 +18,7 @@ import { HeroSkills } from './state';
 import { Hero } from '../hero';
 import { Session } from '../session';
 import { MagicEffectCancelRequestPacket } from '@versions/shared/packets/ClientToServerPackets';
+import type { BuffValue } from '@versions/reforge/packets/buffValues';
 
 // ---- 1. tuning -------------------------------------------------------------
 
@@ -37,12 +38,30 @@ export interface ActiveBuff {
 let clock = 0;
 /** Effect id → clock seconds when it appeared. */
 const startedAt = new Map<number, number>();
-/** Effect id → clock seconds when it runs out, for the effects whose time the server sent (0x2D). */
+/** Effect id → clock seconds when it runs out, for the effects whose time the server sent (0x2D, ED 02). */
 const endsAt = new Map<number, number>();
+/** Effect id → what it adds, as our server computed it (ED 02). */
+const values = new Map<number, readonly BuffValue[]>();
 
 /** `RegisterBuff(type, Hero, time)` (WSclient.cpp:10265): the server's remaining seconds for an effect. */
 export function setBuffTime(effectId: number, seconds: number): void {
-  endsAt.set(effectId, clock + seconds);
+  if (seconds > 0) endsAt.set(effectId, clock + seconds);
+}
+
+/**
+ * C1 ED 02: the effect's real remaining time - 0 when it has no countdown (a fortress owner's buff, the GM
+ * mark), which drops any time it had - and what it adds.
+ */
+export function setBuffValues(effectId: number, seconds: number, effectValues: readonly BuffValue[]): void {
+  if (seconds > 0) endsAt.set(effectId, clock + seconds);
+  else endsAt.delete(effectId);
+  if (effectValues.length > 0) values.set(effectId, effectValues);
+  else values.delete(effectId);
+}
+
+/** What the effect adds, empty when the server sent nothing. */
+export function buffValues(effectId: number): readonly BuffValue[] {
+  return values.get(effectId) ?? [];
 }
 
 function noteBuffs(ids: readonly number[] | undefined): void {
@@ -54,6 +73,9 @@ function noteBuffs(ids: readonly number[] | undefined): void {
   }
   for (const id of Array.from(endsAt.keys())) {
     if (!ids.includes(id)) endsAt.delete(id);
+  }
+  for (const id of Array.from(values.keys())) {
+    if (!ids.includes(id)) values.delete(id);
   }
 }
 
@@ -111,18 +133,10 @@ export function hasBuff(effectId: number): boolean {
   return HeroSkills.buffs.includes(effectId);
 }
 
-/**
- * Seconds until the effect runs out by the client's best estimate, or
- * `null` when the server never told and no formula is known.
- */
+/** Seconds until the effect runs out as the server told, or `null` when it has no countdown. */
 export function buffRemaining(effectId: number): number | null {
   const end = endsAt.get(effectId);
-  if (end !== undefined) return Math.max(0, end - clock);
-  const started = startedAt.get(effectId);
-  const duration = buffRecipe(effectId).durationSeconds;
-  if (started === undefined || !duration) return null;
-  const total = duration(Hero.eng);
-  return Math.max(0, total - (clock - started));
+  return end === undefined ? null : Math.max(0, end - clock);
 }
 
 function update(_map: ENUM_WORLD, dt: number): void {

@@ -758,4 +758,6 @@ end
 768	1	"Fortress Gate"
 769	1	"Fortress Crystal"
 770	1	"Ancient Smith"
+771	1	"Training Dummy"
+772	1	"Boss Training Dummy"
 end

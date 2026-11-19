@@ -33,6 +33,8 @@ export const BANK_JEWELS: readonly { readonly group: number; readonly num: numbe
   { group: 14, num: 176, packed: 0 }, // Jewel of Sea
   { group: 14, num: 157, packed: 0 }, // Jewel of Chaos Assembly
   { group: 14, num: 178, packed: 0 }, // Ancient Soul Stone (banked, but no market price currency)
+  { group: 14, num: 177, packed: 0 }, // Socket Gem (banked, no market price currency)
+  { group: 14, num: 179, packed: 0 }, // Jewel of Nightmare (banked, no market price currency)
 ];
 export const JEWEL_COUNT = BANK_JEWELS.length;
 

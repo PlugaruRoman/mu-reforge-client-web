@@ -5,7 +5,8 @@ import { MuSpriteFrame } from '@/controllers/interface/components/mu_sprite';
 import { useUiStageScale } from '@/controllers/interface/components/ui_stage';
 import { skills, type ActiveBuff } from '@/modules/skills';
 import { BUFF_ICON_HEIGHT, BUFF_ICON_WIDTH, buffIconCell } from '@/modules/skills/recipes';
-import { t } from '@/i18n';
+import { t, type TextKey } from '@/i18n';
+import type { BuffValue } from '@versions/reforge/packets/buffValues';
 import { MsgBox, MsgWinCode } from '@/controllers/interface';
 import { skillDisplayName } from '@/controllers/assets';
 
@@ -18,18 +19,33 @@ const ICONS_PER_LINE = 8;
 /** How often the remaining-time tip is refreshed; the layer clock is not observable. */
 const TICK_MS = 500;
 
+/** The value kinds this client has a label for (`buff.value.<kind>`, the server's MagicEffectValuesPacket.ValueKind). */
+const LAST_VALUE_KIND = 30;
+
 function formatRemaining(seconds: number): string {
   const s = Math.ceil(seconds);
-  const m = Math.floor(s / 60);
+  const days = Math.floor(s / 86400);
+  const hours = Math.floor((s % 86400) / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  if (days > 0) return t('buff.remainingDay', { days, hours });
+  if (hours > 0) return t('buff.remainingHour', { hours, minutes: m });
   return m > 0
     ? t('buff.remainingMin', { minutes: m, seconds: s % 60 })
     : t('buff.remainingSec', { seconds: s });
 }
 
+/** "Attack power +312", "Max HP -30%"; null for a kind this client has no label for (a newer server). */
+function formatValue(value: BuffValue): string | null {
+  if (value.kind < 1 || value.kind > LAST_VALUE_KIND) return null;
+  const label = t(`buff.value.${value.kind}` as TextKey);
+  const sign = value.amount > 0 ? '+' : '';
+  return `${label} ${sign}${value.amount}${value.percent ? '%' : ''}`;
+}
+
 /**
- * `RenderBuffTooltip`: the effect's name in bold blue, then the remaining
- * time when the client can estimate it (`g_BuffToolTipString`). The
- * half-second refresh lives here, so it only runs while a tip is showing.
+ * `RenderBuffTooltip`: the effect's name in bold blue, what it adds as our server computed it (C1 ED 02:
+ * green, red when it takes away), then the remaining time the server sent. The half-second refresh lives
+ * here, so it only runs while a tip is showing.
  */
 const BuffTip = ({ buff, x, y }: { buff: ActiveBuff; x: number; y: number }) => {
   const [, setTick] = useState(0);
@@ -42,6 +58,14 @@ const BuffTip = ({ buff, x, y }: { buff: ActiveBuff; x: number; y: number }) => 
   return (
     <div className="buff-tip" style={{ left: x, top: y }}>
       <div className="buff-tip-name">{buff.name}</div>
+      {skills.buffValues(buff.id).map((value, i) => {
+        const text = formatValue(value);
+        return text === null ? null : (
+          <div key={i} className={value.amount < 0 ? 'buff-tip-loss' : 'buff-tip-gain'}>
+            {text}
+          </div>
+        );
+      })}
       {remaining !== null && <div>{formatRemaining(remaining)}</div>}
       {buff.kind === 'debuff' && <div className="buff-tip-debuff">{t('buff.debuff')}</div>}
     </div>

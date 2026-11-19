@@ -12,6 +12,7 @@ import { t } from '@/i18n';
 import { InventoryConstants } from '@/core/inventoryConstants';
 import { PetCommandModeEnum } from '@versions/shared/packets/ClientToServerPackets';
 import { isAttackableEntity } from '../../ecs/systems/attackSystem';
+import { monsterRegistry } from '@/controllers/monsters';
 import type { Entity, World } from '../../ecs/world';
 import { ensureMuHelperWatching, MuHelperState, MuHelper } from './state';
 import type { MuHelperConfig } from './config';
@@ -257,12 +258,18 @@ function findHealingPotionSlot(): number {
   return -1;
 }
 
+/** Attackable, and something the helper hunts: not a training dummy, which never dies. */
+function isHuntable(world: World, e: Entity): boolean {
+  if (!isAttackableEntity(world, e)) return false;
+  return e.npcType === undefined || !monsterRegistry.def(e.npcType)?.helperIgnores;
+}
+
 function nearestTarget(world: World, hero: Entity, maxDistance: number): Entity | null {
   const from = heroTile(hero);
   let best: Entity | null = null;
   let bestDist = maxDistance + 1;
   for (const e of world.netObjsQuery.entities) {
-    if (!isAttackableEntity(world, e)) continue;
+    if (!isHuntable(world, e)) continue;
     const dist = tileDistance(from, entityTile(e));
     if (dist < bestDist) {
       bestDist = dist;
@@ -276,7 +283,7 @@ function countTargetsNearby(world: World, hero: Entity, maxDistance: number): nu
   const from = heroTile(hero);
   let count = 0;
   for (const e of world.netObjsQuery.entities) {
-    if (!isAttackableEntity(world, e)) continue;
+    if (!isHuntable(world, e)) continue;
     if (tileDistance(from, entityTile(e)) <= maxDistance) count++;
   }
   return count;

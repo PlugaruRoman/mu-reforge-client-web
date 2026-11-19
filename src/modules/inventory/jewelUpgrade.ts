@@ -95,6 +95,14 @@ const JEWELRY_JEWELS: ReadonlySet<number> = new Set([JEWEL.bless, JEWEL.soul, JE
 const isJewelryUpgrade = (jewel: Item, target: Item) =>
   target.group === 13 && JEWELRY_NUMBERS.has(target.num) && JEWELRY_JEWELS.has(jewel.num);
 
+/** The durability a repaired Horn of Fenrir or muun pet goes back to. */
+const PET_MAX_DURABILITY = 255;
+
+/** Horn of Fenrir (13, 37), the muun pets (13, 150-155) and the Divine Horses (13, 156-161): a Jewel of Bless repairs them
+ *  (S MuunPets.FindPets -> BlessJewelConsumeHandlerPlugIn RepairTargetItems). */
+const isBlessRepairTarget = (item: Item) =>
+  item.group === 13 && (item.num === 37 || (item.num >= 150 && item.num <= 161));
+
 /** Gear that accepts a jewel: weapons, armour, wings, Cape of Lord (13, 30). */
 function isJewelTarget(item: Item): boolean {
   if (item.group <= 11) return !(item.group === 4 && AMMO_NUMBERS.has(item.num));
@@ -124,6 +132,12 @@ export function jewelTargetError(
 
   // Mu Reforge: Skill, Luck, Sea and the Socket Gem have targets of their own (reforgeJewels.ts).
   if (isReforgeJewel(jewel)) return reforgeJewelApplies(jewel, target, facts) ? null : t('item.jewelWrongTarget');
+
+  // A Jewel of Bless restores the Horn of Fenrir and, ours, the muun pets crafted from it
+  // (InventoryCtrl.cpp DropActsOn; S BlessJewelConsumeHandlerPlugIn RepairTargetItems).
+  if (jewel.num === JEWEL.bless && isBlessRepairTarget(target)) {
+    return (target.durability ?? 0) < PET_MAX_DURABILITY ? null : t('item.jewelNotUpgradable');
+  }
 
   if (!isJewelTarget(target) && !(jewelry && isJewelryUpgrade(jewel, target))) return t('item.jewelNotUpgradable');
 

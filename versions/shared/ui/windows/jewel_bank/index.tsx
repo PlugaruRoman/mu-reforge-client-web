@@ -44,7 +44,7 @@ export const JewelBankWindow = observer(() => {
         onSelect={i => JewelBank.selectAmount(i)}
       />
       <RfTableHead className="jewel-bank-head" columns={[{ label: t('jewelBank.jewel') }, { label: t('jewelBank.stored'), width: 70, align: 'right' }]} />
-      <RfList height={287}>
+      <RfList height={325}>
         {BANK_JEWELS.map((_, jewel) => {
           const can = JewelBank.canWithdraw(jewel);
           return (

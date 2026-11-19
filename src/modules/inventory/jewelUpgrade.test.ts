@@ -30,6 +30,19 @@ describe('dropping a jewel on gear', () => {
     setFidelityChoice(FIDELITY_DEFAULT, {});
   });
 
+  it('lets Bless repair a worn Horn of Fenrir or muun pet, and refuses a whole one', () => {
+    const worn = (num: number, durability: number) => ({ group: 13, num, lvl: 0, durability }) as Item;
+    expect(jewelTargetError(BLESS, worn(37, 200), IN_BAG)).toBeNull();
+    expect(jewelTargetError(BLESS, worn(150, 0), IN_BAG)).toBeNull();
+    expect(jewelTargetError(BLESS, worn(155, 254), IN_BAG)).toBeNull();
+    // the Divine Horses (13/156-161) are repair targets too (S MuunPets.FindPets)
+    expect(jewelTargetError(BLESS, worn(156, 10), IN_BAG)).toBeNull();
+    expect(jewelTargetError(BLESS, worn(161, 254), IN_BAG)).toBeNull();
+    expect(jewelTargetError(BLESS, worn(162, 10), IN_BAG)).not.toBeNull();
+    expect(jewelTargetError(BLESS, worn(152, 255), IN_BAG)).not.toBeNull();
+    expect(jewelTargetError(SOUL, worn(152, 100), IN_BAG)).not.toBeNull();
+  });
+
   it('lets a sword take Bless and refuses a ring, as the original', () => {
     expect(jewelTargetError(BLESS, item(0, 5), IN_BAG)).toBeNull();
     expect(jewelTargetError(BLESS, RING_OF_FIRE, IN_BAG)).not.toBeNull();

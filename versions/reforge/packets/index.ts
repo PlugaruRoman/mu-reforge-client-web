@@ -13,6 +13,7 @@ import { ClientToServerPackets as generatedRequests } from './ClientToServerPack
 import { ChangeMapServerInfoPacket } from '../../season6/packets/mapServerMove';
 import { PingRelayPacket } from '../../season6/packets/pingRelay';
 import { ShowHealthStatusPacket } from './healthStatus';
+import { BuffValuesPacket } from './buffValues';
 import { MarketStoreCurrenciesPacket } from './marketStoreCurrencies';
 import { EVENT_PACKETS } from './eventPackets';
 import { ITEM_COLLECTION_PACKETS } from './itemCollections';
@@ -77,7 +78,7 @@ const keep = (p: { Name: string }) =>
  * (S GameServer/RemoteView/ItemCollections/ItemCollectionViewPlugIn.cs, FA 01 / FA 02, `./itemCollections.ts`), which the
  * band module would read as a performer's Start / Stop; `band` is in `modulesOff` (../index.ts).
  */
-export const ServerToClientPackets = [...generated.filter(keep), ChangeMapServerInfoPacket, PingRelayPacket, ShowHealthStatusPacket, ...EVENT_PACKETS, ...SYSTEM_PACKETS, ...ACCOUNT_SYSTEM_PACKETS, ...ITEM_COLLECTION_PACKETS, MarketStoreCurrenciesPacket, ...CASH_SHOP_PACKETS, ...QUEST_BOARD_PACKETS, ...PARTY_SEARCH_PACKETS, ...GUILD_BROWSER_PACKETS];
+export const ServerToClientPackets = [...generated.filter(keep), ChangeMapServerInfoPacket, PingRelayPacket, ShowHealthStatusPacket, BuffValuesPacket, ...EVENT_PACKETS, ...SYSTEM_PACKETS, ...ACCOUNT_SYSTEM_PACKETS, ...ITEM_COLLECTION_PACKETS, MarketStoreCurrenciesPacket, ...CASH_SHOP_PACKETS, ...QUEST_BOARD_PACKETS, ...PARTY_SEARCH_PACKETS, ...GUILD_BROWSER_PACKETS];
 export const ClientToServerPackets = generatedRequests.filter(keep);
 export { ChangeMapServerInfoPacket };
 export { ConnectServerPackets } from './ConnectServerPackets';

@@ -1,7 +1,8 @@
 import type { ENUM_WORLD } from '../../core/types';
 import type { SkillLayer } from './layer';
 import { SKILL_LAYERS } from './layers';
-import { activeBuffs, buffCancelSkill, buffRemaining, cancelBuff, hasBuff, type ActiveBuff } from './buffs';
+import { activeBuffs, buffCancelSkill, buffRemaining, buffValues, cancelBuff, hasBuff, type ActiveBuff } from './buffs';
+import type { BuffValue } from '@versions/reforge/packets/buffValues';
 import {
   skillCooldown,
   skillCooldownRemaining,
@@ -101,9 +102,14 @@ class Skills {
     return hasBuff(effectId);
   }
 
-  /** Seconds the effect has left, or `null` when the client cannot know. */
+  /** Seconds the effect has left as the server sent them, or `null` when it has no countdown. */
   buffRemaining(effectId: number): number | null {
     return buffRemaining(effectId);
+  }
+
+  /** What the effect adds as our server computed it (C1 ED 02), empty when it sent nothing. */
+  buffValues(effectId: number): readonly BuffValue[] {
+    return buffValues(effectId);
   }
 
   /** Seconds before the skill can be cast again, 0 when ready. */

@@ -9,22 +9,22 @@ import { reforgeMonsters } from './all';
 const ROOT = resolve(__dirname, '../../..');
 
 /**
- * Our client's table (mu-reforge-client-next, World/Reforge/ReforgeMonsters.cpp): 79 rows, 58 of
+ * Our client's table (mu-reforge-client-next, World/Reforge/ReforgeMonsters.cpp): 81 rows, 60 of
  * them drawn from our own art (`Monster<file>.bmd`, loaded into slot `file - 1`).
  */
 describe('reforge monsters', () => {
   it('has every row of our client table', () => {
     const numbers = reforgeMonsters.map(m => m.Numb).sort((a, b) => a - b);
-    expect(numbers).toHaveLength(79);
+    expect(numbers).toHaveLength(81);
     expect(numbers.slice(0, 4)).toEqual([523, 600, 601, 602]);
     expect(numbers).not.toContain(731);
     expect(numbers).not.toContain(764);
-    expect(numbers.at(-1)).toBe(770);
+    expect(numbers.at(-1)).toBe(772);
   });
 
   it('draws our own art from the converted tree', () => {
     const own = reforgeMonsters.filter(m => m.model && m.model.type >= 217);
-    expect(own).toHaveLength(58);
+    expect(own).toHaveLength(60);
     const missing = own
       .flatMap(m => (m.model ? [monsterModelFile(m.model.type)] : []))
       .filter(file => !existsSync(resolve(ROOT, 'public/game-assets-reforge', file)));
@@ -37,6 +37,7 @@ describe('reforge monsters', () => {
     expect(monsterRegistry.model(604)).toEqual({ type: 64, scale: 1.8 });
     expect(monsterRegistry.model(765)).toEqual({ type: 347, scale: 90 });
     expect(monsterRegistry.model(770)).toEqual({ type: 349, scale: 0.95 });
+    expect(monsterRegistry.model(772)).toEqual({ type: 350, scale: 1.0 });
   });
 
   it('marks the NPCs talkable and hides the trap', () => {

@@ -84,7 +84,9 @@ plug-ins: the `...Extended` packets and the 5-15 byte `ItemSerializerExtended` i
   -> `Monster/Monster218.glb`...); the rest reuse a stock model (Deep Dungeon 705-713, flowers
   600-602, Lord of Kundun 604, golden 759-762, Fortress 767-769). The NPCs carry `npc: true`
   (talked to, never attacked, `ecs/systems/attackSystem.ts`); 523 (trap) is `hidden`. The Ancient Smith (770,
-  `Monster350.bmd`, scale 0.95) opens his own chaos machine tray (`src/modules/reforge_mix`). Malgruth's
+  `Monster350.bmd`, scale 0.95) opens his own chaos machine tray (`src/modules/reforge_mix`). The Arena
+  training dummies (771 without defense, 772 with a tier 4 boss's) share `Monster351.bmd`; they never die,
+  so they carry `helperIgnores` and the MU Helper (`src/modules/mu_helper/loop.ts`) skips them. Malgruth's
   green glow is a `bodyFx` cards row; the golden four are classes in
   `versions/shared/monsters/_golden_line/model.ts`. Names: the folder's `Name` when the language
   pack has none (`monstersDatabase.ts`), and our `NpcName_Eng.txt` (ours plus

@@ -428,12 +428,14 @@ export const SKILL_DEFINITIONS: readonly SkillDefinition[] = [
 
 /**
  * The skill each active master skill replaces: OpenMU's `MasterSkillDefinition.ReplacedSkill`
- * (`AddMasterSkillDefinition`), the original's SKILL_REPLACEMENTS (_enum.h:637-707) plus 470.
+ * (`AddMasterSkillDefinition`), the original's SKILL_REPLACEMENTS (_enum.h:637-707) plus 470, and
+ * Multi-Shot Strengthener / Mastery (411, 431) of the desktop client's ReforgeSkills.cpp.
  */
 export const MASTER_REPLACES: Readonly<Record<number, number>> = {
   326: 22, 327: 23, 328: 19, 329: 20, 330: 41, 331: 42, 332: 330, 333: 331, 336: 43, 337: 232, 356: 48, 360: 356,
   378: 5, 379: 3, 380: 233, 381: 14, 382: 13, 383: 380, 384: 1, 385: 9, 387: 38, 388: 10, 389: 7, 403: 16,
-  404: 403, 413: 26, 414: 24, 416: 52, 417: 27, 418: 414, 420: 28, 422: 420, 423: 417, 424: 51, 441: 77, 454: 219,
+  404: 403, 411: 235, 413: 26, 414: 24, 416: 52, 417: 27, 418: 414, 420: 28, 422: 420, 423: 417, 424: 51, 431: 411,
+  441: 77, 454: 219,
   455: 215, 456: 230, 458: 214, 469: 218, 470: 469, 479: 22, 480: 3, 481: 41, 482: 56, 483: 5, 484: 13, 486: 14,
   487: 9, 489: 7, 490: 55, 508: 61, 509: 66, 511: 64, 512: 62, 514: 508, 515: 511, 516: 512, 517: 515, 518: 78,
   551: 260, 552: 261, 554: 551, 555: 552, 558: 262, 559: 263, 560: 264, 569: 268, 572: 569, 573: 267,
@@ -449,11 +451,13 @@ const byNumber = new Map(SKILL_DEFINITIONS.map(s => [s.num, s]));
 
 // OpenMU copies the replaced skill's type, target and area onto the master skill, so it
 // goes out as that skill does (AreaSkill for Twisting Slash Strengthener, not a TargetedSkill).
+// Its damage too (AttackDamage, the master value is a percentage on top): the master skill's own
+// number is a leftover - Multi-Shot Mastery has 1, so the tooltip showed the damage falling from 40.
 for (const [num, def] of byNumber) {
   const root = byNumber.get(masterRoot(num));
   if (!root || root === def) continue;
-  const { type, target, damageType, range } = root;
-  byNumber.set(num, { ...def, type, target, damageType, range });
+  const { type, target, damageType, range, damage } = root;
+  byNumber.set(num, { ...def, type, target, damageType, range, damage });
 }
 
 export function skillDefinition(num: number): SkillDefinition | undefined {
