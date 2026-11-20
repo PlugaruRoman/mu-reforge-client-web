@@ -165,10 +165,10 @@ describe('the muun pets (mix 118)', () => {
   const sword = { group: 0, num: 5, lvl: 11, optionLevel: 4, isExcellent: true, excellentFlags: 1, durability: 30 } as Item;
   const nightmare = it14(JEWEL_OF_NIGHTMARE);
 
-  it('copies each stock Fenrir record with the fed item narrowed and a Jewel of Nightmare on top, at 74 %', () => {
+  it('copies each stock Fenrir record with the fed item narrowed and a Jewel of Nightmare on top, at 40 %', () => {
     expect(MUUN).toHaveLength(1);
     const [muun] = MUUN;
-    expect([muun.names, muun.maxRate, muun.mixOption]).toEqual([[0, 0, 0], 74, '']);
+    expect([muun.names, muun.maxRate, muun.mixOption]).toEqual([[0, 0, 0], 40, '']);
     expect(muun.sources).toHaveLength(5);
     expect(muun.sources[3]).toMatchObject({ levelMin: 11, optionMin: 4, special: 1 });
     expect(muun.sources[4]).toMatchObject({ typeMin: code(14, 179), typeMax: code(14, 179), countMin: 1, countMax: 1 });
@@ -179,7 +179,7 @@ describe('the muun pets (mix 118)', () => {
   it('matches the Gold Fenrir box with the jewel, the Golden Fenrir upgrade without it', () => {
     const check = checkMix(ADJUSTED, [horn, life, chaos, sword, nightmare]);
     expect(check.recipe?.mixId).toBe(MIX.muunPet);
-    expect(check.successRate).toBeLessThanOrEqual(74);
+    expect(check.successRate).toBeLessThanOrEqual(40);
     expect(check.recipe && recipeName(check.recipe)).toBe('Muun Pet');
     expect(checkMix(ADJUSTED, [horn, life, chaos, sword]).recipe?.mixId).toBe(MIX.fenrirUpgrade);
     // A plain +11 item is no muun box.

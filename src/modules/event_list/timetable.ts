@@ -79,7 +79,7 @@ const row = (id: string, where: string, tab: TimerTab, timetable: Timetable, sta
 /** EventTimerEntries.cpp `Table`, in its order (the order ties keep). */
 export const TIMER_ENTRIES: readonly TimerEntry[] = [
   row('bloodCastle', 'bloodCastle18', 'events', dailyAt(BLOOD_CASTLE_TIMES, 5), 0, MiniGameType.BloodCastle),
-  row('devilSquare', 'devilSquare17', 'events', dailyAt(DEVIL_SQUARE_TIMES, 1), 0, MiniGameType.DevilSquare),
+  row('devilSquare', 'devilSquare17', 'events', dailyAt(DEVIL_SQUARE_TIMES, 5), 0, MiniGameType.DevilSquare),
   row('chaosCastle', 'chaosCastle17', 'events', every(120, at(1, 25), 5), 0, MiniGameType.ChaosCastle),
   row('illusionTemple', 'illusionTemple', 'events', every(120, at(1, 10), 5), 0, MiniGameType.IllusionTemple),
   row('happyHour', 'everywhere', 'events', every(360, at(0, 5), 60)),

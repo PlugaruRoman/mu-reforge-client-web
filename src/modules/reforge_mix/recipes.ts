@@ -54,8 +54,13 @@ const SPIRIT_STONES = [164, 165, 166] as const;
 export const ANCIENT_SOUL_STONE = 178;
 /** Jewel of Nightmare (14/179): turns a Gold Fenrir into a random muun pet (mix 118). */
 export const JEWEL_OF_NIGHTMARE = 179;
-/** Mix 118 caps the fed item's rate five points under the Gold Fenrir's 79 (S MuunPetCrafting.MaximumRateByItems). */
-const MUUN_PET_MAX_RATE = 74;
+/**
+ * The Gold Fenrir (the golden records of mix 28) and the muun pets / Divine Horse (mixes 118, 119) are end-game
+ * content: 40 % at most, the Talisman of Luck included (S FenrirUpgradeCraftingGold.GoldMaximumRate,
+ * MuunPetCrafting.MaximumRateByItems). See `rateCapIncludesCharm`.
+ */
+const MUUN_PET_MAX_RATE = 40;
+const GOLDEN_FENRIR_MAX_RATE = 40;
 /** `MAX_MIX_SOURCES`: a record holds at most eight kinds of item. */
 const MAX_MIX_SOURCES = 8;
 /** The Fenrir upgrade's fed item (horn, life, chaos, then the weapon or armour). */
@@ -212,6 +217,7 @@ export function adjustGoblinRecipes(list: readonly MixRecipe[]): MixRecipe[] {
       .map(r => ({
         ...r,
         names: [r.names[0], GOLDEN_FENRIR_TEXT, r.names[2]],
+        maxRate: GOLDEN_FENRIR_MAX_RATE,
         sources: r.sources.map((s, j) => (j === 3 ? { ...s, levelMin: 11, optionMin: 4, special: s.special | SP.excellent } : s)),
       }));
     out.splice(firstFenrir, 0, ...golden);
@@ -316,6 +322,14 @@ export function recipeAllowedFor(r: MixRecipe, heroClass: CharacterClassNumber):
 }
 
 /**
+ * `IsRateCapIncludingCharm` (our ReforgeMixRecipes.cpp): the end-game mixes - the Gold Fenrir, the muun pets and the
+ * Divine Horse - keep the Talisman of Luck under their maximum, like the server, instead of adding it on top.
+ */
+export function rateCapIncludesCharm(r: MixRecipe): boolean {
+  return r.mixId === MIX.muunPet || r.mixId === MIX.divineHorse || (r.mixId === MIX.fenrirUpgrade && r.names[1] === GOLDEN_FENRIR_TEXT);
+}
+
+/**
  * The goblin's list is type 0 (`MIXTYPE_GOBLIN_NORMAL`), the Ancient Smith's ours (`ANCIENT_SMITH.mixType`); every
  * other type stays `Mix.bmd`'s. The server answers a talk to the Ancient Smith with the goblin's window (0x30, 3);
  * our client opens his tray instead (WSclient.cpp `ReceiveTalk` case 3, `LastTalkedMonster`).
@@ -323,6 +337,7 @@ export function recipeAllowedFor(r: MixRecipe, heroClass: CharacterClassNumber):
 export const REFORGE_MIX: MixAdjuster = {
   recipes: (list, mixType) => (mixType === 0 ? adjustGoblinRecipes(list) : mixType === ANCIENT_SMITH.mixType ? ancientSmithRecipes() : list),
   item: adjustMixItem,
+  capIncludesCharm: rateCapIncludesCharm,
   name: recipeName,
   npcTray: npc => (npc === ANCIENT_SMITH.npc ? ANCIENT_SMITH.mixType : null),
   tray: mixType => (mixType === ANCIENT_SMITH.mixType ? ancientSmithTray() : null),

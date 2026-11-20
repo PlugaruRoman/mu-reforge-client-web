@@ -29,7 +29,7 @@ mix flags of our items. Port of our C++ client's `GameLogic/Reforge/ReforgeMixRe
   of the stock records (fed item excellent, +11, with an option; name GlobalText 1871).
 - The muun pets (S `VersionSeasonSix/MuunPets.cs`, our `AddMuunPetRecipes`): mix 118 is a copy of each stock mix 28
   record (built before the golden copies) with the fed item narrowed like the Golden Fenrir's and a Jewel of Nightmare
-  (14/179) added; max 74 %, no `Text.bmd` ids (`reforgeMix.muunPet`). The client cannot tell a gold horn from a plain
+  (14/179) added; max 40 % with the Talisman of Luck included (like the golden Fenrir records), no `Text.bmd` ids (`reforgeMix.muunPet`). The client cannot tell a gold horn from a plain
   one; the server checks it, and its EC rate replaces the shown one. Result: a random pet 13/150-155.
 - The Divine Horses (S `DivineHorseCrafting`, our `AddDivineHorseRecipes`): mix 119 is each mix 118 record plus one Dark
   Horse (13/4), the rate, price and the rest mix 118's. The two never match one box (an item left over refuses a

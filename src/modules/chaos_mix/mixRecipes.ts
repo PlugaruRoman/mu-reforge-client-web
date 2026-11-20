@@ -59,6 +59,8 @@ export type MixAdjuster = {
   name(recipe: MixRecipe): string | null;
   /** Whether the hero may make the recipe at all (a class-bound one of the server's own); all may when absent. */
   allowed?(recipe: MixRecipe): boolean;
+  /** Whether the recipe keeps the charm under its `maxRate` instead of adding it on top; none does when absent. */
+  capIncludesCharm?(recipe: MixRecipe): boolean;
   /** The mix type the chaos machine window of NPC `npcType` opens as (a tray of the server's own), or null for the goblin's. */
   npcTray?(npcType: number): number | null;
   /** A tray of the server's own: its title and description lines (red when `warn`); taxed, rated and priced as the goblin's. */
@@ -357,6 +359,7 @@ export function checkMix(loaded: readonly MixRecipe[], tray: readonly (Item | nu
     let rate = Math.trunc(evaluateRate(recipe.rate, values));
     rate = Math.min(rate, recipe.maxRate);
     if (recipe.charmOption === 'A') rate += charmBonus;
+    if (adjuster?.capIncludesCharm?.(recipe)) rate = Math.min(rate, recipe.maxRate);
     check.successRate = Math.min(rate, 100);
     check.requiredZen = recipe.zenType === 'A' || recipe.zenType === 'C' ? recipe.zen : recipe.zenType === 'B' ? check.successRate * recipe.zen : 0;
     break;
