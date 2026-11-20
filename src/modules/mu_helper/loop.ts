@@ -370,13 +370,13 @@ function pickupName(drop: NonNullable<Entity['droppedItem']>, fallback: string, 
 
 /**
  * `CMuHelper::ReforgeShouldObtainItem` (our MuHelperReforge.cpp) - the pickup filters. Zen has its own box,
- * but only while a pick mode runs, and never zen a full purse refuses; "pick all" ignores the filters; the
+ * whichever pick mode runs or none ("Zen" ticked alone took nothing), and never zen a full purse refuses; "pick all" ignores the filters; the
  * selected filters count only while "selected" is ticked (upstream f4ec04ea1 / f91a3f709).
  */
 function shouldObtain(config: MuHelperConfig, e: Entity): boolean {
   const drop = e.droppedItem!;
   if (drop.isMoney) {
-    return config.pickZen && (config.pickAllItems || config.pickSelectedItems) && !isZenOverPurse(drop, Hero.money);
+    return config.pickZen && !isZenOverPurse(drop, Hero.money);
   }
 
   if (config.pickAllItems) return true;
@@ -414,6 +414,9 @@ function obtainItem(world: World, hero: Entity, config: MuHelperConfig): boolean
   for (const e of world.netObjsQuery.entities) {
     // One request per drop: the original takes it off its list once asked for (`DeleteItem`, MuHelper.cpp:1252).
     if (!e.droppedItem || e.droppedItem.pickupAsked || e.objOutOfScope) continue;
+    // A drop the server just refused waits a moment: asking again at once only collects the same answer.
+    const refusedAt = e.droppedItem.pickupRefusedAt;
+    if (refusedAt !== undefined && performance.now() - refusedAt < 1500) continue;
     if (e.worldIndex !== undefined && e.worldIndex !== world.mapIndex) continue;
     if (!shouldObtain(config, e)) continue;
     const dist = tileDistance(from, entityTile(e));

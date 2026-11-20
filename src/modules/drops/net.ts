@@ -16,6 +16,7 @@ import { createAttributeSystem } from '@/core/attributeSystem';
 import { itemLevelName } from '@/controllers/item_rules';
 import { playDrop } from '@/controllers/sound';
 import { removeNetObject } from '../scope/objects';
+import { Drops } from './state';
 import { runInAction } from 'mobx';
 import { t } from '@/i18n';
 
@@ -277,6 +278,19 @@ export function installNet(): void {
 
     if (reason === ItemPickUpRequestFailedItemPickUpFailReasonEnum.ItemStacked) {
       return;
+    }
+
+    // A refused drop stayed marked as asked for, and the MU Helper never went for it again: the pile lay next
+    // to the hero until it despawned. The usual refusal is the distance (the server sees the hero a step behind
+    // the walk), so it is offered again after a pause, a few times (`OnPickupRefused`, MuHelperReforge.cpp).
+    const refusedId = Drops.lastPickupNetId;
+    Drops.lastPickupNetId = null;
+    const refused = refusedId === null ? undefined : Ecs.world?.getByNetId(refusedId);
+    if (refused?.droppedItem?.pickupAsked && !refused.objOutOfScope) {
+      const drop = refused.droppedItem;
+      drop.pickupRefusals = (drop.pickupRefusals ?? 0) + 1;
+      drop.pickupRefusedAt = performance.now();
+      if (drop.pickupRefusals <= 3) drop.pickupAsked = false;
     }
 
     addNotification(

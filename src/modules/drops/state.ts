@@ -13,8 +13,13 @@ export const Drops = new (class {
     });
   }
 
+  /** The drop of the last pickup request: the failure answer names no drop (`SendGetItem`, WSclient.cpp). */
+  lastPickupNetId: number | null = null;
+
   pickupItemRequest(itemNetId: number): void {
     if (Session.isOffline) return;
+
+    this.lastPickupNetId = itemNetId;
 
     const packet = PickupItemRequestPacket.createPacket();
     packet.ItemId = itemNetId;

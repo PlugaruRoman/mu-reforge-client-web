@@ -490,6 +490,9 @@ export type Entity = Partial<{
     num: number;
     /** A pickup request went out for it: the MU Helper does not go for it again (`DeleteItem`). */
     pickupAsked?: boolean;
+    /** How often the server refused to hand it over, and when last (`performance.now()`): see drops/net.ts. */
+    pickupRefusals?: number;
+    pickupRefusedAt?: number;
   };
   onDispose?: () => void;
 }>;

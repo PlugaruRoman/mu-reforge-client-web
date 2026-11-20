@@ -307,7 +307,14 @@ function parseTooltips(buffer: Uint8Array): MasterSkillTooltip[] {
     return {
       skill,
       classCode: v.getUint16(4, true),
-      info: TOOLTIP_FIELDS.map(([offset, length]) => cString(b, offset, length)),
+      info: TOOLTIP_FIELDS.map(([offset, length], i) =>
+        // [reforge] a requirement line that fills all 64 bytes of Info6 has no terminator and runs on
+        // into Info7 in the original (strcpy), e.g. "...of Lv. 10 or highe" + "r". Only nodes with ONE
+        // requirement use this; with two, Info7 is the second line.
+        i === 5 && b[offset + length - 1] !== 0
+          ? cString(b, offset, length) + cString(b, TOOLTIP_FIELDS[6][0], TOOLTIP_FIELDS[6][1])
+          : cString(b, offset, length)
+      ),
     };
   });
 }
@@ -448,13 +455,14 @@ function isMasterSkill(skill: number): boolean {
   return skill >= MASTER_SKILL_FIRST && skill <= MASTER_SKILL_LAST;
 }
 
-/** `CheckParentSkill`: every required master skill is at level 10. */
+/**
+ * `CheckParentSkill` [reforge]: ONE required master skill at level 10 is enough - a node with two
+ * parents (Weapon Mastery after Twisting Slash or Power Slash Strengthener) opens from either branch,
+ * as the server's AddMasterPointAction.AreRequiredSkillsMet does.
+ */
 function masterParentsMet(entry: MasterTreeEntry): boolean {
-  for (const required of entry.requireSkills) {
-    if (!required || !isMasterSkill(required)) return true;
-    if (masterSkillLevel(required) < RANK_UNLOCK_LEVEL) return false;
-  }
-  return true;
+  const parents = entry.requireSkills.filter((required) => required && isMasterSkill(required));
+  return parents.length === 0 || parents.some((required) => masterSkillLevel(required) >= RANK_UNLOCK_LEVEL);
 }
 
 /** `skillPoint[group][rank]`: the highest level among a rank's nodes. */
@@ -585,7 +593,7 @@ export function masterSkillTooltipLines(entry: MasterTreeEntry): MasterTooltipLi
     entry.requireSkills.forEach((required, i) => {
       if (!required || !isMasterSkill(required)) return;
       const text = i === 0 ? info6 : info7;
-      if (text) pushLines(lines, text, masterSkillLevel(required) < RANK_UNLOCK_LEVEL ? 2 : 0);
+      if (text) pushLines(lines, text, masterParentsMet(entry) ? 0 : 2);
     });
   }
 

@@ -180,8 +180,9 @@ describe('updateMuHelperLoop', () => {
   const zen = { isMoney: true, group: 14, num: 15, amount: 1000 };
   const shield = { isMoney: false, group: 6, num: 4, item: { group: 6, num: 4 } };
 
-  it('picks zen only while a pick mode runs, and never zen a full purse refuses (IsZenOverPurse)', () => {
-    expect(goesFor({ pickZen: true }, zen)).toBe(false);
+  it('picks zen by its own box, with or without a pick mode, and never zen a full purse refuses (IsZenOverPurse)', () => {
+    expect(goesFor({ pickZen: true }, zen)).toBe(true);
+    expect(goesFor({ pickZen: false }, zen)).toBe(false);
     expect(goesFor({ pickZen: true, pickSelectedItems: true }, zen)).toBe(true);
     expect(goesFor({ pickZen: true, pickAllItems: true }, zen)).toBe(true);
     expect(goesFor({ pickZen: false, pickAllItems: true }, zen)).toBe(false);
