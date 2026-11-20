@@ -24,4 +24,9 @@ export default {
   'reforgeMix.muunExcellentDamage': 'Mükemmel hasar şansı +{value}%',
   'reforgeMix.muunCriticalDamage': 'Kritik hasar şansı +{value}%',
   'reforgeMix.muunReflect': 'Alınan hasarın %{value} kadarını yansıtır',
+  'reforgeMix.divineHorse': 'Divine Horse',
+  'reforgeMix.divineHorseRide': 'Dark Lord onu Dark Horse gibi sürer',
+  'reforgeMix.divineHorseSkill': 'Earthshake becerisini verir',
+  'reforgeMix.divineHorseOrigin': 'Bir Gold Fenrir ve bir Dark Horse ile yapılır',
+  'reforgeMix.nightmareDivineHorse': 'Kutuda bir Dark Horse da varsa: rastgele bir Divine Horse.',
 } satisfies Partial<Record<keyof typeof en, string>>;

@@ -24,4 +24,9 @@ export default {
   'reforgeMix.muunExcellentDamage': '卓越伤害几率 +{value}%',
   'reforgeMix.muunCriticalDamage': '幸运一击伤害几率 +{value}%',
   'reforgeMix.muunReflect': '反射所受伤害的 {value}%',
+  'reforgeMix.divineHorse': 'Divine Horse',
+  'reforgeMix.divineHorseRide': 'Dark Lord 可像 Dark Horse 一样骑乘',
+  'reforgeMix.divineHorseSkill': '赋予 Earthshake 技能',
+  'reforgeMix.divineHorseOrigin': '由 Gold Fenrir 和 Dark Horse 制成',
+  'reforgeMix.nightmareDivineHorse': '再放入 Dark Horse：随机一匹 Divine Horse。',
 } satisfies Partial<Record<keyof typeof en, string>>;

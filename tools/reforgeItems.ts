@@ -45,6 +45,8 @@ export const NEW_ITEMS: readonly string[] = [
   '14/178',
   // The muun pets and the Jewel of Nightmare that makes them (S VersionSeasonSix/MuunPets.cs).
   '13/150', '13/151', '13/152', '13/153', '13/154', '13/155', '14/179',
+  // The Divine Horses, the Dark Lord's mount of mix 119 (S VersionSeasonSix/MuunPets.cs).
+  '13/156', '13/157', '13/158', '13/159', '13/160', '13/161',
 ];
 
 /**
@@ -98,6 +100,47 @@ const GROUND_LABELS: Readonly<Record<string, string>> = {
  */
 const MUUN_PETS: ReadonlySet<string> = new Set([150, 151, 152, 153, 154, 155].map(n => `13/${n}`));
 const MUUN_PET_SCALE = 0.9;
+
+/**
+ * The Divine Horses (`IsDivineHorse`, GameLogic/Reforge/ReforgeItemTypes.h; `ReforgeDivineHorse.h`): ridden by the
+ * Dark Lord like the Dark Horse, on their own model at the Dark Horse's scale (`MountScale`). Earthshake's blur
+ * trails from the head (`DarkHorseBonesOf` in GOBoid.cpp: "Bip001 Head"), and the glow is `DivineHorseLights`
+ * (GOBoid.cpp, the model author's BITMAP_LIGHT lines): blue on the horn and the armour plates, a warm pair on the
+ * eyes, a pale white on the head, the wings and the tail.
+ */
+const DIVINE_HORSES: ReadonlySet<string> = new Set([156, 157, 158, 159, 160, 161].map(n => `13/${n}`));
+const DIVINE_HORSE_SCALE = 1;
+const DIVINE_HORSE_BLUR_BONE = 'Bip001 Head';
+const DIVINE_HORSE_LIGHTS: readonly { color: [number, number, number]; bones: [number, number][] }[] = [
+  {
+    color: [0.1, 0.66, 1],
+    bones: [
+      [16, 1], [17, 0.5], [18, 0.5], [21, 0.6], [22, 0.6], [23, 0.7], [51, 0.6], [46, 0.6], [49, 0.5], [50, 0.5],
+      [87, 1], [98, 1], [59, 1], [75, 1], [76, 1], [55, 1], [70, 1], [71, 1], [43, 1], [34, 1],
+    ],
+  },
+  { color: [0.8, 0.6, 0.5], bones: [[19, 0.5], [20, 0.5]] },
+  {
+    color: [0.8, 0.8, 0.75],
+    bones: [
+      [9, 2], [11, 0.5], [12, 0.5], [13, 1.5], [15, 0.5], [24, 0.5], [25, 0.5], [85, 0.75], [86, 0.75], [96, 0.75],
+      [97, 0.75], [104, 2], [105, 1], [107, 0.5], [109, 0.5], [111, 0.5], [112, 1], [113, 1], [114, 1.5],
+    ],
+  },
+];
+
+/** A Divine Horse's `Mount`: the blur bone by name, the lights on the bones the model has and that are not dummies. */
+export function divineHorseMount(bones: readonly unknown[]): Row {
+  const name = (b: unknown) => (b && typeof b === 'object' && 'Name' in b ? String((b as { Name: unknown }).Name) : '');
+  const head = bones.findIndex(b => b !== BMDTextureBone.Dummy && name(b) === DIVINE_HORSE_BLUR_BONE);
+  const live = (bone: number) => bone < bones.length && bones[bone] !== BMDTextureBone.Dummy;
+  const lights = DIVINE_HORSE_LIGHTS.map(l => ({ color: l.color, bones: l.bones.filter(([bone]) => live(bone)) })).filter(l => l.bones.length);
+  return {
+    scale: DIVINE_HORSE_SCALE,
+    ...(head >= 0 ? { blurBone: head } : {}),
+    ...(lights.length ? { lights } : {}),
+  };
+}
 
 export type JsonItem = {
   number: number;
@@ -240,6 +283,7 @@ export function extras(
   const label = GROUND_LABELS[`${group}/${item.number}`];
   if (label) out.Label = label;
   if (MUUN_PETS.has(`${group}/${item.number}`)) out.Follower = { scale: MUUN_PET_SCALE };
+  if (DIVINE_HORSES.has(`${group}/${item.number}`)) out.Mount = divineHorseMount(bones.length ? bones : readBones());
   return out;
 }
 

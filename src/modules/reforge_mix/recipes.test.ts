@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import type { Item } from '@/ecs/world';
 import type { MixRecipe, MixSource } from '@/controllers/assets';
+import { CharacterClassNumber } from '@/core/types';
 
 vi.hoisted(() => {
   const g = globalThis as Record<string, unknown>;
@@ -9,9 +10,9 @@ vi.hoisted(() => {
 });
 
 const { checkMix, setMixAdjuster } = await import('../chaos_mix/mixRecipes');
-const { ANCIENT_SMITH, ANCIENT_SOUL_STONE, JEWEL_OF_NIGHTMARE, MIX, REFORGE_MIX, adjustGoblinRecipes, adjustMixItem, ancientSmithRecipes, recipeName } = await import('./recipes');
+const { ANCIENT_SMITH, ANCIENT_SOUL_STONE, JEWEL_OF_NIGHTMARE, MIX, REFORGE_MIX, adjustGoblinRecipes, adjustMixItem, ancientSmithRecipes, recipeAllowedFor, recipeName } = await import('./recipes');
 const { ancientSoulStoneLines } = await import('./stone');
-const { isMuunPet, jewelOfNightmareLines, muunPetLines } = await import('./muun');
+const { divineHorseLines, isDivineHorse, isMuunPet, jewelOfNightmareLines, muunPetLines } = await import('./muun');
 const { loadItemOptionTables } = await import('@/controllers/assets');
 
 const code = (group: number, num: number) => group * 512 + num;
@@ -203,10 +204,66 @@ describe('the muun pets (mix 118)', () => {
 
   it('describes the Jewel of Nightmare in lines short enough for the unwrapped tooltip', () => {
     const lines = jewelOfNightmareLines(nightmare);
-    expect(lines.map(l => l.color)).toEqual(['white', 'green', 'green']);
+    expect(lines.map(l => l.color)).toEqual(['white', 'green', 'green', 'green']);
+    expect(lines[3].text).toBe('With a Dark Horse in the box too: a random Divine Horse.');
     expect(lines[0].text).toBe('Turns a Gold Fenrir into a random muun pet.');
     for (const l of lines) expect(l.text.length).toBeLessThanOrEqual(72);
     expect(jewelOfNightmareLines(it14(178))).toEqual([]);
+  });
+});
+
+// The Divine Horses (our ReforgeMixRecipes.cpp AddDivineHorseRecipes / IsRecipeAllowedForHero, ReforgeItemTooltip.cpp
+// AddDivineHorseLines; S DivineHorseCrafting).
+describe('the Divine Horses (mix 119)', () => {
+  const DIVINE = ADJUSTED.filter(r => r.mixId === MIX.divineHorse);
+  const horn = { group: 13, num: 37, durability: 255, excellentFlags: 4 } as Item;
+  const life = it14(16);
+  const chaos = { group: 12, num: 15, durability: 1 } as Item;
+  const sword = { group: 0, num: 5, lvl: 11, optionLevel: 4, isExcellent: true, excellentFlags: 1, durability: 30 } as Item;
+  const nightmare = it14(JEWEL_OF_NIGHTMARE);
+  const darkHorse = { group: 13, num: 4, lvl: 30, durability: 255 } as Item;
+  const { DarkLord: DARK_LORD, LordEmperor: LORD_EMPEROR, DarkKnight: DARK_KNIGHT } = CharacterClassNumber;
+
+  it('copies each mix 118 record with a Dark Horse on top, its rate and price', () => {
+    const [muun] = ADJUSTED.filter(r => r.mixId === MIX.muunPet);
+    expect(DIVINE).toHaveLength(1);
+    const [divine] = DIVINE;
+    expect([divine.maxRate, divine.zen, divine.zenType, divine.names]).toEqual([muun.maxRate, muun.zen, muun.zenType, [0, 0, 0]]);
+    expect(divine.sources).toHaveLength(muun.sources.length + 1);
+    expect(divine.sources.at(-1)).toMatchObject({ typeMin: code(13, 4), typeMax: code(13, 4), countMin: 1, countMax: 1 });
+    expect(recipeName(divine)).toBe('Divine Horse');
+  });
+
+  it('matches the muun box with a Dark Horse as 119, without it as 118', () => {
+    expect(checkMix(ADJUSTED, [horn, life, chaos, sword, nightmare, darkHorse]).recipe?.mixId).toBe(MIX.divineHorse);
+    expect(checkMix(ADJUSTED, [horn, life, chaos, sword, nightmare]).recipe?.mixId).toBe(MIX.muunPet);
+  });
+
+  it("is the Dark Lord's alone", () => {
+    expect([recipeAllowedFor(DIVINE[0], DARK_LORD), recipeAllowedFor(DIVINE[0], LORD_EMPEROR), recipeAllowedFor(DIVINE[0], DARK_KNIGHT)]).toEqual([true, true, false]);
+    expect(recipeAllowedFor(ADJUSTED.filter(r => r.mixId === MIX.muunPet)[0], DARK_KNIGHT)).toBe(true);
+    const box = [horn, life, chaos, sword, nightmare, darkHorse];
+    try {
+      setMixAdjuster({ recipes: l => l, item: adjustMixItem, name: recipeName, allowed: r => recipeAllowedFor(r, DARK_KNIGHT) });
+      expect(checkMix(ADJUSTED, box).recipe).toBeNull();
+      setMixAdjuster({ recipes: l => l, item: adjustMixItem, name: recipeName, allowed: r => recipeAllowedFor(r, DARK_LORD) });
+      expect(checkMix(ADJUSTED, box).recipe?.mixId).toBe(MIX.divineHorse);
+    } finally {
+      setMixAdjuster({ recipes: l => l, item: adjustMixItem, name: recipeName });
+    }
+  });
+
+  it("lists a horse's Gold Fenrir bonuses, the bonus of the muun pet in its place, and the ride in green", () => {
+    expect([155, 156, 161, 162].map(num => isDivineHorse({ group: 13, num }))).toEqual([false, true, true, false]);
+    const lines = divineHorseLines({ group: 13, num: 158 }, 400).map(l => [l.text, l.color]);
+    expect(lines.slice(0, 7)).toEqual(muunPetLines({ group: 13, num: 152 }, 400).slice(0, 7).map(l => [l.text, l.color]));
+    expect(lines.slice(7)).toEqual([
+      ['Ridden by the Dark Lord like the Dark Horse', 'green'],
+      ['Grants the Earthshake skill', 'green'],
+      ['Made of a Gold Fenrir and a Dark Horse', 'green'],
+    ]);
+    expect(divineHorseLines({ group: 13, num: 161 }, 0)[6].text).toBe('Reflects 5% of the damage taken');
+    expect(divineHorseLines({ group: 13, num: 150 }, 400)).toEqual([]);
   });
 });
 

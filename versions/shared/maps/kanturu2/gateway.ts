@@ -4,6 +4,7 @@ import { EventBus } from '@/core/eventBus';
 import { SoundsManager } from '@/controllers/sound/soundsManager';
 import type { Sounds } from '@/controllers/sound/recipes';
 import { DARK_HORSE, HORN_OF_DINORANT, HORN_OF_FENRIR, HORN_OF_UNIRIA } from '@versions/shared/items/petItems';
+import { itemDef } from '@/controllers/items';
 import {
   CAPE_OF_LORD,
   HELPER_GROUP,
@@ -78,6 +79,9 @@ function canFly(g: GatewayGear): boolean {
     isHelper(w, CAPE_OF_LORD) ||
     isHelper(g.helper, HORN_OF_DINORANT) ||
     isHelper(g.helper, DARK_HORSE) ||
+    // A version's own ridden like the Dark Horse (Mu Reforge's Divine Horses fly). The item file, not
+    // controllers/pets: importing the pets controller here changes the module load order the fx tests rely on.
+    (!!g.helper && g.helper.group === HELPER_GROUP && !!itemDef(g.helper.group, g.helper.num)?.Mount) ||
     isHelper(g.helper, HORN_OF_FENRIR)
   );
 }

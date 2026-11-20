@@ -1,5 +1,5 @@
 import { Vector3 } from '../../controllers/render/babylon/exports';
-import { DARK_HORSE, DARK_RAVEN, PET_GROUP } from '@versions/shared/items/petItems';
+import { DARK_RAVEN, PET_GROUP } from '@versions/shared/items/petItems';
 import {
   FENRIR_ACTION_RUN,
   FENRIR_ACTION_SKILL,
@@ -10,6 +10,7 @@ import {
   fenrirShine,
   petFactoryFor,
   petSpec,
+  ridesDarkHorse,
   type PetFollow,
   type PetSpec,
 } from '@/controllers/pets';
@@ -63,6 +64,8 @@ const MOUNT_PLAY_SPEED = 0.34;
 
 /** The Dark Horse's Earthshake clip, `SetAction(o, 3)` at `Velocity 0.34`. */
 const DARK_HORSE_ACTION_SKILL = 3;
+/** The Dark Horse's blur bone; `PetSpec.blurBone` names another horse's. */
+const HORSE_BLUR_BONE = 9;
 /** Bone 9's blur tip, 60 cm out along the bone. */
 const HORSE_BLUR_TIP = new Vector3(0.6, 0, 0);
 const HORSE_BLUR_ROOT = new Vector3(0, 0, 0);
@@ -163,6 +166,10 @@ const FENRIR_EYE_RGB = [0.9, 0.2, 0.1] as const;
 const FENRIR_JAW_RGB = [1.0, 0.3, 0.2] as const;
 /** `CreateSprite(…, 1.5f)` then `1.0f` on the same point. */
 const FENRIR_JAW_SIZES = [1.05, 0.7] as const;
+/** `CreateSprite(BITMAP_LIGHT, …, scale)` as a sprite size: the jaw's 1.5 / 1.0 are 1.05 / 0.7. */
+const BONE_LIGHT_SIZE = 0.7;
+/** The bone lights are spread over this many glow ticks (see updateBoneLights). */
+const BONE_LIGHT_PHASES = 3;
 
 /**
  * Where one body bolt lands, as `rand() % 30` rolls it (ZzzEffect.cpp:4264-4306).
@@ -325,6 +332,8 @@ export const PetSystem: ISystemFactory = world => {
         fenrirThunder: spec.thunder,
         fenrirFoot: spec.footSubType,
         fenrirSpec: spec.shineMesh === undefined ? undefined : spec,
+        blurBone: spec.blurBone,
+        boneLights: spec.boneLights,
         follow: spec.follow,
         followSpeed: spec.playSpeed,
         pulseSeconds: spec.pulseSeconds,
@@ -453,10 +462,8 @@ export const PetSystem: ISystemFactory = world => {
       state.dir.z = (rand(64) - 32) * 0.1;
     }
 
-    const ridesHorse =
-      owner.charAppearance?.pet?.group === PET_GROUP &&
-      owner.charAppearance.pet.num === DARK_HORSE;
-    const wanted = ridesHorse ? RAVEN_HEIGHT_HORSE : RAVEN_HEIGHT;
+    // The Dark Horse or a version's own (our client's `RidesLikeDarkHorse`, CSPetSystem.cpp).
+    const wanted = ridesDarkHorse(owner.charAppearance?.pet) ? RAVEN_HEIGHT_HORSE : RAVEN_HEIGHT;
     const height = (pos.y - target.y) / MU_UNIT;
     if (height < wanted) state.dir.z += RAVEN_HEIGHT_NUDGE * ticks;
     if (height > wanted + 100) state.dir.z -= RAVEN_HEIGHT_NUDGE * ticks;
@@ -1002,6 +1009,47 @@ export const PetSystem: ISystemFactory = world => {
     }
   }
 
+  /**
+   * A version's own mount's glow (our client's `SpawnDivineHorseGlow`, GOBoid.cpp): `CreateSprite(BITMAP_LIGHT, bone,
+   * scale, colour)` on each of its bones every frame, here as short sprites on the Fenrir glow's tick. Others' are
+   * dropped while the load shedder sheds them.
+   */
+  function updateBoneLights(actor: Entity, dt: number) {
+    const state = actor.petActor!;
+    const lights = state.boneLights;
+    const scene = world.scene;
+    // Not while it is hidden: faded out on a teleport (in a safe zone `updateMount` returns before this).
+    if (!lights || !scene || !actor.modelObject?.gltf || teleportMountAlpha(state.owner) <= 0) return;
+    const clock = (glowClocks.get(actor) ?? 0) + dt;
+    if (clock < FENRIR_GLOW_TICK) {
+      glowClocks.set(actor, clock);
+      return;
+    }
+    glowClocks.set(actor, clock % FENRIR_GLOW_TICK);
+    const now = performance.now();
+    if (othersShedFully(state.owner, now)) return;
+    // Only riders actually on screen: a 'nearby' one keeps its model but is not drawn.
+    if (state.owner.visibility && state.owner.visibility.state !== 'visible') return;
+    // A third of the bones per tick, each card living three ticks: the same steady glow with a third of the
+    // spawns (41 bones every tick was ~600 pooled cards a second per horse - a crowd of riders cost hundreds of
+    // draw calls).
+    const phase = Math.floor(now / (FENRIR_GLOW_TICK * 1000)) % BONE_LIGHT_PHASES;
+    let index = 0;
+    for (const light of lights) {
+      for (const [bone, size] of light.bones) {
+        if (index++ % BONE_LIGHT_PHASES !== phase) continue;
+        bonePos(actor, bone, tmpGlow, 0);
+        effects.spawn('sprite', scene, tmpGlow, {
+          texture: TEX.flare,
+          colour: light.color,
+          size: size * BONE_LIGHT_SIZE,
+          seconds: FENRIR_GLOW_TICK * BONE_LIGHT_PHASES + 0.02,
+          fadeTail: 0.6,
+        });
+      }
+    }
+  }
+
   function updateMount(actor: Entity, dt: number, inSafeZone: boolean) {
     const state = actor.petActor!;
     const target = state.owner.transform?.pos;
@@ -1027,21 +1075,25 @@ export const PetSystem: ISystemFactory = world => {
       return;
     }
 
-    // The Dark Horse rears on its action 3 under Earthshake (GOBoid.cpp:337-341).
-    const pet = state.owner.charAppearance?.pet;
+    // A version's own horse glows on its bones (our client's `SpawnDivineHorseGlow`), not while hidden.
+    if (state.boneLights) updateBoneLights(actor, dt);
+
+    // The Dark Horse rears on its action 3 under Earthshake (GOBoid.cpp:337-341), and so does a version's own
+    // (our client's Divine Horse, whose seven actions are the Dark Horse's).
     if (
-      pet?.group === PET_GROUP &&
-      pet.num === DARK_HORSE &&
+      ridesDarkHorse(state.owner.charAppearance?.pet) &&
       state.owner.modelObject?.CurrentAction === PlayerAction.PLAYER_ATTACK_DARKHORSE
     ) {
       actor.modelObject?.setAnimationSpeed(MOUNT_PLAY_SPEED);
       actor.modelObject?.playAction(DARK_HORSE_ACTION_SKILL, true);
       if (actor.modelObject?.CurrentAction === DARK_HORSE_ACTION_SKILL && !horseBlurs.has(actor)) {
         horseBlurs.add(actor);
-        // The white blur from (60, 0, 0) to bone 9, every frame of action 3 (GOBoid.cpp:452-461).
+        // The white blur from (60, 0, 0) to bone 9, every frame of action 3 (GOBoid.cpp:452-461); a version's own
+        // horse trails it from its head (our client's `DarkHorseBonesOf`).
+        const bone = state.blurBone ?? HORSE_BLUR_BONE;
         effects.spawn('blur', world.scene, HORSE_BLUR_ROOT, {
-          follow: out => boneLocalPos(actor, 9, HORSE_BLUR_TIP, out),
-          base: out => boneLocalPos(actor, 9, HORSE_BLUR_ROOT, out),
+          follow: out => boneLocalPos(actor, bone, HORSE_BLUR_TIP, out),
+          base: out => boneLocalPos(actor, bone, HORSE_BLUR_ROOT, out),
           texture: TEX.blur,
           colour: RGBS.white,
           seconds: HORSE_BLUR_MAX,

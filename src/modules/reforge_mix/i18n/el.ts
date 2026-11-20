@@ -24,4 +24,9 @@ export default {
   'reforgeMix.muunExcellentDamage': 'Πιθανότητα εξαιρετικής ζημιάς +{value}%',
   'reforgeMix.muunCriticalDamage': 'Πιθανότητα κρίσιμης ζημιάς +{value}%',
   'reforgeMix.muunReflect': 'Αντανακλά το {value}% της ζημιάς που δέχεται',
+  'reforgeMix.divineHorse': 'Divine Horse',
+  'reforgeMix.divineHorseRide': 'Ο Dark Lord το ιππεύει όπως το Dark Horse',
+  'reforgeMix.divineHorseSkill': 'Δίνει την ικανότητα Earthshake',
+  'reforgeMix.divineHorseOrigin': 'Φτιαγμένο από Gold Fenrir και Dark Horse',
+  'reforgeMix.nightmareDivineHorse': 'Με ένα Dark Horse επίσης στο κουτί: ένα τυχαίο Divine Horse.',
 } satisfies Partial<Record<keyof typeof en, string>>;

@@ -1,4 +1,5 @@
 import type { Item } from '@/ecs/world';
+import { BaseClass, getBaseClass, type CharacterClassNumber } from '@/core/types';
 import { itemOptionTables, type MixRecipe, type MixRateToken, type MixSource } from '@/controllers/assets';
 import { t } from '@/i18n';
 import { itemBaseName } from '@versions/shared/items/itemsDatabase';
@@ -37,6 +38,7 @@ export const MIX = {
   ancientOptionMerge: 116,
   ancientOptionRemoval: 117,
   muunPet: 118,
+  divineHorse: 119,
 } as const;
 
 /** The Ancient Smith (S VersionSeasonSix/AncientSmith.cs `NpcNumber`), and his own tray, `MIXTYPE_ANCIENT_SMITH` (our MixMgr.h). */
@@ -58,6 +60,8 @@ const MUUN_PET_MAX_RATE = 74;
 const MAX_MIX_SOURCES = 8;
 /** The Fenrir upgrade's fed item (horn, life, chaos, then the weapon or armour). */
 const FENRIR_FED_ITEM = 3;
+/** The Dark Horse (13/4): mix 119's one item on top of mix 118's box. */
+const DARK_HORSE = code(13, 4);
 const GARUDAS_FEATHER = 167;
 const GARUDAS_FLAME = 168;
 /** Our 4th wings (12/51-57) and the Olympiad Hero wings and capes. */
@@ -190,6 +194,15 @@ export function adjustGoblinRecipes(list: readonly MixRecipe[]): MixRecipe[] {
     }));
   out.push(...muun);
 
+  // Mix 119 (`AddDivineHorseRecipes`): each mix 118 record plus one Dark Horse, its rate, price and the rest mix 118's.
+  // The two never match one box: a box with an item left over is refused, so 118 refuses the Dark Horse and 119 asks
+  // for it. A failure burns everything, the Gold Fenrir and the Dark Horse included. Dark Lord only (`allowed`).
+  out.push(
+    ...muun
+      .filter(r => r.sources.length < MAX_MIX_SOURCES)
+      .map(r => ({ ...r, mixId: MIX.divineHorse, sources: [...r.sources, source({ typeMin: DARK_HORSE, typeMax: DARK_HORSE })] }))
+  );
+
   // The Golden Fenrir: the stock records with the fed item narrowed to an excellent +11 with an
   // option, in front of them (the first match wins), weapon record first.
   const firstFenrir = out.findIndex(r => r.mixId === MIX.fenrirUpgrade);
@@ -287,8 +300,19 @@ export function recipeName(r: MixRecipe): string | null {
   if (r.mixId === MIX.ancientOptionMerge) return t('reforgeMix.ancientOptionMerge');
   if (r.mixId === MIX.ancientOptionRemoval) return t('reforgeMix.ancientOptionRemoval');
   if (r.mixId === MIX.muunPet) return t('reforgeMix.muunPet');
+  if (r.mixId === MIX.divineHorse) return t('reforgeMix.divineHorse');
   const named = NAMED_BY_ITEM[r.mixId];
   return named ? itemBaseName(named[0], named[1]) || null : null;
+}
+
+/**
+ * `IsRecipeAllowedForHero` (our ReforgeMixRecipes.cpp): the Divine Horse mix (119) is the Dark Lord's alone; its six
+ * results are worn by him only and the server refuses it for everyone else (S DivineHorseCrafting). Without this a Dark
+ * Knight saw it as a valid mix and could burn a Gold Fenrir and a Dark Horse on it. `install` (module.ts) hands it
+ * the hero's class as `MixAdjuster.allowed`.
+ */
+export function recipeAllowedFor(r: MixRecipe, heroClass: CharacterClassNumber): boolean {
+  return r.mixId !== MIX.divineHorse || getBaseClass(heroClass) === BaseClass.DarkLord;
 }
 
 /**

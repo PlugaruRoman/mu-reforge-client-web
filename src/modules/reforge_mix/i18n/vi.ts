@@ -24,4 +24,9 @@ export default {
   'reforgeMix.muunExcellentDamage': 'Tỉ lệ sát thương hoàn hảo +{value}%',
   'reforgeMix.muunCriticalDamage': 'Tỉ lệ sát thương chí mạng +{value}%',
   'reforgeMix.muunReflect': 'Phản lại {value}% sát thương nhận vào',
+  'reforgeMix.divineHorse': 'Divine Horse',
+  'reforgeMix.divineHorseRide': 'Dark Lord cưỡi như Dark Horse',
+  'reforgeMix.divineHorseSkill': 'Cho kỹ năng Earthshake',
+  'reforgeMix.divineHorseOrigin': 'Làm từ Gold Fenrir và Dark Horse',
+  'reforgeMix.nightmareDivineHorse': 'Thêm một Dark Horse vào hộp: một Divine Horse ngẫu nhiên.',
 } satisfies Partial<Record<keyof typeof en, string>>;

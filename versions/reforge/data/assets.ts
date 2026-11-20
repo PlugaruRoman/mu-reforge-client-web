@@ -9,6 +9,7 @@
  */
 export const REFORGE_ASSET_FILES: readonly string[] = [
   'item/ancientgem.glb',
+  'item/divinehorse/divine_horse.glb',
   'item/garudafeather.glb',
   'item/garudaflame.glb',
   'item/heroaxe.glb',
@@ -110,6 +111,7 @@ export const REFORGE_ASSET_FILES: readonly string[] = [
   'monster/monster348.glb',
   'monster/monster349.glb',
   'monster/monster350.glb',
+  'monster/monster351.glb',
   'object1/fort01.glb',
   'object1/fort02.glb',
   'object1/fort03.glb',

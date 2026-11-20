@@ -398,6 +398,10 @@ export type Entity = Partial<{
     fenrirSpec?: PetSpec;
     /** Last frame's `AnimationFrame`, for the footfall windows. */
     fenrirFrame?: number;
+    /** A horse's Earthshake blur bone (`PetSpec.blurBone`). */
+    blurBone?: number;
+    /** A version's own mount's light sprites on its bones (`PetSpec.boneLights`). */
+    boneLights?: PetSpec['boneLights'];
     /**
      * A follower pet (`PetObject`): how it holds station on its owner, the
      * `PlaySpeed` of its one clip, and the seconds its body light pulses

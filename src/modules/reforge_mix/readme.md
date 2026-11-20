@@ -9,7 +9,10 @@ mix flags of our items. Port of our C++ client's `GameLogic/Reforge/ReforgeMixRe
   14), `ANCIENT_SOUL_STONE` (14/178), `JEWEL_OF_NIGHTMARE` (14/179).
 - `ancientSoulStoneLines(item)` (`stone.ts`): the stone's two tooltip lines, read by the shared item tooltip.
 - `isMuunPet(item)`, `muunPetLines(item, totalLevel)`, `jewelOfNightmareLines(item)` (`muun.ts`): the muun pets
-  13/150-155 and the jewel that makes them, read by the shared item tooltip.
+  13/150-155 and the jewel that makes them, read by the shared item tooltip. `isDivineHorse(item)`,
+  `divineHorseLines(item, totalLevel)`: the Divine Horses 13/156-161, the same way.
+- `recipeAllowedFor(recipe, heroClass)` (`recipes.ts`, not on the index): mix 119 for the Dark Lord alone; `install`
+  hands it to `chaos_mix` as `MixAdjuster.allowed` with the hero's class.
 
 ## How it works
 - `chaos_mix/mixRecipes.ts` runs every recipe list through the adjuster once (memoised per loaded list);
@@ -28,11 +31,18 @@ mix flags of our items. Port of our C++ client's `GameLogic/Reforge/ReforgeMixRe
   record (built before the golden copies) with the fed item narrowed like the Golden Fenrir's and a Jewel of Nightmare
   (14/179) added; max 74 %, no `Text.bmd` ids (`reforgeMix.muunPet`). The client cannot tell a gold horn from a plain
   one; the server checks it, and its EC rate replaces the shown one. Result: a random pet 13/150-155.
+- The Divine Horses (S `DivineHorseCrafting`, our `AddDivineHorseRecipes`): mix 119 is each mix 118 record plus one Dark
+  Horse (13/4), the rate, price and the rest mix 118's. The two never match one box (an item left over refuses a
+  record). Dark Lord only (`IsRecipeAllowedForHero`): `checkMix` skips a recipe `allowed` refuses, so another class
+  never sees it as a valid mix. A failure burns everything. Result: a random Divine Horse 13/156-161, ridden like the
+  Dark Horse (`controllers/pets` `Mount`).
 - Tooltips (`muun.ts`, our `ReforgeItemTooltip.cpp`): a muun pet's name in yellow, the Gold Fenrir's bonuses in blue
   (final damage 40 %, absorb 25 %, life and mana total level / 2, attack / 12, wizardry / 25; total level = level +
   master level), its own bonus in yellow, "The power of a Gold Fenrir, without the mount" in green. The Jewel of
   Nightmare: one white line, the recipe in green on two lines (the desktop's one line is 131 characters and the
-  tooltip does not wrap).
+  tooltip does not wrap), then the Divine Horse's ("With a Dark Horse in the box too ...") in green. A Divine Horse:
+  yellow name, the Gold Fenrir's lines, the own bonus of the muun pet in its place (156 like 150 ... 161 like 155), and
+  in green that the Dark Lord rides it like the Dark Horse, its Earthshake, and what it is made of.
 - Items: the 380 flag only for items `ItemAddOption.bmd` lists and with no sockets, the Jewel of Chaos
   Assembly (14/157) as a chaos charm, our 4th and Hero wings as third-level wings, the flowers and the
   Lucky Coin counted by stack.
@@ -57,4 +67,5 @@ mix flags of our items. Port of our C++ client's `GameLogic/Reforge/ReforgeMixRe
 ## Tests
 - `recipes.test.ts`: the added, removed and corrected records against a stock-like list, the trays that
   match them, and the item flags; the Ancient Smith's records, trays, charms, NPC, title, lines and the stone's
-  tooltip lines; mix 118 and the muun pet and Jewel of Nightmare lines. `npc_shop/net.test.ts` opens his tray from a talk, `chaos_machine/index.test.tsx` draws it.
+  tooltip lines; mix 118 and the muun pet and Jewel of Nightmare lines; mix 119, its Dark Lord gate and the Divine
+  Horse lines. `npc_shop/net.test.ts` opens his tray from a talk, `chaos_machine/index.test.tsx` draws it.

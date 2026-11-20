@@ -253,6 +253,9 @@ Pets that live in the world, not on the wearer's skeleton (GOBoid.cpp:66-680):
 - Dark Horse / Fenrir: pinned like the horns; Fenrir mirrors the rider's `PLAYER_FENRIR_*` clips
   (GOBoid.cpp:200-266) with the glow and lightning of ZzzObject.cpp:855-895. With `effectShedding` on, other
   players' body bolts stop at shed level 2 (`render/loadShed.ts`).
+- A version's own Dark Horse (`ridesDarkHorse`, Mu Reforge's Divine Horses): the Dark Horse's path on its own model,
+  Earthshake's blur on its `blurBone`, and its `boneLights` as flares on the Fenrir glow's tick (others' dropped at
+  shed level 2, none while faded out).
 The Imp is not here: it is linked to the owner's bone 34 (`PlayerObject.Pet`).
 
 ### terrainMaskSystem.ts

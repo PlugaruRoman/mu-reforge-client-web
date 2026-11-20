@@ -57,6 +57,8 @@ export type MixAdjuster = {
   item(mix: MixItem, item: Item, mixType: number): void;
   /** The name of a recipe that carries no `Text.bmd` ids, or null. */
   name(recipe: MixRecipe): string | null;
+  /** Whether the hero may make the recipe at all (a class-bound one of the server's own); all may when absent. */
+  allowed?(recipe: MixRecipe): boolean;
   /** The mix type the chaos machine window of NPC `npcType` opens as (a tray of the server's own), or null for the goblin's. */
   npcTray?(npcType: number): number | null;
   /** A tray of the server's own: its title and description lines (red when `warn`); taxed, rated and priced as the goblin's. */
@@ -336,6 +338,8 @@ export function checkMix(loaded: readonly MixRecipe[], tray: readonly (Item | nu
   const check: MixCheck = { recipe: null, similar: null, missing: [], empty: items.length === 0, successRate: 0, requiredZen: 0, firstItemType: 0, charmBonus, chaosCharms };
 
   for (const recipe of recipes) {
+    // `IsRecipeAllowedForHero` before `CheckRecipeSub` (our MixMgr.cpp `CheckRecipe`).
+    if (adjuster?.allowed && !adjuster.allowed(recipe)) continue;
     const first = matches(recipe, items);
     if (!first) continue;
     check.recipe = recipe;

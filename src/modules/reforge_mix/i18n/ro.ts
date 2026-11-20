@@ -24,4 +24,9 @@ export default {
   'reforgeMix.muunExcellentDamage': 'Șansă de daune excelente +{value}%',
   'reforgeMix.muunCriticalDamage': 'Șansă de daune critice +{value}%',
   'reforgeMix.muunReflect': 'Reflectă {value}% din daunele primite',
+  'reforgeMix.divineHorse': 'Divine Horse',
+  'reforgeMix.divineHorseRide': 'Dark Lord îl călărește ca pe Dark Horse',
+  'reforgeMix.divineHorseSkill': 'Oferă abilitatea Earthshake',
+  'reforgeMix.divineHorseOrigin': 'Făcut dintr-un Gold Fenrir și un Dark Horse',
+  'reforgeMix.nightmareDivineHorse': 'Cu un Dark Horse în cutie: un Divine Horse aleatoriu.',
 } satisfies Partial<Record<keyof typeof en, string>>;

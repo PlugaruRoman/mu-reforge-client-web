@@ -8,10 +8,15 @@ pets module (`src/modules/pets`) keeps the pet packets; the item numbers are
 ## Public API
 - `petSpec(item)`: the `PetSpec` (kind, model, scale, follow motion, light, Fenrir look) or null. A pet-slot item
   the table does not name whose item file carries `Follower` (a version's own pet: Mu Reforge's muun pets
-  13/150-155) gets the Pet Panda's spec on the item's own model at the file's scale.
+  13/150-155) gets the Pet Panda's spec on the item's own model at the file's scale. One whose item file carries
+  `Mount` (Mu Reforge's Divine Horses 13/156-161) gets the Dark Horse's spec on its own model: the rider's horse
+  clips, Earthshake's action 3 with the blur on the file's `blurBone`, the file's light sprites (`boneLights`), and
+  a shadow of its whole body.
 - `isRidingMount(item)`: the slot holds a pet whose kind is `mount`.
 - `mountKind(item, inSafeZone)`: `'uniria' | 'dinorant' | 'horse' | 'fenrir'` or null (on foot,
-  also in a safe zone).
+  also in a safe zone); a `Mount` item is `'horse'`.
+- `ridesDarkHorse(item)`: the Dark Horse or a `Mount` item, also in a safe zone (our client's `RidesLikeDarkHorse`:
+  the raven's height, Earthshake's horse clip, the speed of 17).
 - `fenrirVariant(item)`, `fenrirShine(model, spec, casting)`, `fenrirMountAction(riderAction)`.
 - `petFactoryFor(spec)`: a cached `ModelObject` class per pet model.
 - `IMP_BONE`, `MOUNT_ACTION_*`, `FENRIR_ACTION_*`, types `PetSpec`, `PetFollow`, `MountKind`.
@@ -32,7 +37,8 @@ pets module (`src/modules/pets`) keeps the pet packets; the item numbers are
 
 ## Depends on / used by
 - uses: `controllers/render` (`ModelObject`), `controllers/assets` (`loadGLTF`), `controllers/item_fx`
-  (`legacyItemEffectsOn`, `improvedItemEffectsOn`), `@versions/shared/items/petItems`.
+  (`legacyItemEffectsOn`, `improvedItemEffectsOn`), `controllers/items` (`itemDef`: `Follower`, `Mount`),
+  `@versions/shared/items/petItems`.
 - used by: `src/app/logic.ts`, `ecs/systems/petSystem.ts`, `animationSystem.ts`, `attackSystem.ts`,
   `moveAlongPathSystem.ts`, `skillCastSystem.ts`, `characterSelectSystem.ts`, `ecs/world.ts`,
   `controllers/actors` (`playerObject`, `weaponClass`), `controllers/combat/skillClips.ts`,

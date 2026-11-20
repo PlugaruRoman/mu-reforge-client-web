@@ -24,4 +24,9 @@ export default {
   'reforgeMix.muunExcellentDamage': 'Peluang damage excellent +{value}%',
   'reforgeMix.muunCriticalDamage': 'Peluang damage kritis +{value}%',
   'reforgeMix.muunReflect': 'Memantulkan {value}% damage yang diterima',
+  'reforgeMix.divineHorse': 'Divine Horse',
+  'reforgeMix.divineHorseRide': 'Ditunggangi Dark Lord seperti Dark Horse',
+  'reforgeMix.divineHorseSkill': 'Memberikan skill Earthshake',
+  'reforgeMix.divineHorseOrigin': 'Dibuat dari Gold Fenrir dan Dark Horse',
+  'reforgeMix.nightmareDivineHorse': 'Dengan Dark Horse juga di kotak: Divine Horse acak.',
 } satisfies Partial<Record<keyof typeof en, string>>;

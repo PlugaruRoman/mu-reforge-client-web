@@ -3,7 +3,7 @@ import { Vector3 } from '../render/babylon/exports';
 import { loadGLTF } from '../assets';
 import { ModelObject } from '../render';
 import type { Item } from '../../ecs/world';
-import { itemDef } from '@/controllers/items';
+import { itemDef, type ItemMountLight } from '@/controllers/items';
 import { PlayerAction } from '@versions/shared/objects/enum';
 import {
   improvedItemEffectsOn,
@@ -144,6 +144,10 @@ export type PetSpec = {
    * followers). `meshes`: the mesh range it takes; `fromGround`: `BodyOrigin` on the terrain first.
    */
   readonly classicShadow?: { readonly meshes?: readonly number[]; readonly fromGround?: boolean };
+  /** A horse's Earthshake blur bone (`TransformPosition(BoneTransform[9], …)`, GOBoid.cpp:452-461). */
+  readonly blurBone?: number;
+  /** Light sprites on its bones while ridden (a version's own mount: `ItemMount.lights`). */
+  readonly boneLights?: readonly ItemMountLight[];
 };
 
 const PETS: Readonly<Record<number, PetSpec>> = {
@@ -182,6 +186,7 @@ const PETS: Readonly<Record<number, PetSpec>> = {
     moveAction: 1,
     // RenderBodyShadow(-1, -1, 8, 9): mesh 8, the end not drawn (ZzzObject.cpp:790, ZzzBMD.cpp:2718).
     classicShadow: { meshes: [8] },
+    blurBone: 9,
   },
   // `CSPetDarkSpirit` (CSPetSystem.cpp:291-303): the Dark Raven is worn in
   // the *left hand*, not the pet slot - a world object flying a boid orbit
@@ -431,10 +436,48 @@ function ownFollowerSpec(item: Item): PetSpec | null {
   return spec;
 }
 
+/** One spec per model for the version's own Dark Horse mounts. */
+const ownMounts = new Map<string, PetSpec>();
+
+/**
+ * A pet-slot item the table does not name whose item file carries `Mount` (Mu Reforge's Divine Horses, 13/156-161):
+ * the Dark Horse's spec on the item's own model, whose seven actions are the Dark Horse's, at the file's scale, with
+ * its own blur bone and lights. Its whole body casts the shadow (our client's `Draw_RenderObject`, `RenderBodyShadow()`).
+ * Our client's `ReforgeDivineHorse.h`: the Dark Horse's paths drive it unchanged.
+ */
+function ownMountSpec(item: Item): PetSpec | null {
+  const record = itemDef(item.group, item.num);
+  const own = record?.Mount;
+  if (!own || !record.szModelName.endsWith('.glb')) return null;
+  const model = record.szModelFolder + record.szModelName;
+  let spec = ownMounts.get(model);
+  if (!spec) {
+    spec = {
+      ...PETS[DARK_HORSE],
+      model,
+      scale: own.scale,
+      classicShadow: {},
+      blurBone: own.blurBone ?? PETS[DARK_HORSE].blurBone,
+      boneLights: own.lights,
+    };
+    ownMounts.set(model, spec);
+  }
+  return spec;
+}
+
 export function petSpec(item: Item | null | undefined): PetSpec | null {
   if (!item || item.group !== PET_GROUP) return null;
   if (item.num === HORN_OF_FENRIR) return FENRIRS[fenrirVariant(item)];
-  return PETS[item.num] ?? ownFollowerSpec(item);
+  return PETS[item.num] ?? ownFollowerSpec(item) ?? ownMountSpec(item);
+}
+
+/**
+ * Whether the pet slot holds a horse the Dark Lord rides: the Dark Horse, or a version's own `Mount` (our client's
+ * `RidesLikeDarkHorse`). In or out of a safe zone; `mountKind` is the one that puts it away in town.
+ */
+export function ridesDarkHorse(item: Item | null | undefined): boolean {
+  if (!item || item.group !== PET_GROUP) return false;
+  return item.num === DARK_HORSE || (PETS[item.num] === undefined && !!itemDef(item.group, item.num)?.Mount);
 }
 
 /** True while the pet slot holds a Horn of Uniria or Dinorant. */
@@ -466,7 +509,8 @@ export function mountKind(
     case HORN_OF_FENRIR:
       return 'fenrir';
     default:
-      return null;
+      // A version's own Dark Horse (Mu Reforge's Divine Horses): every branch reads it as the horse.
+      return ridesDarkHorse(item) ? 'horse' : null;
   }
 }
 

@@ -24,4 +24,9 @@ export default {
   'reforgeMix.muunExcellentDamage': 'Tsansa ng excellent na pinsala +{value}%',
   'reforgeMix.muunCriticalDamage': 'Tsansa ng kritikal na pinsala +{value}%',
   'reforgeMix.muunReflect': 'Ibinabalik ang {value}% ng natanggap na pinsala',
+  'reforgeMix.divineHorse': 'Divine Horse',
+  'reforgeMix.divineHorseRide': 'Sinasakyan ng Dark Lord tulad ng Dark Horse',
+  'reforgeMix.divineHorseSkill': 'Nagbibigay ng skill na Earthshake',
+  'reforgeMix.divineHorseOrigin': 'Gawa sa Gold Fenrir at Dark Horse',
+  'reforgeMix.nightmareDivineHorse': 'May Dark Horse din sa kahon: isang random na Divine Horse.',
 } satisfies Partial<Record<keyof typeof en, string>>;

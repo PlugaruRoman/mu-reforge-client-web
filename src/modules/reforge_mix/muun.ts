@@ -17,6 +17,18 @@ export function isMuunPet(item: Pick<Item, 'group' | 'num'>): boolean {
   return item.group === PET_GROUP && item.num >= FIRST_MUUN_PET && item.num <= LAST_MUUN_PET;
 }
 
+/**
+ * The Divine Horses (S MuunPets.cs, mix 119; our ReforgeItemTypes.h `IsDivineHorse`): 13/156-161, a Gold Fenrir's
+ * combat bonuses and the own bonus of the muun pet in the same place (156 like 150 ... 161 like 155), ridden by the
+ * Dark Lord like the Dark Horse.
+ */
+const FIRST_DIVINE_HORSE = 156;
+const LAST_DIVINE_HORSE = 161;
+
+export function isDivineHorse(item: Pick<Item, 'group' | 'num'>): boolean {
+  return item.group === PET_GROUP && item.num >= FIRST_DIVINE_HORSE && item.num <= LAST_DIVINE_HORSE;
+}
+
 /** The Gold Fenrir's combat bonuses (S MuunPets.Specs, our `AddFenrirLines`): final damage, absorb, then by total level. */
 const FINAL_DAMAGE_PERCENT = 40;
 const ABSORB_PERCENT = 25;
@@ -37,13 +49,12 @@ const OWN_BONUS: Readonly<Record<number, { key: TextKey; value: number }>> = {
 const line = (text: string, color: TooltipLine['color']): TooltipLine => ({ text, color, bold: false });
 
 /**
- * A muun pet's lines (`AddMuunPetLines`): the Gold Fenrir's bonuses in blue (life, mana, attack and wizardry by the
- * hero's total level, normal plus master), its own bonus in yellow, where its power comes from in green.
+ * The Gold Fenrir's bonuses in blue (life, mana, attack and wizardry by the hero's total level, normal plus master)
+ * and the own bonus of muun pet `bonusOf` in yellow (`AddGoldFenrirPetLines`).
  */
-export function muunPetLines(item: Pick<Item, 'group' | 'num'>, totalLevel: number): TooltipLine[] {
-  if (!isMuunPet(item)) return [];
+function goldFenrirPetLines(bonusOf: number, totalLevel: number): TooltipLine[] {
   const level = Math.max(0, Math.trunc(totalLevel));
-  const own = OWN_BONUS[item.num];
+  const own = OWN_BONUS[bonusOf];
   return [
     line(t('item.fenrir.finalDamage', { value: FINAL_DAMAGE_PERCENT }), 'blue'),
     line(t('item.fenrir.absorbFinal', { value: ABSORB_PERCENT }), 'blue'),
@@ -52,12 +63,32 @@ export function muunPetLines(item: Pick<Item, 'group' | 'num'>, totalLevel: numb
     line(t('item.fenrir.attack', { value: Math.trunc(level / ATTACK_DIVISOR) }), 'blue'),
     line(t('item.fenrir.wizardry', { value: Math.trunc(level / WIZARDRY_DIVISOR) }), 'blue'),
     ...(own ? [line(t(own.key, { value: own.value }), 'yellow')] : []),
-    line(t('reforgeMix.muunOrigin'), 'green'),
+  ];
+}
+
+/** A muun pet's lines (`AddMuunPetLines`): the Gold Fenrir's and its own bonus, where its power comes from in green. */
+export function muunPetLines(item: Pick<Item, 'group' | 'num'>, totalLevel: number): TooltipLine[] {
+  if (!isMuunPet(item)) return [];
+  return [...goldFenrirPetLines(item.num, totalLevel), line(t('reforgeMix.muunOrigin'), 'green')];
+}
+
+/**
+ * A Divine Horse's lines (`AddDivineHorseLines`): the Gold Fenrir's bonuses and the own bonus of the muun pet in its
+ * place, then in green that the Dark Lord rides it like the Dark Horse, its Earthshake and what it is made of.
+ */
+export function divineHorseLines(item: Pick<Item, 'group' | 'num'>, totalLevel: number): TooltipLine[] {
+  if (!isDivineHorse(item)) return [];
+  return [
+    ...goldFenrirPetLines(FIRST_MUUN_PET + (item.num - FIRST_DIVINE_HORSE), totalLevel),
+    line(t('reforgeMix.divineHorseRide'), 'green'),
+    line(t('reforgeMix.divineHorseSkill'), 'green'),
+    line(t('reforgeMix.divineHorseOrigin'), 'green'),
   ];
 }
 
 /**
- * The Jewel of Nightmare's lines (`AddJewelLines`): what it does in white, the recipe in green. The desktop line is
+ * The Jewel of Nightmare's lines (`AddJewelLines`): what it does in white, the recipe in green, and the Divine Horse's
+ * (mix 119) in green. The desktop line is
  * one sentence of 131 characters; the tooltip does not wrap (`white-space: nowrap`), so it is two lines here.
  */
 export function jewelOfNightmareLines(item: Pick<Item, 'group' | 'num'>): TooltipLine[] {
@@ -66,5 +97,6 @@ export function jewelOfNightmareLines(item: Pick<Item, 'group' | 'num'>): Toolti
     line(t('reforgeMix.nightmare'), 'white'),
     line(t('reforgeMix.nightmareUse'), 'green'),
     line(t('reforgeMix.nightmareUse2'), 'green'),
+    line(t('reforgeMix.nightmareDivineHorse'), 'green'),
   ];
 }

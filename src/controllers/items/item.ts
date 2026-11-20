@@ -76,11 +76,33 @@ export type ItemRecord = {
    * Panda, drawn from its own model (`szModelFolder` + `szModelName`) at `scale` (Mu Reforge's muun pets).
    */
   Follower?: ItemFollower;
+  /**
+   * A pet-slot item the pet table does not name that the Dark Lord rides like the Dark Horse (rider clips, Earthshake,
+   * speed, flight), drawn from its own model (`szModelFolder` + `szModelName`), which has the Dark Horse's seven
+   * actions (Mu Reforge's Divine Horses).
+   */
+  Mount?: ItemMount;
   /** The item's own names by language code (`de`, `es`, ...), shown before a language pack's. */
   Names?: Readonly<Record<string, string>>;
 };
 
 export type ItemFollower = { readonly scale: number };
+
+/**
+ * `scale`: the mount's under its rider. `blurBone`: the bone Earthshake's white blur trails from (the Dark Horse's
+ * is 9). `lights`: light sprites on its bones while ridden, in `color`, each bone at its own size.
+ */
+export type ItemMount = {
+  readonly scale: number;
+  readonly blurBone?: number;
+  readonly lights?: readonly ItemMountLight[];
+};
+
+/** One colour of a mount's lights: `[bone, size]` pairs, the size the original's `CreateSprite` scale. */
+export type ItemMountLight = {
+  readonly color: readonly [number, number, number];
+  readonly bones: readonly (readonly [number, number])[];
+};
 
 export type ItemWing = {
   readonly link?: { readonly angle: [number, number, number]; readonly offset: [number, number, number] };

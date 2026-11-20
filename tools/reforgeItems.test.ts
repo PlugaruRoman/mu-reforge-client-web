@@ -74,6 +74,21 @@ describe('reforgeItems', () => {
     expect(extras(14, jewel, { number: 179 }, () => [])).toEqual({ Jewel: true, Label: '#ffcc19' });
   });
 
+  it('rides the Divine Horses like the Dark Horse, the blur on the head bone, the lights on live bones only', () => {
+    const horse: JsonItem = { number: 156, name: { en: 'Divine Horse' }, slot: 'pet', width: 1, height: 2, durability: 255, skill: 62 };
+    const named = (name: string) => Object.assign(new BMDTextureBone(), { Name: name });
+    const bones = Array.from({ length: 118 }, (_, i) => named(i === 7 ? 'Bip001 Head' : `b${i}`));
+    bones[34] = BMDTextureBone.Dummy;
+    const mount = extras(13, horse, { number: 156 }, () => bones).Mount as { scale: number; blurBone: number; lights: { bones: number[][] }[] };
+    expect([mount.scale, mount.blurBone]).toEqual([1, 7]);
+    expect(mount.lights.flatMap(l => l.bones)).toHaveLength(40);
+    expect(mount.lights.flatMap(l => l.bones.map(([bone]) => bone))).not.toContain(34);
+    // A skeleton without the head keeps the Dark Horse's blur bone.
+    expect(extras(13, { ...horse, number: 161 }, { number: 161 }, () => bones.slice(0, 20).map(() => named('x'))).Mount).toMatchObject({ scale: 1 });
+    expect(extras(13, { ...horse, number: 161 }, { number: 161 }, () => []).Mount).not.toHaveProperty('blurBone');
+    expect(extras(13, { ...horse, number: 4 }, { number: 4 }, () => bones)).toEqual({});
+  });
+
   it('writes an item file that defineItem reads', () => {
     expect(itemFile({ Group: 12, Index: 59, ItemName: "Hero's Cape", Wing: { fast: true } })).toContain(
       "  ItemName: 'Hero\\'s Cape',\n  Wing: { fast: true },\n"
@@ -81,7 +96,7 @@ describe('reforgeItems', () => {
   });
 
   it('lists each item once, and the generated folder has every one', () => {
-    expect(NEW_ITEMS).toHaveLength(89);
+    expect(NEW_ITEMS).toHaveLength(95);
     expect(new Set([...NEW_ITEMS, ...RENAMED]).size).toBe(NEW_ITEMS.length + RENAMED.length);
     const files = readdirSync(REFORGE_ITEMS_DIR, { withFileTypes: true })
       .filter(d => d.isDirectory())

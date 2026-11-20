@@ -5,7 +5,7 @@ import { Hero } from '../../modules/hero';
 import { BaseClass, getBaseClass } from '../../modules/hero/characterStats';
 import { isSwimWorld } from '../../controllers/actors/locomotion';
 import { isFastWing } from '../../controllers/actors/wings';
-import { isRidingMount } from '@/controllers/pets';
+import { isRidingMount, ridesDarkHorse } from '@/controllers/pets';
 import type { Entity, ISystemFactory } from '../world';
 import { distanceAlongPath } from '../../controllers/actors/approachPath';
 import { debuffSlow } from '../../controllers/actors/debuffBody';
@@ -35,7 +35,6 @@ const DEFAULT_WING_MOVEMENT_SPEED = 15;
 const FAST_WING_MOVEMENT_SPEED = 16;
 const BASIC_MOUNT_MOVEMENT_SPEED = 15;
 const HORSE_OR_FENRIR_MOVEMENT_SPEED = 17;
-const DARK_HORSE = 4;
 const HORN_OF_FENRIR = 37;
 
 /**
@@ -76,7 +75,8 @@ function runningMovementSpeed(entity: Entity, world: number): number {
   }
   if (pet) {
     // Horse and Fenrir first: both count as riding mounts, at 17 not 15.
-    if (pet.num === DARK_HORSE || pet.num === HORN_OF_FENRIR) speed = Math.max(speed, HORSE_OR_FENRIR_MOVEMENT_SPEED);
+    // A version's own Dark Horse too (Mu Reforge's Divine Horses: the server gives them the Dark Horse's 17).
+    if (ridesDarkHorse(pet) || pet.num === HORN_OF_FENRIR) speed = Math.max(speed, HORSE_OR_FENRIR_MOVEMENT_SPEED);
     else if (isRidingMount(pet)) speed = Math.max(speed, BASIC_MOUNT_MOVEMENT_SPEED);
   }
   return speed;

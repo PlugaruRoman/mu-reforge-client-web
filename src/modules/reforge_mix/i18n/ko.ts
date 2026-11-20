@@ -24,4 +24,9 @@ export default {
   'reforgeMix.muunExcellentDamage': '엑설런트 데미지 확률 +{value}%',
   'reforgeMix.muunCriticalDamage': '크리티컬 데미지 확률 +{value}%',
   'reforgeMix.muunReflect': '받은 피해의 {value}% 반사',
+  'reforgeMix.divineHorse': 'Divine Horse',
+  'reforgeMix.divineHorseRide': 'Dark Lord가 Dark Horse처럼 탑승',
+  'reforgeMix.divineHorseSkill': 'Earthshake 스킬 부여',
+  'reforgeMix.divineHorseOrigin': 'Gold Fenrir와 Dark Horse로 제작',
+  'reforgeMix.nightmareDivineHorse': 'Dark Horse도 함께 넣으면: 무작위 Divine Horse.',
 } satisfies Partial<Record<keyof typeof en, string>>;

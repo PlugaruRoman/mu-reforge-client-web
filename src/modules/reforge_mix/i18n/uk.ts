@@ -24,4 +24,9 @@ export default {
   'reforgeMix.muunExcellentDamage': 'Шанс відмінної шкоди +{value}%',
   'reforgeMix.muunCriticalDamage': 'Шанс критичної шкоди +{value}%',
   'reforgeMix.muunReflect': 'Відбиває {value}% отриманої шкоди',
+  'reforgeMix.divineHorse': 'Divine Horse',
+  'reforgeMix.divineHorseRide': 'Dark Lord їздить на ньому як на Dark Horse',
+  'reforgeMix.divineHorseSkill': 'Дає вміння Earthshake',
+  'reforgeMix.divineHorseOrigin': 'Створений з Gold Fenrir і Dark Horse',
+  'reforgeMix.nightmareDivineHorse': 'З Dark Horse у вікні: випадковий Divine Horse.',
 } satisfies Partial<Record<keyof typeof en, string>>;

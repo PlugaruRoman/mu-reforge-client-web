@@ -24,4 +24,9 @@ export default {
   'reforgeMix.muunExcellentDamage': 'Szansa na doskonałe obrażenia +{value}%',
   'reforgeMix.muunCriticalDamage': 'Szansa na krytyczne obrażenia +{value}%',
   'reforgeMix.muunReflect': 'Odbija {value}% otrzymanych obrażeń',
+  'reforgeMix.divineHorse': 'Divine Horse',
+  'reforgeMix.divineHorseRide': 'Dark Lord jeździ na nim jak na Dark Horse',
+  'reforgeMix.divineHorseSkill': 'Daje umiejętność Earthshake',
+  'reforgeMix.divineHorseOrigin': 'Powstaje z Gold Fenrir i Dark Horse',
+  'reforgeMix.nightmareDivineHorse': 'Z Dark Horse w skrzynce: losowy Divine Horse.',
 } satisfies Partial<Record<keyof typeof en, string>>;

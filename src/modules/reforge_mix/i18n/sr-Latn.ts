@@ -24,4 +24,9 @@ export default {
   'reforgeMix.muunExcellentDamage': 'Šansa za odličnu štetu +{value}%',
   'reforgeMix.muunCriticalDamage': 'Šansa za kritičnu štetu +{value}%',
   'reforgeMix.muunReflect': 'Odbija {value}% primljene štete',
+  'reforgeMix.divineHorse': 'Divine Horse',
+  'reforgeMix.divineHorseRide': 'Dark Lord ga jaše kao Dark Horse',
+  'reforgeMix.divineHorseSkill': 'Daje veštinu Earthshake',
+  'reforgeMix.divineHorseOrigin': 'Napravljen od Gold Fenrir i Dark Horse',
+  'reforgeMix.nightmareDivineHorse': 'Uz Dark Horse u kutiji: nasumični Divine Horse.',
 } satisfies Partial<Record<keyof typeof en, string>>;

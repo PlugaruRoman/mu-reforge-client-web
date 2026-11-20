@@ -24,4 +24,9 @@ export default {
   'reforgeMix.muunExcellentDamage': 'Kalte bikainaren aukera +{value}%',
   'reforgeMix.muunCriticalDamage': 'Kalte kritikoaren aukera +{value}%',
   'reforgeMix.muunReflect': 'Jasotako kaltearen %{value} itzultzen du',
+  'reforgeMix.divineHorse': 'Divine Horse',
+  'reforgeMix.divineHorseRide': 'Dark Lord-ek Dark Horse bezala zaldikatzen du',
+  'reforgeMix.divineHorseSkill': 'Earthshake trebetasuna ematen du',
+  'reforgeMix.divineHorseOrigin': 'Gold Fenrir batez eta Dark Horse batez egina',
+  'reforgeMix.nightmareDivineHorse': 'Kutxan Dark Horse bat ere bai: ausazko Divine Horse bat.',
 } satisfies Partial<Record<keyof typeof en, string>>;

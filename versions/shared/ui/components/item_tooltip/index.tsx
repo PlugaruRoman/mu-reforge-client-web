@@ -33,7 +33,7 @@ import { skills } from '@/modules/skills';
 import { InventoryConstants } from '@/core/inventoryConstants';
 import { stallPriceColor } from './stallPrice';
 import { periodItemLines } from '@/modules/xshop';
-import { ancientSoulStoneLines, isMuunPet, jewelOfNightmareLines, muunPetLines } from '@/modules/reforge_mix';
+import { ancientSoulStoneLines, divineHorseLines, isDivineHorse, isMuunPet, jewelOfNightmareLines, muunPetLines } from '@/modules/reforge_mix';
 
 /** One inventory square of the picture, as the grids draw it. */
 const PICTURE_SQUARE = 20;
@@ -327,8 +327,8 @@ export const ItemTooltip = observer(
     const lines = useMemo(() => {
       if (!data) return null;
       const [first, ...rest] = data.lines;
-      // Mu Reforge's muun pets are named in yellow, like our jewels (ReforgeItemTooltip.cpp `NameColor`).
-      const name = first && isMuunPet(item) ? { ...first, color: 'yellow' as const } : first;
+      // Mu Reforge's muun pets and Divine Horses are named in yellow, like our jewels (ReforgeItemTooltip.cpp `NameColor`).
+      const name = first && (isMuunPet(item) || isDivineHorse(item)) ? { ...first, color: 'yellow' as const } : first;
       const all = name
         ? [name, ...priceLines(item, context, name.color, price), ...rest]
         : [...data.lines];
@@ -338,6 +338,8 @@ export const ItemTooltip = observer(
       all.push(...jewelOfNightmareLines(item));
       // A muun pet: the Gold Fenrir's bonuses by the hero's total level, and its own (`AddMuunPetLines`).
       all.push(...muunPetLines(item, hero.level + maxima.masterLevel));
+      // A Divine Horse: the same, the bonus of the muun pet in its place, and that the Dark Lord rides it (`AddDivineHorseLines`).
+      all.push(...divineHorseLines(item, hero.level + maxima.masterLevel));
       all.push(...rental);
       return all;
       // Tracked observables (shop, repair mode, pet info) re-run the observer,

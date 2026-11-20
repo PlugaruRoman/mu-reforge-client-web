@@ -24,4 +24,9 @@ export default {
   'reforgeMix.muunExcellentDamage': 'โอกาสสร้างความเสียหาย excellent +{value}%',
   'reforgeMix.muunCriticalDamage': 'โอกาสสร้างความเสียหายคริติคอล +{value}%',
   'reforgeMix.muunReflect': 'สะท้อนความเสียหายที่ได้รับ {value}%',
+  'reforgeMix.divineHorse': 'Divine Horse',
+  'reforgeMix.divineHorseRide': 'Dark Lord ขี่ได้เหมือน Dark Horse',
+  'reforgeMix.divineHorseSkill': 'มอบสกิล Earthshake',
+  'reforgeMix.divineHorseOrigin': 'สร้างจาก Gold Fenrir และ Dark Horse',
+  'reforgeMix.nightmareDivineHorse': 'ใส่ Dark Horse ด้วย: ได้ Divine Horse แบบสุ่ม',
 } satisfies Partial<Record<keyof typeof en, string>>;

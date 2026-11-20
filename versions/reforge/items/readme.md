@@ -16,11 +16,13 @@ all.ts                finds them and adds them to versions/shared/items' registr
 - The source is our C++ client's item tables (`mu-reforge-client-next/src/bin/Data/Items/GroupNN_*.json`
   and `Items/Models/*.json`); the new client has no `Item_eng.bmd`. `tools/reforgeItems.ts` fills each
   group's column layout (the stock files' Item.txt header) from those rows.
-- New items (89): the Olympiad Hero weapons, wings and capes (and their stage 1), the 4th wings, the
+- New items (95): the Olympiad Hero weapons, wings and capes (and their stage 1), the 4th wings, the
   Tigris set (104 in groups 7, 8, 9, 11), the socket spheres 12/71-74, the shop's small wings
   12/130-135, event tickets 13/46-48 and 13/125, and group 14's shop, flower event, wing craft, zen box,
   jewel and socket gem items, the Ancient Soul Stone 14/178 (S `AncientSmith.cs`, `Item/AncientGem.glb`), the muun
-  pets 13/150-155 (`Item/Muun/*.glb`) and the Jewel of Nightmare 14/179 (`Item/JewelOfNightmare.glb`, S `MuunPets.cs`).
+  pets 13/150-155 (`Item/Muun/*.glb`) and the Jewel of Nightmare 14/179 (`Item/JewelOfNightmare.glb`, S `MuunPets.cs`),
+  and the Divine Horses 13/156-161 (one model, `Item/DivineHorse/Divine_Horse.glb`: our client's
+  `Data/Item/DivineHorse/Divine_Horse.bmd`, converted with its seven actions by `tools/bmdToGlb.ts`).
   Each was checked against the server's initializers (S
   `Persistence/Initialization/VersionSeasonSix/Items/*.cs`, `GameLogic/Olympiad/OlympiadHeroItems.cs`);
   client-only rows (lucky items 62-72, "-J" items, cash shop items the server does not sell, the rings
@@ -57,6 +59,10 @@ all.ts                finds them and adds them to versions/shared/items' registr
   - `Follower`: the muun pets 13/150-155 (`IsMuunPet`, `MUUN_PETS` in the tool): no pet.bmd record, so they walk
     next to their owner as the Pet Panda does, on their own model at scale 0.9 (`PetProcess::LoadData`,
     `w_PetProcess.cpp`); `controllers/pets` `petSpec` builds the spec.
+  - `Mount`: the Divine Horses 13/156-161 (`IsDivineHorse`, `DIVINE_HORSES` in the tool; `ReforgeDivineHorse.h`): ridden
+    by the Dark Lord like the Dark Horse on their own model at scale 1 (`MountScale`). `blurBone` is "Bip001 Head"
+    (Earthshake's blur, `DarkHorseBonesOf` in GOBoid.cpp), `lights` the model's light sprites (`DivineHorseLights`)
+    on the bones it has. `controllers/pets` `petSpec` / `mountKind` / `ridesDarkHorse` read it.
   - `Label`: our ground name colour (`UI/Reforge/ReforgeGroundItemLabel.cpp`, `GROUND_LABELS` in the tool), bold:
     jewel yellow for Skill, Luck, Chaos Assembly and the Ancient Soul Stone, orange for the spirit stones and
     Garuda's Feather and Flame, cyan for the Jewel of Sea and the Socket Gem.

@@ -24,4 +24,9 @@ export default {
   'reforgeMix.muunExcellentDamage': 'شانس آسیب عالی +{value}%',
   'reforgeMix.muunCriticalDamage': 'شانس آسیب بحرانی +{value}%',
   'reforgeMix.muunReflect': '{value}% از آسیب دریافتی را بازمی‌گرداند',
+  'reforgeMix.divineHorse': 'Divine Horse',
+  'reforgeMix.divineHorseRide': 'Dark Lord مانند Dark Horse بر آن سوار می‌شود',
+  'reforgeMix.divineHorseSkill': 'مهارت Earthshake را می‌دهد',
+  'reforgeMix.divineHorseOrigin': 'ساخته‌شده از Gold Fenrir و Dark Horse',
+  'reforgeMix.nightmareDivineHorse': 'با یک Dark Horse هم در جعبه: یک Divine Horse تصادفی.',
 } satisfies Partial<Record<keyof typeof en, string>>;

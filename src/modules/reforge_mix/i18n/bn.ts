@@ -24,4 +24,9 @@ export default {
   'reforgeMix.muunExcellentDamage': 'এক্সেলেন্ট ক্ষতির সম্ভাবনা +{value}%',
   'reforgeMix.muunCriticalDamage': 'ক্রিটিক্যাল ক্ষতির সম্ভাবনা +{value}%',
   'reforgeMix.muunReflect': 'প্রাপ্ত ক্ষতির {value}% ফিরিয়ে দেয়',
+  'reforgeMix.divineHorse': 'Divine Horse',
+  'reforgeMix.divineHorseRide': 'Dark Lord এটি Dark Horse-এর মতো চড়েন',
+  'reforgeMix.divineHorseSkill': 'Earthshake দক্ষতা দেয়',
+  'reforgeMix.divineHorseOrigin': 'Gold Fenrir ও Dark Horse দিয়ে তৈরি',
+  'reforgeMix.nightmareDivineHorse': 'বাক্সে একটি Dark Horse-ও থাকলে: একটি এলোমেলো Divine Horse।',
 } satisfies Partial<Record<keyof typeof en, string>>;

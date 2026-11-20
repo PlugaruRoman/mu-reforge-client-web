@@ -22,6 +22,11 @@ const en = {
   'reforgeMix.muunExcellentDamage': 'Excellent damage chance +{value}%',
   'reforgeMix.muunCriticalDamage': 'Critical damage chance +{value}%',
   'reforgeMix.muunReflect': 'Reflects {value}% of the damage taken',
+  'reforgeMix.divineHorse': 'Divine Horse',
+  'reforgeMix.divineHorseRide': 'Ridden by the Dark Lord like the Dark Horse',
+  'reforgeMix.divineHorseSkill': 'Grants the Earthshake skill',
+  'reforgeMix.divineHorseOrigin': 'Made of a Gold Fenrir and a Dark Horse',
+  'reforgeMix.nightmareDivineHorse': 'With a Dark Horse in the box too: a random Divine Horse.',
 };
 
 export default en;

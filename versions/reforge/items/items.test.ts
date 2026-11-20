@@ -6,7 +6,7 @@ import { isBow, isCrossbow, isSwordformGloves, swordformGlovesModel } from '@/co
 import { itemHeldSprites } from '@/controllers/item_fx/itemLooks';
 import { ammoReload, attackRange, hasAmmo } from '@/controllers/combat/weaponRange';
 import { dropLabel, isJewel, itemDef, itemValue } from '@/controllers/item_rules';
-import { isRidingMount, mountKind, petSpec } from '@/controllers/pets';
+import { isRidingMount, mountKind, petSpec, ridesDarkHorse } from '@/controllers/pets';
 import type { Item } from '@/ecs/world';
 import { reforgeItems } from './all';
 
@@ -101,12 +101,28 @@ describe('reforge items', () => {
     expect(petSpec(item(13, 150))).toBe(muun);
     for (const num of [151, 152, 153, 154, 155]) expect(petSpec(item(13, num))?.kind).toBe('follower');
     expect([isRidingMount(item(13, 150)), mountKind(item(13, 150))]).toEqual([false, null]);
-    expect(petSpec(item(13, 156))).toBeNull();
     expect(itemValue({ group: 13, num: 150, lvl: 0, durability: 255 } as Item, 0)).toBe(150_000);
 
     const def = itemDef(14, 179);
     expect(def && isJewel(def)).toBe(true);
     expect(ItemsDatabase.getItem(14, 179)).toMatchObject({ ItemName: 'Jewel of Nightmare', X: 1, Y: 1, szModelName: 'JewelOfNightmare.glb' });
     expect(dropLabel({ isMoney: false, item: item(14, 179), group: 14, num: 179 })).toEqual({ colour: '#ffcc19', bold: true, setItem: false });
+  });
+
+  // Our client's Divine Horses (ReforgeDivineHorse.h, GOBoid.cpp; S MuunPets.cs, mix 119).
+  it('rides the Divine Horses like the Dark Horse, on their own model', () => {
+    expect(ItemsDatabase.getItem(13, 156)).toMatchObject({ ItemName: 'Divine Horse', X: 1, Y: 2, ItemSlot: 8, Skill: 62, DL: 1, 'DK/BK': 0 });
+    expect(ItemsDatabase.getItem(13, 161)).toMatchObject({ szModelFolder: 'Item/DivineHorse/', szModelName: 'Divine_Horse.glb' });
+    const darkHorse = petSpec(item(13, 4));
+    const divine = petSpec(item(13, 156));
+    expect(divine).toMatchObject({ kind: 'mount', model: 'Item/DivineHorse/Divine_Horse.glb', scale: 1, riderClips: 'horse', moveAction: darkHorse?.moveAction, blurBone: 7 });
+    expect(divine?.boneLights?.flatMap(l => l.bones)).toHaveLength(41);
+    expect(divine?.classicShadow).toEqual({});
+    expect(petSpec(item(13, 161))).toBe(divine);
+    for (const num of [156, 157, 158, 159, 160, 161]) {
+      expect([isRidingMount(item(13, num)), mountKind(item(13, num)), mountKind(item(13, num), true), ridesDarkHorse(item(13, num))]).toEqual([true, 'horse', null, true]);
+    }
+    expect([ridesDarkHorse(item(13, 4)), ridesDarkHorse(item(13, 37)), ridesDarkHorse(item(13, 150))]).toEqual([true, false, false]);
+    expect(itemValue({ group: 13, num: 156, lvl: 0, durability: 255 } as Item, 0)).toBe(150_000);
   });
 });

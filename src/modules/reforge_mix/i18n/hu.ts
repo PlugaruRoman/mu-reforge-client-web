@@ -24,4 +24,9 @@ export default {
   'reforgeMix.muunExcellentDamage': 'Kiváló sebzés esélye +{value}%',
   'reforgeMix.muunCriticalDamage': 'Kritikus sebzés esélye +{value}%',
   'reforgeMix.muunReflect': 'A kapott sebzés {value}%-át visszaveri',
+  'reforgeMix.divineHorse': 'Divine Horse',
+  'reforgeMix.divineHorseRide': 'A Dark Lord úgy lovagolja, mint a Dark Horse-t',
+  'reforgeMix.divineHorseSkill': 'Earthshake képességet ad',
+  'reforgeMix.divineHorseOrigin': 'Gold Fenrirből és Dark Horse-ból készül',
+  'reforgeMix.nightmareDivineHorse': 'Egy Dark Horse-szal is a dobozban: véletlen Divine Horse.',
 } satisfies Partial<Record<keyof typeof en, string>>;
