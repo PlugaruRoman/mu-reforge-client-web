@@ -30,6 +30,6 @@ export default defineItem({
   RF: 1,
   szModelFolder: 'Item/',
   szModelName: 'HeroCape.glb',
-  Wing: { link: { angle: [0, 0, 180], offset: [0, -13, 0] }, cloth: { texture: 'Item/Cape_Bronze25_0.OZT', mesh: 0 }, fast: true },
+  Wing: { link: { angle: [0, 0, 180], offset: [0, 0, 0] }, cloth: { texture: 'Item/Cape_Bronze25_0.OZT', mesh: 0 }, fast: true },
   BoneGlow: { color: [0.85, 0.62, 0.22], size: 1, bones: [1, 3, 5, 7, 9, 11, 13] },
 });

@@ -111,7 +111,7 @@ function drawSet(w: CloakWearer, base: BaseClass, team: boolean, set: CloakSet):
       if (i === 2 && !team && !isCapeOfLord(w.wing) && !isMantleOfMonarch(w.wing) && !isSmallCapeOfLord(w.wing) && !capeClothOf(w.wing)) continue;
       if ((i <= 1 || i === 3) && ring) continue;
     }
-    if (base === BaseClass.RageFighter && i === 0 && !team && !isCapeOfFighter(w.wing) && !isCapeOfOverrule(w.wing) && !isLittleWarriorsCloak(w.wing) && !capeClothOf(w.wing)) continue;
+    if (base === BaseClass.RageFighter && i === 0 && !team && !isCapeOfFighter(w.wing) && !isCapeOfOverrule(w.wing) && !isLittleWarriorsCloak(w.wing)) continue;
     if (i === 0 && darkCloak) continue;
     set.draw(i);
   }

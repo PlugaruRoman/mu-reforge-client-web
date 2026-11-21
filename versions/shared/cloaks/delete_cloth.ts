@@ -19,9 +19,9 @@ export function tearsSet(w: CloakWearer): boolean {
   const before = w.wingBefore;
   const now = w.wing;
   if (before?.group === now?.group && before?.num === now?.num) return false;
-  // Mu Reforge's `RebuildClothOnHeroCapeChange`: a Dark Lord or Rage Fighter putting a cloth cape on or off.
+  // Mu Reforge's `RebuildClothOnHeroCapeChange`: a Dark Lord putting a cloth cape on or off.
   const base = getBaseClass(w.charClass);
-  if ((base === BaseClass.DarkLord || base === BaseClass.RageFighter) && !capeClothOf(before) !== !capeClothOf(now)) return true;
+  if (base === BaseClass.DarkLord && !capeClothOf(before) !== !capeClothOf(now)) return true;
   if (w.hero) return clothWing(before) || clothWing(now);
   return now === null ? clothWing(before) : clothWing(now);
 }

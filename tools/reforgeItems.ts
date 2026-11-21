@@ -254,11 +254,11 @@ export function extras(
   const glow = model.itemEffect ? BONE_GLOWS[model.itemEffect] : undefined;
   if (group === 12 && item.slot === 'wings') {
     // `TurnCloak` (Render/Items/Reforge/ReforgeCloaks.cpp): our cloaks hang from the wing bone turned
-    // half round, the Hero capes pulled 13 in. The two shop capes are cloth only (not drawn here).
+    // half round (the Hero capes as the Referre Cloak). The two shop capes are cloth only (not drawn here).
     const name = model.model ?? '';
     const wing: Row = {};
     if (name === 'capeOfLord' || name === 'capeOfFighter') wing.clothOnly = true;
-    else if (item.tags?.includes('cape')) wing.link = { angle: [0, 0, 180], offset: [0, name === 'heroCape' ? -13 : 0, 0] };
+    else if (item.tags?.includes('cape')) wing.link = { angle: [0, 0, 180], offset: [0, 0, 0] };
     const mesh = CLOTH_CAPES[name];
     const texture = mesh === undefined ? undefined : readTexture(mesh);
     // The original's file naming: a .tga is shipped as .OZT, a .jpg as .OZJ.

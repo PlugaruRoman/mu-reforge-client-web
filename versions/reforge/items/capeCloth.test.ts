@@ -62,10 +62,10 @@ describe('cape cloths of our wings', () => {
     expect(set.drawn.has(2)).toBe(true);
   });
 
-  it('hangs the Hero Cape as a Rage Fighter cape', () => {
+  it('hangs no cloth for the Hero Cape on a Rage Fighter, who wears it as the Referre Cloak', () => {
     const set = wear({ charClass: C.RageFighter, wing: HERO_CAPE });
-    expect(set.specs[0]).toMatchObject({ front: HERO_TEXTURE, size: [180, 170], at: [0, 15, 5] });
-    expect(set.drawn.has(0)).toBe(true);
+    expect(set.specs[0]?.front).not.toBe(HERO_TEXTURE);
+    expect(set.drawn.has(0)).toBe(false);
   });
 
   it('rebuilds the set when the Hero Cape goes on or off', () => {

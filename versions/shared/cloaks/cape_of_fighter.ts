@@ -7,7 +7,7 @@ import {
   PCT_SHORT_SHOULDER,
   type ClothSpec,
 } from '@/controllers/cloth';
-import { CAPE_OF_FIGHTER, CAPE_OF_OVERRULE, WING_GROUP, capeClothOf } from '@/controllers/actors/wings';
+import { CAPE_OF_FIGHTER, CAPE_OF_OVERRULE, WING_GROUP } from '@/controllers/actors/wings';
 import type { Item } from '@/ecs/world';
 
 /** The Rage Fighter's cloth 0, the cape: `Item\NCcape.tga` (BITMAP_NCCAPE), 180 x 170 (ZzzCharacter.cpp:9799-9806). */
@@ -58,8 +58,10 @@ export const LITTLE_WARRIORS_CLOAK = 135;
 export const LITTLE_WARRIORS_CLOAK_CLOTH: ClothSpec = { ...CAPE_OF_FIGHTER_CLOTH, size: [150, 130] };
 export const isLittleWarriorsCloak = (wing: Item | null): boolean => wing?.group === WING_GROUP && wing.num === LITTLE_WARRIORS_CLOAK;
 
-/** A cape an item file hangs as cloth (`Wing.cloth`, Mu Reforge's Hero Cape): the Cape of Overrule's shape in its texture. */
-export function fighterClothOf(wing: Item | null): ClothSpec | null {
-  const cloth = capeClothOf(wing);
-  return cloth ? { ...CAPE_OF_FIGHTER_CLOTH, front: cloth.texture, back: cloth.texture } : null;
+/**
+ * A cape an item file hangs as cloth on a Rage Fighter: none. Mu Reforge's Hero Cape, the one such cape, is worn by a
+ * Rage Fighter as the Referre Cloak whose mesh and animation it carries (`WearsHeroCapeCloth` is the Dark Lord's only).
+ */
+export function fighterClothOf(_wing: Item | null): ClothSpec | null {
+  return null;
 }

@@ -282,11 +282,10 @@ export class PlayerObject extends ModelObject {
     const spec = wingSpec(wings);
     const def = wings && spec ? ItemsDatabase.getItem(wings.group, wings.num) : null;
 
-    // A Dark Lord or Rage Fighter wears a cloth cape as cloth only, like the Cape of Fighter
-    // (`IsHeroCapeWornAsCloth`): its model is authored for the wing bone and sat wrong on the back.
+    // A Dark Lord wears a cloth cape as cloth only, like the Cape of Lord (`IsHeroCapeWornAsCloth`); a Rage Fighter
+    // wears the whole model, as the Referre Cloak whose skeleton and animation it carries.
     const base = this.playerClass % 100;
-    const capeWearer = base === PlayerClass.DarkLord || base === PlayerClass.RageFighter;
-    if (!wings || !spec || !def || spec.clothOnly || (capeWearer && capeClothOf(wings))) {
+    if (!wings || !spec || !def || spec.clothOnly || (base === PlayerClass.DarkLord && capeClothOf(wings))) {
       this.Wings.prepare(null);
       this.Wings.Unload();
       return;

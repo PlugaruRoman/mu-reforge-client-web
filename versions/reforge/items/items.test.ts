@@ -28,7 +28,7 @@ describe('reforge items', () => {
     expect(heavenly?.sprites?.[0].bones.length).toBeGreaterThan(0);
     expect(wingLinkMatrix(heavenly)).toBeNull();
     expect(wingSpec(item(12, 55))?.link).toEqual({ angle: [0, 0, 180], offset: [0, 0, 0] });
-    expect(wingSpec(item(12, 59))?.link?.offset).toEqual([0, -13, 0]);
+    expect(wingSpec(item(12, 59))?.link).toEqual({ angle: [0, 0, 180], offset: [0, 0, 0] });
     expect(wingLinkMatrix(wingSpec(item(12, 59)))).not.toBeNull();
     expect(wingSpec(item(12, 130))?.clothOnly).toBe(true);
     expect(isFastWing(item(12, 58))).toBe(true);
