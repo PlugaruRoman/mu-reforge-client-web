@@ -282,17 +282,18 @@ export class PlayerObject extends ModelObject {
     const spec = wingSpec(wings);
     const def = wings && spec ? ItemsDatabase.getItem(wings.group, wings.num) : null;
 
-    if (!wings || !spec || !def || spec.clothOnly) {
+    // A Dark Lord or Rage Fighter wears a cloth cape as cloth only, like the Cape of Fighter
+    // (`IsHeroCapeWornAsCloth`): its model is authored for the wing bone and sat wrong on the back.
+    const base = this.playerClass % 100;
+    const capeWearer = base === PlayerClass.DarkLord || base === PlayerClass.RageFighter;
+    if (!wings || !spec || !def || spec.clothOnly || (capeWearer && capeClothOf(wings))) {
       this.Wings.prepare(null);
       this.Wings.Unload();
       return;
     }
 
     this.Wings.prepare(spec);
-    // A Dark Lord or Rage Fighter wears a cloth cape's hanging part as cloth (`HideClothPartOfHeroCape`).
-    const base = this.playerClass % 100;
-    const capeWearer = base === PlayerClass.DarkLord || base === PlayerClass.RageFighter;
-    this.Wings.HiddenMesh = capeWearer ? (capeClothOf(wings)?.mesh ?? -1) : -1;
+    this.Wings.HiddenMesh = -1;
 
     await this.loadPartAsync(
       def.szModelFolder,
