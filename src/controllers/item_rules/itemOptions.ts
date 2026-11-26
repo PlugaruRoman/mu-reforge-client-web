@@ -33,7 +33,8 @@ export function isSocketItem(group: number, num: number): boolean {
     if (num === TIGRIS && group === GLOVES) return false;
     return gameVersion?.features.extraSocketSets?.includes(num) ?? false;
   }
-  return SOCKET_ITEMS[group]?.includes(num) ?? false;
+  if (SOCKET_ITEMS[group]?.includes(num)) return true;
+  return gameVersion?.features.extraSocketItems?.[group]?.includes(num) ?? false;
 }
 
 /** The 380 option: bit 3 of byte 5, only in the bytes the server sent (NewUIItemMng.cpp:209-213). */

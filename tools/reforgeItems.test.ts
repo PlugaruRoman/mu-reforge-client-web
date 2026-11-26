@@ -96,7 +96,7 @@ describe('reforgeItems', () => {
   });
 
   it('lists each item once, and the generated folder has every one', () => {
-    expect(NEW_ITEMS).toHaveLength(95);
+    expect(NEW_ITEMS).toHaveLength(98);
     expect(new Set([...NEW_ITEMS, ...RENAMED]).size).toBe(NEW_ITEMS.length + RENAMED.length);
     const files = readdirSync(REFORGE_ITEMS_DIR, { withFileTypes: true })
       .filter(d => d.isDirectory())

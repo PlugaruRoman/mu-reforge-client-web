@@ -79,6 +79,9 @@ export const gameVersion: GameVersion = {
     // The Eternal Wing (44) and Tigris (104, no gloves) sets carry sockets (S Items/SocketSystem.cs
     // AddSocketsToItems; our client's SocketSystem.cpp IsSocketItem).
     extraSocketSets: [44, 104],
+    // The Imperial socket items: the Rage Fighter's claw, the Summoner's book, the Dark Lord's shield
+    // (S Items/SocketSystem.cs ImperialSocketWeapons / ImperialSocketArmors; our client's IsSocketItem).
+    extraSocketItems: { 0: [40], 5: [24], 6: [22] },
     // Ancient items take harmony (S ItemConsumeActions/HarmonyJewelConsumeHandlerPlugIn.cs; our client's
     // InventoryCtrl.cpp DropActsOn).
     harmonyOnAncient: true,

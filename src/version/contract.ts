@@ -202,6 +202,11 @@ export interface VersionFeatures {
    * none (Mu Reforge: 44 Eternal Wing, 104 Tigris).
    */
   readonly extraSocketSets?: readonly number[];
+  /**
+   * Weapons, books and shields (groups 0-6) the server made socketable beside the original's, by group: the same
+   * rules as `extraSocketSets`. Omitted = none (Mu Reforge: the Imperial Claw 0/40, Book 5/24 and Shield 6/22).
+   */
+  readonly extraSocketItems?: Readonly<Record<number, readonly number[]>>;
   /** The Jewel of Harmony may be applied to an ancient item (Mu Reforge). Omitted = refused, as the original. */
   readonly harmonyOnAncient?: boolean;
   /**

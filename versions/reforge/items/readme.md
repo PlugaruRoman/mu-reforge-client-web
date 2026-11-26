@@ -16,13 +16,17 @@ all.ts                finds them and adds them to versions/shared/items' registr
 - The source is our C++ client's item tables (`mu-reforge-client-next/src/bin/Data/Items/GroupNN_*.json`
   and `Items/Models/*.json`); the new client has no `Item_eng.bmd`. `tools/reforgeItems.ts` fills each
   group's column layout (the stock files' Item.txt header) from those rows.
-- New items (95): the Olympiad Hero weapons, wings and capes (and their stage 1), the 4th wings, the
+- New items (98): the Olympiad Hero weapons, wings and capes (and their stage 1), the 4th wings, the
   Tigris set (104 in groups 7, 8, 9, 11), the socket spheres 12/71-74, the shop's small wings
   12/130-135, event tickets 13/46-48 and 13/125, and group 14's shop, flower event, wing craft, zen box,
   jewel and socket gem items, the Ancient Soul Stone 14/178 (S `AncientSmith.cs`, `Item/AncientGem.glb`), the muun
   pets 13/150-155 (`Item/Muun/*.glb`) and the Jewel of Nightmare 14/179 (`Item/JewelOfNightmare.glb`, S `MuunPets.cs`),
   and the Divine Horses 13/156-161 (one model, `Item/DivineHorse/Divine_Horse.glb`: our client's
-  `Data/Item/DivineHorse/Divine_Horse.bmd`, converted with its seven actions by `tools/bmdToGlb.ts`).
+  `Data/Item/DivineHorse/Divine_Horse.bmd`, converted with its seven actions by `tools/bmdToGlb.ts`), and the
+  Imperial socket items: the Rage Fighter's Imperial Claw 0/40, the Summoner's Imperial Book 5/24 and the Dark
+  Lord's Imperial Shield 6/22 (S `Weapons.cs` `CreateImperialWeapons`, `Armors.cs` `CreateImperialShield`;
+  `Item/ImperialClaw.glb`, `ImperialBook.glb`, `ImperialShield.glb`), socketable through the version's
+  `extraSocketItems`.
   Each was checked against the server's initializers (S
   `Persistence/Initialization/VersionSeasonSix/Items/*.cs`, `GameLogic/Olympiad/OlympiadHeroItems.cs`);
   client-only rows (lucky items 62-72, "-J" items, cash shop items the server does not sell, the rings
@@ -45,7 +49,8 @@ all.ts                finds them and adds them to versions/shared/items' registr
   - `BoneGlow`: `ApplyBoneGlow` (`ReforgeItemEffects.cpp`): a pulsing flare01 on every second bone of a
     wing in its class colour, on every bone of a Hero weapon with Shiny02 stars at grip and tip. Wings
     draw it through `wings.ts`, carried weapons through `item_fx/itemLooks.ts`.
-  - `WornModels`: the Hero Claw's worn pair `HeroClaw_R` / `HeroClaw_L` (`HeroClawHands.cpp`).
+  - `WornModels`: the Hero Claw's worn pair `HeroClaw_R` / `HeroClaw_L` and the Imperial Claw's
+    `ImperialClaw_R` / `ImperialClaw_L` (`HeroClawHands.cpp`).
   - `Launcher`: the Hero bows (25, 27) and crossbows (26, 28), past the original's launcher numbers. Read
     by `actors/weaponClass.ts` `isBow` / `isCrossbow`, which the hero's damage (`modules/hero/characterStats.ts`)
     and the ammunition check and reload (`combat/weaponRange.ts`) use: bows want arrows, crossbows bolts, as
@@ -78,6 +83,8 @@ all.ts                finds them and adds them to versions/shared/items' registr
 - The Hero Cape's wing shadow while worn as cloth (`CastsWingShadow` / `WearsHeroCapeCloth`).
 - The jewels' tinted chrome (`ReforgeRenderStyles.cpp`, Jewel of Skill aqua, Jewel of Luck gold) and
   our inventory / ground transforms (`inventory`, `ground` in the model JSON).
+- The model JSON's `glow.meshes` (which meshes take the level shine: the Imperial Claw 0-2, Book 0-2, Shield 0, 1, 4)
+  and `renderStyle: textured`: the level shine goes over the whole model.
 
 ## Depends on / used by
 - uses: `@/controllers/items`, `versions/shared/items/all.ts`

@@ -1,13 +1,14 @@
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 import { i18n } from '@/i18n';
 import { ItemsDatabase, itemBaseName } from '../../shared/items/itemsDatabase';
 import { isFastWing, wingLinkMatrix, wingSpec } from '@/controllers/actors/wings';
-import { isBow, isCrossbow, isSwordformGloves, swordformGlovesModel } from '@/controllers/actors/weaponClass';
+import { isBook, isBow, isCrossbow, isShield, isSwordformGloves, swordformGlovesModel } from '@/controllers/actors/weaponClass';
 import { itemHeldSprites } from '@/controllers/item_fx/itemLooks';
 import { ammoReload, attackRange, hasAmmo } from '@/controllers/combat/weaponRange';
-import { dropLabel, isJewel, itemDef, itemValue } from '@/controllers/item_rules';
+import { dropLabel, isJewel, isSocketItem, itemDef, itemValue } from '@/controllers/item_rules';
 import { isRidingMount, mountKind, petSpec, ridesDarkHorse } from '@/controllers/pets';
 import type { Item } from '@/ecs/world';
+import { loadGameVersion } from '@/version';
 import { reforgeItems } from './all';
 
 const item = (group: number, num: number) => ({ group, num, lvl: 0 });
@@ -124,5 +125,39 @@ describe('reforge items', () => {
     }
     expect([ridesDarkHorse(item(13, 4)), ridesDarkHorse(item(13, 37)), ridesDarkHorse(item(13, 150))]).toEqual([true, false, false]);
     expect(itemValue({ group: 13, num: 156, lvl: 0, durability: 255 } as Item, 0)).toBe(150_000);
+  });
+
+  // The Imperial socket items (S Items/Weapons.cs CreateImperialWeapons, Items/Armors.cs CreateImperialShield,
+  // Items/SocketSystem.cs; our client's IsSocketItem and HeroClawHands.cpp).
+  describe('the Imperial socket items', () => {
+    beforeAll(() => loadGameVersion('reforge'), 60_000);
+
+    it('carries the claw, the book and the shield with the values, sizes and classes of the server', () => {
+      expect(ItemsDatabase.getItem(0, 40)).toMatchObject({
+        ItemName: 'Imperial Claw', X: 1, Y: 2, ItemSlot: 0, Skill: 270, ItemLvl: 138, Durability: 95, DmgMin: 113, DmgMax: 119,
+        Speed: 40, RequiredLvl: 380, Strength: 105, Agi: 50, RF: 1, 'DK/BK': 0, szModelName: 'ImperialClaw.glb',
+      });
+      expect(ItemsDatabase.getItem(5, 24)).toMatchObject({
+        ItemName: 'Imperial Book', X: 1, Y: 2, ItemSlot: 1, Skill: 225, ItemLvl: 103, MagicDur: 55, Speed: 25, MagicPwr: 70,
+        Agi: 30, Ene: 210, SUM: 1, 'DW/SM': 0, szModelName: 'ImperialBook.glb',
+      });
+      expect(ItemsDatabase.getItem(6, 22)).toMatchObject({
+        ItemName: 'Imperial Shield', X: 2, Y: 2, ItemSlot: 1, Skill: 18, ItemLvl: 104, Dur: 51, Def: 17, DefRate: 82,
+        Str: 105, Agi: 45, DL: 1, 'DK/BK': 0, szModelName: 'ImperialShield.glb',
+      });
+    });
+
+    it('wears the claw as its own pair, never draws the book, and holds the shield', () => {
+      expect(isSwordformGloves(item(0, 40))).toBe(true);
+      expect(swordformGlovesModel(item(0, 40), 0)).toBe('ImperialClaw_R.glb');
+      expect(swordformGlovesModel(item(0, 40), 1)).toBe('ImperialClaw_L.glb');
+      expect(isBook(item(5, 24))).toBe(true);
+      expect(isShield(item(6, 22))).toBe(true);
+    });
+
+    it('takes them as socket items, beside the stock ones, and nothing next to them', () => {
+      for (const [g, n] of [[0, 40], [5, 24], [6, 22], [0, 26], [6, 17]]) expect(isSocketItem(g, n)).toBe(true);
+      for (const [g, n] of [[0, 35], [0, 41], [5, 23], [6, 21]]) expect(isSocketItem(g, n)).toBe(false);
+    });
   });
 });

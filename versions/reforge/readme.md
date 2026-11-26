@@ -10,7 +10,8 @@ plug-ins: the `...Extended` packets and the 5-15 byte `ItemSerializerExtended` i
   list tag `REFORGE`, client version bytes `20404`, `variantRank` (`...Extended` first, then
   the classic name, then `...075` / `...095` / `...097`), `protocol.itemCodec: 'extended'`
   and `modulesOff: ['marketplace', 'band']`. Features are Season 6's plus `extraSocketSets: [44, 104]`
-  (the Eternal Wing and Tigris sets carry sockets) and `harmonyOnAncient` (the Jewel of Harmony goes on
+  (the Eternal Wing and Tigris sets carry sockets), `extraSocketItems` (the Imperial Claw 0/40, Book 5/24 and
+  Shield 6/22) and `harmonyOnAncient` (the Jewel of Harmony goes on
   ancient items), as our server and C++ client have them. Serial, data and mini-games are Season 6's; the
   keys too, except `keyDefaults`, which frees our C++ client's window letters (H, K, S, Y, L, and N for the
   Mu Reforge menu) from the client actions that held them.

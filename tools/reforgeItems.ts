@@ -47,6 +47,9 @@ export const NEW_ITEMS: readonly string[] = [
   '13/150', '13/151', '13/152', '13/153', '13/154', '13/155', '14/179',
   // The Divine Horses, the Dark Lord's mount of mix 119 (S VersionSeasonSix/MuunPets.cs).
   '13/156', '13/157', '13/158', '13/159', '13/160', '13/161',
+  // The Imperial socket items: the Rage Fighter's claw, the Summoner's book, the Dark Lord's shield
+  // (S Items/Weapons.cs CreateImperialWeapons, Items/Armors.cs CreateImperialShield).
+  '0/40', '5/24', '6/22',
 ];
 
 /**
